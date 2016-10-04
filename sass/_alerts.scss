@@ -1,0 +1,41 @@
+@mixin alert-styles($color){
+  background: $color;
+  color: darken($color, 70%);
+  box-shadow: -1000px 0 0 0 $color, 1000px 0 0 0 $color;
+
+  @media( max-width: $breakpoint-xl ){
+    box-shadow: -200px 0 0 0 $color, 200px 0 0 0 $color;
+  }
+}
+
+.c-alert{
+  color: $gray-darkest;
+  padding: $padding/2;
+  margin-bottom: $padding/2;
+  position: relative;
+}
+
+.c-alert--danger{
+  $color: rgba($danger, 0.5);
+  @include alert-styles($color);
+}
+.c-alert--success{
+  $color: rgba($success, 0.5);
+  @include alert-styles($color);
+}
+.c-alert--warning{
+  $color: rgba($warning, 0.5);
+  @include alert-styles($color);
+}
+.c-alert--info{
+  $color: rgba($info, 0.5);
+  @include alert-styles($color);
+}
+
+.c-alert__text{
+  display: inline-block;
+}
+
+.c-alert__close{
+  float: right;
+}

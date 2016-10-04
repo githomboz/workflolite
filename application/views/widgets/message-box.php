@@ -1,0 +1,1 @@
+<div id="message-box-container"><?php if(isset($this->message) && !empty($this->message['text'])){ ?><div id="message-box" class="<?php echo isset($this->message['classes']) ? $this->message['classes']:''?> clearfix"><?php echo $this->message['text']?></div><!--message-box--><?php } //message?></div>

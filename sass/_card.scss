@@ -1,0 +1,39 @@
+.c-form{
+  @include clearfix();
+}
+.c-card {
+  background: $gray-lightest;
+  @include base-box-shadow();
+  transition: box-shadow .2s ease-out;
+  margin-bottom: $padding;
+
+  &:hover {
+    @include hover-box-shadow();
+  }
+}
+
+.c-card__header {
+  border-bottom: 1px solid $gray-medium;
+  padding: $padding/2 $padding;
+}
+
+.c-card__title {
+  margin: 0;
+  font-weight: $font-weight-medium;
+  text-transform: uppercase;
+  font-size: $font-size-md;
+}
+
+.c-card__body {
+  padding: $padding;
+  @include clearfix();
+
+  &--min-height {
+    height: 350px;
+  }
+}
+
+.c-card__scroll {
+  height: 100%;
+  overflow-y: scroll;
+}

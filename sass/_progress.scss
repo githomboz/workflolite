@@ -1,0 +1,122 @@
+.wrapper--progress {
+  position: relative;
+  //margin-bottom: $padding;
+  @include clearfix();
+  height: 110px;
+}
+
+.progress {
+  @include clearfix();
+  margin: $padding auto 0;
+  width: 100%;
+  transform: scale(1);
+  &.sticky {
+    position: fixed;
+    z-index: 200;
+    padding:  $padding*2 $padding 0;
+    background: $gray-lightest;
+    height: 125px;
+    margin: 0;
+    top: 0;
+    left: 0;
+    @include base-box-shadow();
+
+    @media(max-width: $breakpoint-md){
+      height: 110px;
+    }
+  }
+}
+
+.progress--wrapper {
+  position: relative;
+}
+
+.progress__step {
+  position: relative;
+  display: inline-block;
+  float: left;
+  text-align: center;
+  width: calc(100% / 3);
+  counter-increment: li;
+
+  @media( max-width: $breakpoint-md ){
+    width: calc(100% / 8.5);
+
+    .sticky &{
+      width: calc(100% / 3 );
+    }
+  }
+
+  @media( max-width: $breakpoint-sm ){
+    .sticky &{
+      width: calc(100% / 7.5);
+    }
+  }
+
+  span,
+  a{
+    width: 110px;
+    margin-top: $padding;
+    display: inline-block;
+    font-size: $font-size-xs;
+    line-height: 16px;
+    position: absolute;
+    transform: translate(-50%, -25%);
+    color: $gray-dark;
+
+    @media( max-width: $breakpoint-md ){
+      display: none;
+    }
+  }
+
+  &:before {
+    content: counter(li);
+    position: relative;
+    background: $gray-light;
+    color: $gray-medium;
+    width: $padding*2;
+    height: $padding*2;
+    border-radius: 100%;
+    padding: $padding/2 0 0;
+    margin: 0 auto;
+    font-size: $font-size-sm;
+    text-align: center;
+    display: block;
+    z-index: 2;
+  }
+
+  &:not(:first-child):after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: $padding/2;
+    display: block;
+    background: $gray-light;
+    z-index: 1;
+    top: 50%;
+    left: -50%;
+    transform: translate(0, -50%);
+    background-size: 20px 20px;
+  }
+
+  &--has-completed,
+  &--is-active {
+    &:before {
+      background: $primary;
+      color: $gray-lightest;
+    }
+    &:not(:first-child):after {
+      background: $primary;
+    }
+
+    span,
+    a{
+      color: $primaryDark;
+
+      &:hover{
+        color: $primary;
+      }
+    }
+  }
+
+}

@@ -1,0 +1,80 @@
+.c-logo{
+  background: $primary;
+  color: $gray-lightest;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  display: block;
+  padding: $padding;
+  box-shadow: -$padding 0 0 $primary, $padding 0 0 $primary;
+}
+
+
+.c-topbar {
+  background: $gray-darkest;
+  @include clearfix();
+}
+
+.c-progress {
+  text-align: center;
+}
+
+.c-progress__step {
+  color: $gray-lightest;
+  padding: $padding;
+  display: inline-block;
+  position: relative;
+
+  &:not(:last-child) {
+    &:after {
+      content: '|';
+      position: relative;
+      left: 20px;
+    }
+  }
+
+  &:hover {
+    color: $gray-medium;
+  }
+
+  &.is-active,
+  &.has-completed{
+    color: $primary;
+
+    &:hover {
+      color: $primaryDark;
+
+      &:after {
+        color: $primaryDark;
+      }
+    }
+
+    &:after {
+      color: $primary;
+      left: 20px;
+    }
+
+  }
+  &.has-completed{
+    opacity: .6;
+
+    &.is-active {
+      opacity: 1;
+
+    }
+  }
+}
+
+.c-top-actions{
+  text-align: center;
+}
+
+.c-top-actions__action{
+  color: $gray-lightest;
+  padding: $padding $padding/2;
+  display: inline-block;
+  
+  &:hover{
+    color: $primary;
+  }
+}

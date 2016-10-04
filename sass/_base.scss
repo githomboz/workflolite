@@ -1,0 +1,544 @@
+
+$upperhead_height: 34px;
+$mainhead_height: 82px;
+$mainhead_bgcolor: #46803f;
+$mainhead_color: #fff;
+$paddingLarge: 18px;
+
+$sidepanel_width: 250px;
+$sidepanel_bg: #f2f2f2;
+$sidepanel_color_dark: #555;
+$sidepanel_color_light: #7f7f7f;
+
+$button_blue: #4992d0;
+
+
+
+body {
+  font-family: "Open Sans", arial, sans-serif;
+  font-weight: $font-weight-light;
+  background: #fff;
+  color: $sidepanel_color_dark;
+  height: 100%;
+}
+
+.clearfix {
+  @include clearfix();
+}
+.upper-head {
+  height: $upperhead_height;
+  background: darken($mainhead_bgcolor, 30%);
+  position: relative;
+
+  nav a {
+    color: $gray-lightest;
+  }
+
+  nav li {
+    float: left;
+    padding: 0 $padding;
+    line-height: $upperhead_height;
+    font-size: $font-size-xs;
+    text-transform: uppercase;
+
+    &.active {
+      background: darken($mainhead_bgcolor, 25%);
+      font-weight: $font-weight-semi-bold;
+    }
+
+  }
+
+  .upper-links a {
+    color: lighten($mainhead_bgcolor, 15%);
+    line-height: $upperhead_height;
+    top: 0;
+    right: $padding;
+    position: absolute;
+    font-size: $font-size-sm;
+
+    .fa {
+      font-size: 105%;
+      padding-right: 3px;
+    }
+  }
+}
+
+input ,
+textarea {
+  padding: 0 $padding/2;
+  border-radius: 3px;
+  border: 1px solid darken($sidepanel_bg, 10%);
+  box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+
+.main-head {
+  background: $mainhead_bgcolor;
+  height: $mainhead_height;
+  border-bottom: 1px solid darken($mainhead_bgcolor, 10%);
+  overflow: hidden;
+
+  .logo-container {
+    float: left;
+    margin: $paddingLarge $padding 0 $paddingLarge;
+  }
+
+  .page-title {
+    float: left;
+    position: relative;
+
+    h1 {
+      font-size: 20px;
+      color: lighten($mainhead_bgcolor, 60%);
+      top: 6px;
+      position: relative;
+      font-weight: $font-weight-semi-bold;
+    }
+
+    h3 {
+      font-size: $font-size-sm;
+      color: lighten($mainhead_bgcolor, 20%);
+    }
+  }
+
+  .search {
+    float: right;
+    background: #fff;
+    padding: $padding;
+    margin-right: $paddingLarge;
+    border-radius: 3px;
+    top: $paddingLarge + 1;
+    position: relative;
+
+    .fa-search {
+      color: darken($mainhead_bgcolor, 10%);
+    }
+
+    input {
+      border: none;
+      box-shadow: none;
+    }
+  }
+}
+
+.sidepanel {
+  width: $sidepanel_width;
+  background: $sidepanel_bg;
+  color: $sidepanel_color_dark;
+  border-right: 1px solid darken($sidepanel_bg, 30%);
+  float: left;
+  padding: $padding;
+  position: relative;
+  height: 100%;
+
+  &.collapse {
+    width: 20px;
+
+    .panel {
+      display: none;
+    }
+
+    .js-toggle {
+      right: 5px;
+    }
+  }
+
+  .js-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+  }
+
+  .js-send-message {
+    position: absolute;
+    top: 6px;
+    right: 0px;
+    cursor: pointer;
+  }
+
+  .panel {
+    margin-bottom: 20px;
+    position: relative;
+
+    .fa {
+      padding-right: 5px;
+    }
+  }
+
+  .job-meta {
+    line-height: 1.4em;
+    font-size: $font-size-sm;
+
+    .meta-pair {
+      margin-bottom: 1em;
+
+      .title {
+        font-weight: $font-weight-semi-bold;
+      }
+
+      .value {
+        color: $sidepanel_color_light;
+
+        &.block {
+          display: block;
+        }
+      }
+    }
+  }
+
+  h1 {
+    line-height: 1.5em;
+    font-size: $font-size-lg;
+  }
+
+  .contact-list {
+    background: #fff;
+    border-radius: 5px;
+    border: 1px solid darken($sidepanel_bg, 15%);
+    box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+    padding: $padding;
+
+    .contact-entry {
+      margin-bottom: 1em;
+
+      h3 {
+        font-size: $font-size-sm;
+      }
+
+      .role {
+        color: $sidepanel_color_light;
+        font-size: $font-size-xs;
+      }
+
+      .image {
+        width: 30px;
+        height: 30px;
+        border-radius: 150px;
+        overflow: hidden;
+        float: left;
+        margin-right: $padding;
+
+        img {
+          width: 30px;
+        }
+      }
+    }
+
+  }
+}
+
+.main-content {
+  overflow: hidden;
+  padding: $paddingLarge;
+
+  .inner-nav {
+    border-bottom: 2px solid darken($sidepanel_bg, 10%);
+    margin-bottom: $padding;
+
+    li {
+      float: left;
+      text-transform: uppercase;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semi-bold;
+      position: relative;
+
+      a {
+        color: $sidepanel_color_light;
+        padding: 0 $padding $paddingLarge $padding;
+        display: block;
+        z-index: 3;
+        position: relative;
+        bottom: -2px;
+        border-bottom: 2px solid darken($sidepanel_bg, 10%);
+      }
+
+      &.active a {
+        color: darken($mainhead_bgcolor, 35%);
+        border-bottom-color: lighten($mainhead_bgcolor, 10%);
+        z-index: 6;
+        position: relative;
+      }
+
+    }
+
+  }
+
+}
+
+.main-footer {
+  background: darken($mainhead_bgcolor, 30%);
+  color: $gray-lightest;
+  line-height: 30px;
+  font-size: $font-size-sm;
+  text-align: center;
+}
+
+a.checkbox {
+  display: inline-block;
+  width: 22px;
+  height:22px;
+  background: $sidepanel_bg;
+  border-radius: 11px;
+  border: 1px solid darken($sidepanel_bg, 15%);
+  color: darken($sidepanel_bg, 10%);
+  text-align: center;
+  line-height: 22px;
+  font-size: 14px;
+
+  &.checked {
+    background: lighten($mainhead_bgcolor, 55%);
+    border: 1px solid darken($mainhead_bgcolor, 1%);
+    color: darken($mainhead_bgcolor, 1%) !important;
+  }
+}
+
+$sendmessage_width: 730px;
+
+.send-message {
+  padding: $paddingLarge;
+  background: $sidepanel_bg;
+  box-shadow: 0px 0px 2px 2px rgba(0, 0, 0, .2);
+  width: $sendmessage_width - $paddingLarge*2;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 10;
+  top: 300px;
+  display: none;
+
+  h2 {
+    margin: 0 0 $padding;
+    padding: 0;
+  }
+
+  header {
+    position: relative;
+
+    h1 {
+      font-size: 18px;
+      margin: 0 0 $paddingLarge;
+      padding-bottom: $paddingLarge;
+      border-bottom: 1px solid darken($sidepanel_bg, 10%);
+    }
+
+    .select-template {
+      position: absolute;
+      font-size: $font-size-sm;
+      top: 0;
+      right: 0;
+    }
+
+  }
+
+  input,
+  textarea {
+    width: 100%;
+  }
+
+  textarea {
+    padding: $padding;
+    line-height: 1.4em;
+    font-size: $font-size-sm;
+  }
+
+  .message-body {
+
+    .message-forms {
+      float: left;
+      width: 66%;
+
+      .disclaimer {
+        color: darken($sidepanel_bg, 25%);
+        font-size: $font-size-sm;
+      }
+
+      .seg-sms {
+        position: relative;
+
+        .character-count {
+          position: absolute;
+          top: 2px;
+          right: 0;
+          font-size: $font-size-sm;
+        }
+      }
+
+      #email-copy {
+        height: 240px;
+        margin-bottom: $paddingLarge;
+      }
+
+      #sms-copy {
+        height: 60px;
+        margin-bottom: $paddingLarge;
+      }
+
+    }
+
+    .recipients-fields {
+      float: right;
+      width: 31%;
+      margin-bottom: $paddingLarge;
+
+      .recipient-list {
+        height: 290px;
+        overflow: scroll;
+      }
+
+      input {
+        margin-bottom: $padding;
+        line-height: 40px;
+        padding: 0 $padding;
+        width: 101%;
+      }
+
+      .recipient {
+        background: darken($sidepanel_bg, 4%);
+        width: 100%;
+        padding: 0 14px;
+        margin-bottom: $padding;
+        border-radius: 3px;
+        box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, .08);
+        line-height: 32px;
+        position: relative;
+        font-size: $font-size-sm;
+
+        .fa-times {
+          color: darken($sidepanel_color_dark, 0);
+          position: absolute;
+          right: 14px;
+          top: 8px;
+        }
+      }
+    }
+
+    .js-send-message {
+      float: right;
+      border-radius: 3px;
+      box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, .08);
+      width: 100%;
+      color: #fff;
+      background: $button_blue;
+      line-height: 32px;
+      border: none;
+    }
+
+  }
+
+}
+
+
+/********************************* End Common Styles *********************************/
+
+$tasklist_height : 36px;
+
+.tasklist {
+  line-height: $tasklist_height;
+  color: $sidepanel_color_light;
+
+  .task-head {
+    background: $sidepanel_bg;
+    font-weight: $font-weight-semi-bold;
+    color: $sidepanel_color_dark;
+    border-radius: 6px;
+
+    .expander {
+      font-size: 20px;
+      color: $sidepanel_color_dark;
+      margin-left: $padding;
+      line-height: $tasklist_height;
+    }
+  }
+  
+  .task {
+    position: relative;
+    height: $tasklist_height;
+    font-size: $font-size-sm;
+    border-bottom: 1px solid $sidepanel_bg;
+
+    a.fa-pencil {
+      color: $sidepanel_color_light;
+      display: none;
+
+    }
+
+    .checkbox {
+      margin-right: $padding - 2;
+    }
+
+    &.overdue .col-title {
+      color: #cc0000;
+    }
+
+
+    .col-title {
+      position: absolute;
+      top: 0;
+      left: 50px;
+      min-width: 345px;
+
+      a.fa-pencil {
+        margin-left: 4px;
+      }
+
+      &:hover a.fa-pencil {
+        display: inline;
+      }
+    }
+
+    .col-meta {
+      position: absolute;
+      top: 0;
+      left: 345px;
+      width: 70%;
+
+      .cols {
+        width: 100%;
+      }
+
+      .col {
+        float: left;
+        padding: 0 $padding;
+
+        &:hover a.fa-pencil {
+          display: inline;
+        }
+
+        &.col-1,
+        &.col-2 {
+          width: 12%;
+        }
+
+        &.col-3 {
+          width: 66%;
+
+          &.input input {
+            padding: 0 $padding/2;
+            height: 30px;
+            border-radius: 3px;
+            border: 1px solid darken($sidepanel_bg, 5%);
+            box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+            width: 80%;
+            position: relative;
+            top: 0px;
+            line-height: 30px;
+          }
+
+          &.input button {
+            height:30px;
+            background: $button_blue;
+            color: #fff;
+            padding: 0 $padding;
+            border-radius: 3px;
+            position: relative;
+            top: 0px;
+            border: none;
+            line-height: 30px;
+          }
+        }
+
+      }
+    }
+  }
+
+}

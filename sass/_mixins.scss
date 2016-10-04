@@ -1,0 +1,35 @@
+
+@mixin base-box-shadow{
+  box-shadow: 0 3px 3px 0 rgba($gray-darkest, 0.5);
+}
+@mixin hover-box-shadow{
+  box-shadow: 0 3px 15px 0 rgba($gray-darkest, 0.5);
+}
+
+@mixin default-transition() {
+  transition: all $transition-time ease-out;
+}
+
+@mixin border( $size : 1px, $type: solid, $color: $gray-dark) {
+  border: $size $type $color;
+}
+
+@mixin border-bottom( $size: 1px, $type: solid, $color : $gray-dark ) {
+  border-bottom: $size $type $color;
+}
+
+@mixin border-left( $size: 5px, $type: solid, $color : $gray-dark ) {
+  border-left: $size $type $color;
+}
+
+@mixin box-shadow( $hShadow : 0, $vShadow : 0, $blur : 5px, $spread: 0, $color: #333, $alpha: 0.35 ){
+  box-shadow: $hShadow $vShadow $blur $spread rgba( $color, $alpha );
+}
+
+@mixin clearfix(){
+  &:after{
+    content:'';
+    display: block;
+    clear: both;
+  }
+}

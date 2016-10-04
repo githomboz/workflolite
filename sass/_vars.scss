@@ -1,0 +1,83 @@
+// Typography //
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,700);
+
+$font-family-main: 'Open Sans', sans-serif;
+
+$font-weight-bold: 700;
+$font-weight-semi-bold: 600;
+$font-weight-medium: 400;
+$font-weight-light: 300;
+
+$font-size: 16px;
+$font-size-xs: 11px;
+$font-size-sm: 13px;
+$font-size-md: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 22px;
+
+// Colors //
+$gray-darkest: #282828;
+$gray-dark: #515554;
+$gray-medium: #7c8281;
+$gray: #c9c9c9;
+$gray-light: #ccc;
+$gray-lightest: #f7f7f7;
+
+$teal: #00adb5;
+$tealDark: #006a6f;
+
+$orange: #eb7f00;
+$orangeDark: #a35800;
+
+$pink: #f35d85;
+$pinkDark: #a23e59;
+
+$red: #c44741;
+$redDark: #933531;
+
+$green: #009747;
+$greenDark: #004b23;
+
+$yellow: #e8d540;
+$yellowAlt: #faffbb;
+$yellowDark: #807623;
+
+$blue: #0086cb;
+$blueDark: #005c8c;
+
+// App Color Definitions
+$primary: $teal;
+$primaryDark: $tealDark;
+
+$secondary: $orange;
+$secondaryDark: $orangeDark;
+
+$warning: $yellow;
+$warningDark: $yellowDark;
+
+$danger: $red;
+$dangerDark: $redDark;
+
+$info: $blue;
+$infoDark: $blueDark;
+
+$success: $green;
+$successDark: $greenDark;
+
+$textColor: $gray-darkest;
+
+
+// Break Points //s
+$breakpoint-xxl: 1280px;
+$breakpoint-xl: 1140px;
+$breakpoint-lg: 960px;
+$breakpoint-md: 768px;
+$breakpoint-sm: 480px;
+$breakpoint-xs: 320px;
+
+
+// Misc vars
+$padding: 10px;
+$transition-time: .15s;
+$form-bar-height : 2px;
+$base-element-height : 35px;

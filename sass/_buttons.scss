@@ -1,0 +1,69 @@
+
+.c-button {
+  display: inline-block;
+  padding: $padding/2 $padding;
+  border: none;
+  text-transform: uppercase;
+  text-align: center;
+  background: $primary;
+  color: $gray-lightest;
+  text-decoration: none;
+  font-weight: $font-weight-light;
+  letter-spacing: 1px;
+  transition: all .2s ease;
+  box-shadow: 0 3px 3px 0 rgba($gray-darkest, .5);
+  outline: none;
+
+  &:hover {
+    background: $primaryDark;
+    color: $gray-lightest;
+    box-shadow: 0 5px 5px -2px rgba($gray-darkest, .25);
+  }
+
+  &--huge{
+    padding: $padding $padding*2;
+  }
+
+  &--mini{
+    padding: $padding/4 $padding/2;
+    font-size: $font-size-xs;
+  }
+
+  &--block{
+    display: block;
+    width: 100%;
+  }
+}
+
+.c-button--secondary {
+  background: $secondary;
+
+  &:hover {
+    background: $secondaryDark;
+  }
+}
+
+.c-button--warning {
+  background: $warning;
+  color: $textColor;
+
+  &:hover {
+    background: $warningDark;
+  }
+}
+
+.c-button--danger {
+  background: $danger;
+
+  &:hover {
+    background: $dangerDark;
+  }
+}
+
+.c-button--info {
+  background: $info;
+
+  &:hover {
+    background: $infoDark;
+  }
+}
