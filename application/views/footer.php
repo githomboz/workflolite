@@ -12,6 +12,7 @@
       $(document).ready(function(){
         $(".sidepanel .js-send-message").click(function(){
           $(".send-message").toggle();
+          return false;
         });
 
         $(".js-toggle").click(function(){
@@ -23,7 +24,12 @@
             $this.removeClass("fa-chevron-right").addClass("fa-chevron-left");
             $this.parents('.sidepanel').removeClass('collapse');
           }
+          return false;
+        });
 
+        $(".notes-btn").click(function(){
+          $(".notes-box").toggle();
+          return false;
         });
 
       });

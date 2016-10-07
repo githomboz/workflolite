@@ -82,8 +82,33 @@ class Main extends Front_Controller {
     redirect('admin');
   }
 
+  public function tasks(){
+    $this->page = 'tasks';
+    $this->view('tasks');
+  }
+
+  public function people(){
+    $this->page = 'people';
+    $this->view('people');
+  }
+
+  public function notes(){
+    $this->page = 'notes';
+    $this->view('notes');
+  }
+
+  public function time(){
+    $this->page = 'time';
+    $this->view('time');
+  }
+
+  public function client_view(){
+    $this->page = 'client-view';
+    $this->view('client-view');
+  }
+
   public function index(){
-    $this->view('home');
+    $this->tasks();
 	}
 
 }

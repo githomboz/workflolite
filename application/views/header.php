@@ -3,23 +3,29 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/reset.css"/>
-  <!--<link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/styles.css"/>-->
   <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/styles/styles.css"/>
   <?php if(offline_mode()){ ?>
     <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/font-awesome.min.css"/>
+    <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/fontsOpenSans.css"/>
+    <!--[if IE]>
+    <script src="<?php echo base_url()?>assets/js/html5shiv.js"></script>
+    <![endif]-->
   <?php } else {?>
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,700' rel='stylesheet' type='text/css'>
+    <!--[if IE]>
+    <script src="https://raw.githubusercontent.com/aFarkas/html5shiv/master/src/html5shiv.js"></script>
+    <![endif]-->
   <?php } ?>
   <?php register_script(array('lodash','main')); ?>
-  <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700,900' rel='stylesheet' type='text/css'>
-  <!--[if IE]>
-  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-  <![endif]-->
   <?php if(isset($this->refresh_page) && is_numeric($this->refresh_page)){ ?><meta http-equiv="refresh" content="<?php echo $this->refresh_page?>" /><?php } // refresh ?>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="format-detection" content="telephone=no">
-  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery.js"></script>
+  <?php if(config_item('set_noindex_nofollow')){ ?>
+    <meta name="robots" content="noindex, nofollow">
+  <?php } ?>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-3.1.1.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
   <link rel="shortcut icon" href="<?php echo base_url()?>favicon.png" type="image/x-icon">
   <link rel="icon" href="<?php echo base_url()?>favicon.png" type="image/x-icon">
@@ -218,8 +224,41 @@ Jim N Brown
     </section>
   </div><!--/.send-message-->
   <ul class="inner-nav clearfix">
-    <li class="active"><a href="#">Tasks</a></li>
-    <li><a href="#">Notes</a></li>
-    <li><a href="#">People</a></li>
-    <li><a href="#">Time</a></li>
+    <?php foreach(array('tasks','notes','people','time','client-view') as $i => $slug) { $this->page = isset($this->page) ? $this->page : 'tasks';?>
+      <li class="<?php
+      if($this->page == $slug) echo 'active ';
+      if($slug == 'notes') echo ' notes-btn ';
+      ?>"><a href="<?php echo site_url($slug) ?>"><?php echo ucwords(str_replace('-',' ', $slug)) ?></a></li>
+    <?php } ?>
   </ul>
+  <div class="notes-box">
+    <div class="bubble">
+      <ul class="notes-list">
+        <li class="note clearfix">
+          <span class="author">Efran Jacobs</span>
+          <span class="date">8-28-2016 @ 4:44pm</span>
+          <div class="image"><img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" /></div>
+          <div class="message">Sure thing, boss!</div>
+        </li>
+        <li class="note clearfix">
+          <span class="author">Jim Brown</span>
+          <span class="date">8-28-2016 @ 3:34pm</span>
+          <div class="image"><img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" /></div>
+          <div class="message">Just got a response and I'm forwarding it to you now.</div>
+        </li>
+        <li class="note clearfix">
+          <span class="author">Jim Brown</span>
+          <span class="date">8-28-2016 @ 12:53pm</span>
+          <div class="image"><img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" /></div>
+          <div class="message">Emailed him; I should hear back soon</div>
+        </li>
+        <li class="note clearfix">
+          <span class="author">Efran Jacobs</span>
+          <span class="date">8-28-2016 @ 10:24pm</span>
+          <div class="image"><img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" /></div>
+          <div class="message">Customer doesn't seem to be responding. I'm going to need to escalate.</div>
+        </li>
+      </ul>
+      <a href="#" class="more">more messages <i class="fa fa-caret-down"></i></a>
+    </div>
+  </div>

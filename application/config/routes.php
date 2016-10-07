@@ -47,7 +47,13 @@ $route['admin/login'] = 'main/admin_login';
 $route['admin/logout'] = 'main/admin_logout';
 
 
-$route['o/(:any)'] = 'jobs/all/$1'; // A list of jobs belonging to the default workflow
+$route['tasks'] = 'main/tasks';
+$route['people'] = 'main/people';
+$route['time'] = 'main/time';
+$route['notes'] = 'main/notes';
+$route['client-view'] = 'main/client_view';
+
+
 $route['o/(:any)/w/(:any)'] = 'jobs/all/$1/$2'; // A list of jobs belonging to the given workflow
 $route['o/(:any)/workflows'] = 'jobs/workflows/$1'; // List of workflows from a given org.
 $route['o/(:any)/workflows/(:any)'] = 'jobs/workflow/$1/$2'; // The given workflow's structure

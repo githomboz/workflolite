@@ -1,3 +1,47 @@
+.inner-nav-btns {
+  position: absolute;
+  top: 70px;
+  right: $paddingLarge;
+}
+
+.btn {
+  border-radius: 3px;
+  box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, .08);
+  width: 100%;
+  color: $sidepanel_color_dark;
+  background: $sidepanel_bg;
+  line-height: 32px;
+  border: none;
+  font-size: $font-size-md;
+  font-weight: $font-weight-light;
+  padding: 0 $padding;
+  display: inline-block;
+
+  .fa {
+    color: $button_blue;
+  }
+
+  &.submit {
+    color: #fff;
+    background: $button_blue;
+
+    .fa {
+      color: inherit;
+    }
+
+  }
+
+  &.disabled {
+    color: $sidepanel_color_light;
+    background: $sidepanel_bg;
+
+    .fa {
+      color: inherit;
+    }
+
+  }
+
+}
 
 .c-button {
   display: inline-block;

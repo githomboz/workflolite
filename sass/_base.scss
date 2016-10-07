@@ -14,7 +14,7 @@ $button_blue: #4992d0;
 
 
 
-body {
+body, html {
   font-family: "Open Sans", arial, sans-serif;
   font-weight: $font-weight-light;
   background: #fff;
@@ -121,6 +121,10 @@ textarea {
   }
 }
 
+#main-wrap {
+  overflow: hidden;
+}
+
 .sidepanel {
   width: $sidepanel_width;
   background: $sidepanel_bg;
@@ -129,7 +133,8 @@ textarea {
   float: left;
   padding: $padding;
   position: relative;
-  height: 100%;
+  margin-bottom: -99999px;
+  padding-bottom: 99999px;
 
   &.collapse {
     width: 20px;
@@ -139,7 +144,7 @@ textarea {
     }
 
     .js-toggle {
-      right: 5px;
+      right: 3px;
     }
   }
 
@@ -231,6 +236,8 @@ textarea {
 .main-content {
   overflow: hidden;
   padding: $paddingLarge;
+  position: relative;
+  min-height: 600px;
 
   .inner-nav {
     border-bottom: 2px solid darken($sidepanel_bg, 10%);
@@ -303,12 +310,19 @@ $sendmessage_width: 730px;
   border-radius: 6px;
   position: absolute;
   z-index: 10;
-  top: 300px;
+  top: 100px;
   display: none;
 
   h2 {
     margin: 0 0 $padding;
     padding: 0;
+    position: relative;
+
+    .fa-mobile {
+      font-size: 20px;
+      position: relative;
+      top: 1px;
+    }
   }
 
   header {
@@ -333,6 +347,7 @@ $sendmessage_width: 730px;
   input,
   textarea {
     width: 100%;
+    color: $sidepanel_color_dark
   }
 
   textarea {
@@ -425,6 +440,96 @@ $sendmessage_width: 730px;
 
   }
 
+}
+
+.bubble
+{
+  position: relative;
+  min-width: 200px;
+  min-height: 120px;
+  padding: 0px;
+  background: #FFFFFF;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  border: 1px solid darken($sidepanel_bg, 15%);
+  box-shadow: 0px 0px 2px 2px rgba(0, 0, 0, 0.1);
+}
+
+.bubble:after
+{
+  content: '';
+  position: absolute;
+  border-style: solid;
+  border-width: 0 12px 9px;
+  border-color: #FFFFFF transparent;
+  display: block;
+  width: 0;
+  z-index: 1;
+  top: -9px;
+  left: 55px;
+  filter:drop-shadow(0px -2px 1px rgba(0,0,0,.2));
+}
+
+.notes-box {
+  position: absolute;
+  z-index: 10;
+  top: 48px;
+  left: 40px;
+  font-size: $font-size-sm;
+  width: 370px;
+  display: none;
+
+  .notes-list {
+    padding: $padding $padding 0 $padding;
+  }
+
+  .note {
+    margin-bottom: 1.3em;
+    padding-top: 20px;
+    position: relative;
+
+    .author {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: $sidepanel_color_light;
+    }
+
+    .date {
+      position: absolute;
+      top: 0;
+      right: 0;
+      color: $sidepanel_color_light;
+    }
+
+    .message {
+      line-height: 1.4em;
+    }
+
+    .image {
+      width: 24px;
+      height: 24px;
+      border-radius: 12px;
+      overflow: hidden;
+      float: left;
+      margin-right: $padding;
+
+      img {
+        width: 100%;
+      }
+
+    }
+  }
+
+  .more {
+    display: block;
+    background: $sidepanel_bg;
+    text-align: center;
+    color: $button_blue;
+    line-height: 30px;
+    border-radius: 0 0 4px 4px;
+  }
 }
 
 
@@ -541,4 +646,229 @@ $tasklist_height : 36px;
     }
   }
 
+}
+
+
+.search-contacts {
+  display: inline-block;
+  font-size: $font-size-xl;
+  margin-bottom: $paddingLarge;
+  padding: $padding;
+  border-radius: 10px;
+  min-width: 400px;
+}
+
+.last-sync {
+  position: absolute;
+  top: 116px;
+  right: $paddingLarge;
+  font-size: $font-size-xs;
+
+  a {
+    color: $button_blue;
+  }
+}
+
+.people-list {
+
+  .entry {
+    background: $sidepanel_bg;
+    border-radius: 3px;
+    box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+    border: 1px solid darken($sidepanel_bg, 5%);
+    padding: $padding $padding $padding*4;
+    float: left;
+    width: 31%;
+    margin: 0 20px $paddingLarge 0;
+    position: relative;
+
+    .contact-settings {
+      position: absolute;
+      bottom: $padding;
+      left: $padding;
+      font-size: $font-size-sm;
+    }
+  }
+
+  .people-form {
+
+    .form-input {
+      width: 100%;
+      margin-bottom: $padding;
+
+      input[type=text] {
+        font-size: $font-size-sm;
+        width: 100%;
+        padding-left: $padding;
+        line-height: 32px;
+      }
+
+      &.icon {
+
+        .fa {
+          display: inline-block;
+          width: 10%;
+          text-align: center;
+        }
+
+        input[type=text] {
+          width: 88%;
+        }
+
+      }
+
+    }
+
+    button {
+      background: none;
+      border: none;
+      color: $button_blue;
+      float: right;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semi-bold;
+    }
+  }
+
+  .people {
+
+    .head-links {
+      position: absolute;
+      top: $padding*1.8;
+      right: $padding*2;
+
+      a {
+        color: $button_blue;
+      }
+    }
+
+    .role {
+      display: block;
+      width: 100%;
+      background: darken($sidepanel_bg, 3%);
+      line-height: 2em;
+      padding-left: $padding;
+      border-radius: 2px;
+      margin-bottom: $padding;
+    }
+
+    .image {
+      width: 24%;
+      height: 70px;
+      border-radius: 3px;
+      float: left;
+      overflow: hidden;
+
+      img {
+        width: 100%;
+      }
+    }
+
+    .meta {
+      float: right;
+      width: 73%;
+
+      .data {
+        display: block;
+        font-size: $font-size-sm;
+        line-height: 1.5em;
+        color: $sidepanel_color_light;
+
+        &.name {
+          color: $sidepanel_color_dark;
+          font-size: $font-size-md;
+        }
+
+        .fa {
+          display: inline-block;
+          width: 1em;
+          text-align: center;
+        }
+      }
+    }
+  }
+}
+
+.client-view {
+  position: relative;
+
+  .cv-logo {
+    width: 220px;
+    height: 60px;
+    display: inline-block;
+    margin-bottom: $paddingLarge;
+  }
+
+  .ref-id {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+
+  .title {
+    font-size: $font-size-md;
+    font-weight: $font-weight-semi-bold;
+    position: relative;
+    margin-bottom: $paddingLarge;
+
+    .closing-date {
+      position: absolute;
+      right: 0;
+      top: 0;
+      font-weight: $font-weight-light;
+      color: $sidepanel_color_light;
+    }
+  }
+
+  .progress-bar {
+    width: 100%;
+    background: lighten($mainhead_bgcolor, 55%);
+    border: 1px solid lighten($mainhead_bgcolor, 20%);
+    line-height: 40px;
+    border-radius: 6px;
+    margin-bottom: $paddingLarge;
+    overflow: hidden;
+
+    .bar {
+      background: lighten($mainhead_bgcolor, 20%);
+      color: #fff;
+      border: none;
+      padding: 0 $padding;
+      text-align: right;
+      font-size: $font-size-xl;
+    }
+  }
+
+  .task {
+    line-height: 1.5em;
+    border-bottom: 1px solid darken($sidepanel_bg, 1%);
+    padding: 6px $padding 6px $padding*4;
+    font-size: $font-size-sm;
+    position: relative;
+    cursor: pointer;
+
+    .checkbox {
+      position: absolute;
+      left: 10px;
+      top: 5px;
+    }
+
+    .name {
+      display: inline-block;
+    }
+
+    .description {
+      display: none;
+      background: darken($sidepanel_bg, 5%);
+      padding: $padding;
+      border-radius: 3px;
+      margin: $padding 0;
+    }
+
+    &.show-description {
+
+      .description {
+        display: inline-block;
+      }
+    }
+  }
 }

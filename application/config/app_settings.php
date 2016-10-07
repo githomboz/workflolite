@@ -11,6 +11,7 @@ $config['google_analytics'] = null; // Analytics id // example: UA-78160000-0
 
 /******* [ SEO ] ********/
 
+$config['set_noindex_nofollow'] = true;
 $config['seo_site_name'] = null;
 $config['seo_description'] = null;
 $config['seo_image'] = null;
@@ -29,7 +30,7 @@ $config['encrypt_salt'] = 'n053njlsrq'; // SALT used to encrypt passwords and ot
 $config['site_debug_mode'] = true;
 $config['bootstrap_mode'] = false; // enable admin/dev class
 $config['use_relative_urls'] = true;
-$config['work_offline_mode'] = false;
+$config['work_offline_mode'] = true;
 $config['utilize_mongo_db'] = true;
 
 /******* [ DB Logging ] *******/
