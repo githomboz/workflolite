@@ -51,17 +51,19 @@
       </div>
     </div><!--/.upper-head-->
     <div class="main-head clearfix">
+      <?php if(UserSession::loggedIn()){ ?>
       <div class="logo-container">
         <a href="<?php echo _url("/")?>?rel=main-logo"><img src="<?php echo base_url()?>/assets/temp/main-logo.gif" /></a>
       </div><!--/logo-container-->
       <div class="page-title">
-        <h1>Frasier 2nd Property Sale</h1>
-        <h3>JNBPA Issuing Owners Policy File Processing Checklist</h3>
+        <h1><?php echo $this->job->getValue('name')?></h1>
+        <h3><?php echo $this->job->getValue('workflow')->getValue('name')?></h3>
       </div>
       <div class="search">
         <i class="fa fa-search"></i>
         <input placeholder="Search ..." />
       </div>
+      <?php } ?>
     </div><!--/main-head-->
   </div><!--/main-header-inner-->
 </header>
@@ -72,163 +74,41 @@
   <i class="js-toggle fa fa-chevron-left"></i>
   <div class="panel">
     <h1><i class="fa fa-list"></i> Job Details</h1>
-
     <div class="job-meta">
+      <?php foreach($this->job->getMeta() as $key => $value){ ?>
       <div class="meta-pair">
-        <span class="title">File Number: </span>
-        <span class="value">jnbpa-3921</span>
+        <span class="title"><?php echo $key ?>: </span>
+        <span class="value <?php if((strlen($key) + strlen($value) + 2) > 33) echo 'multi-line'?>"><?php echo $value ?></span>
       </div><!--/.meta-pair-->
-      <div class="meta-pair">
-        <span class="title">File Received: </span>
-        <span class="value">8/26/2016</span>
-      </div><!--/.meta-pair-->
-      <div class="meta-pair">
-        <span class="title">Commitment Due: </span>
-        <span class="value">9/10/2016</span>
-      </div><!--/.meta-pair-->
-      <div class="meta-pair">
-        <span class="title">Closing Date: </span>
-        <span class="value">10/24/2016</span>
-      </div><!--/.meta-pair-->
-      <div class="meta-pair">
-        <span class="title">Property Address: </span>
-        <span class="value block">5836 Candlewood Street, <br />West Palm Beach, FL 33407</span>
-      </div><!--/.meta-pair-->
-      <div class="meta-pair">
-        <span class="title">Lender: </span>
-        <span class="value">Wells Fargo</span>
-      </div><!--/.meta-pair-->
+      <?php } ?>
     </div><!--/.job-meta-->
   </div><!--/.panel-->
+  <?php if(UserSession::loggedIn()) { ?>
   <div class="panel">
     <i class="js-send-message fa fa-envelope"></i>
     <h1><i class="fa fa-users"></i> Job Contacts</h1>
     <ul class="contact-list">
+      <?php foreach($this->job->getContacts() as $i => $contact){ ?>
       <li class="contact-entry clearfix is-staff">
         <div class="image">
           <img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" />
         </div>
-        <h3>Deanna Courtney</h3>
-        <span class="role">Paralegal</span>
+        <h3><?php echo $contact->getValue('name') ?></h3>
+        <span class="role"><?php echo $contact->getValue('role') ?></span>
       </li>
-      <li class="contact-entry clearfix is-staff">
-        <div class="image">
-          <img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" />
-        </div>
-        <h3>Ruti McCloy</h3>
-        <span class="role">Legal Assistant</span>
-      </li>
-      <li class="contact-entry clearfix is-primary">
-        <div class="image">
-          <img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" />
-        </div>
-        <h3>David Ackoff</h3>
-        <span class="role">Buyer / Party 1</span>
-      </li>
-      <li class="contact-entry clearfix is-primary">
-        <div class="image">
-          <img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" />
-        </div>
-        <h3>Linda Ackoff</h3>
-        <span class="role">Buyer / Party 1</span>
-      </li>
-      <li class="contact-entry clearfix">
-        <div class="image">
-          <img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" />
-        </div>
-        <h3>Sheryl Duffley</h3>
-        <span class="role">Loan Officer</span>
-      </li>
-      <li class="contact-entry clearfix">
-        <div class="image">
-          <img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" />
-        </div>
-        <h3>Melvin Costas</h3>
-        <span class="role">Broker</span>
-      </li>
-      <li class="contact-entry clearfix">
-        <div class="image">
-          <img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" />
-        </div>
-        <h3>Regina Cade</h3>
-        <span class="role">Buyer's Agent</span>
-      </li>
+      <?php } ?>
     </ul>
   </div><!--/.panel-->
+  <?php } ?>
 </section>
 <section class="main-content">
-  <div class="send-message">
-    <header>
-      <h1>Send a Message</h1>
-      <div class="select-template">
-        <label for="template">Message Templates: </label>
-        <select id="template">
-          <option>Standard Updates #1</option>
-          <option>Standard Updates #2</option>
-        </select>
-      </div>
-    </header>
-    <section class="message-body">
-      <div class="message-forms">
-        <div class="seg-email">
-          <h2><i class="fa fa-envelope"></i> Email Message <span class="disclaimer">(This will be sent to all contacts)</span></h2>
-          <textarea id="email-copy">Dear {contact.name},
-
-  The order for {job.name} is in progress. The closing date is set to {job.closingDate}.
-
-Very Best,
-Jim N Brown
-          </textarea>
-        </div>
-        <div class="seg-sms">
-          <h2><i class="fa fa-mobile"></i> SMS Text Message</h2>
-          <span class="character-count"><span class="count">140</span> Characters</span>
-          <textarea id="sms-copy">We've reached a milestone.  The closing date is {job.closingDate}.  Visit http://wfl.com/n42nsq5</textarea>
-        </div>
-      </div><!--/.message-forms-->
-      <div class="recipients-fields">
-        <h2><i class="fa fa-user-plus"></i> Recipients</h2>
-        <input class="recipient-name" placeholder="Recipient's Name" />
-        <div class="recipient-list">
-          <div class="recipient">
-            <span class="name">Rick Mayfield</span>
-            <a href="#" class="fa fa-times"></a>
-          </div>
-          <div class="recipient">
-            <span class="name">Jim Brown</span>
-            <a href="#" class="fa fa-times"></a>
-          </div>
-          <div class="recipient">
-            <span class="name">Laura Edgerton</span>
-            <a href="#" class="fa fa-times"></a>
-          </div>
-          <div class="recipient">
-            <span class="name">Phyllis Potes</span>
-            <a href="#" class="fa fa-times"></a>
-          </div>
-          <div class="recipient">
-            <span class="name">Don Ward</span>
-            <a href="#" class="fa fa-times"></a>
-          </div>
-          <div class="recipient">
-            <span class="name">Billy Chambers</span>
-            <a href="#" class="fa fa-times"></a>
-          </div>
-          <div class="recipient">
-            <span class="name">Bob Chambers</span>
-            <a href="#" class="fa fa-times"></a>
-          </div>
-        </div><!--recipient-list-->
-      </div>
-      <button class="js-send-message"><i class="fa fa-send"></i> Send Message(s)</button>
-    </section>
-  </div><!--/.send-message-->
+  <?php include_once 'widgets/send-message.php'?>
   <ul class="inner-nav clearfix">
     <?php foreach(array('tasks','notes','people','time','client-view') as $i => $slug) { $this->page = isset($this->page) ? $this->page : 'tasks';?>
       <li class="<?php
       if($this->page == $slug) echo 'active ';
       if($slug == 'notes') echo ' notes-btn ';
-      ?>"><a href="<?php echo site_url($slug) ?>"><?php echo ucwords(str_replace('-',' ', $slug)) ?></a></li>
+      ?>"><a href="<?php echo site_url('jobs/' . $this->job->id(). '/' . $slug) ?>"><?php echo ucwords(str_replace('-',' ', $slug)) ?></a></li>
     <?php } ?>
   </ul>
   <div class="notes-box">

@@ -2,7 +2,7 @@
 
 require_once 'WorkflowFactory.php';
 
-class User extends WorkflowFactory implements WorkflowInterface
+class User extends WorkflowFactory
 {
 
   /**
@@ -21,29 +21,34 @@ class User extends WorkflowFactory implements WorkflowInterface
    * Return the data that is put into session variable
    */
   public function sessionData(){
-
+    return array(
+      'userId' => $this->id(),
+      'displayName' => $this->_current['firstName'],
+      'username' => $this->_current['username'],
+      'email' => $this->_current['email'],
+      'organizationId' => $this->_current['organizationId'],
+      'settings' => $this->_current['settings'],
+    );
   }
 
-  public static function Authenticate($username, $password, User $user = null){
-
+  public static function Authenticate($username, $password){
+    self::CI()->load->model('users_model');
+    $record = self::CI()->users_model->get_by_credentials($username, $password);
+    return $record;
   }
 
   public static function Authorize(User $user){
 
   }
 
-
-  public static function ValidData(array $data){
-    return !empty($data) && isset($data['name']);
+  public static function Get($id){
+    $record = static::LoadId($id, static::$_collection);
+    $class = __CLASS__;
+    return new $class($record);
   }
 
-  public static function Create($data, $templateId = null){
-
+  public function login(){
+    return UserSession::start($this->sessionData());
   }
-
-  public static function Duplicate($id, array $data = array()){
-    return null; // return new id
-  }
-
 
 }

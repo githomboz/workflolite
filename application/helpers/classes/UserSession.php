@@ -3,6 +3,10 @@
 class UserSession
 {
 
+  private static $CI;
+
+  private static  $session_var = 'userLogged';
+
   private static $instance = null;
 
   private $_data = array();
@@ -17,12 +21,15 @@ class UserSession
     return static::$instance;
   }
 
-  public function login(User $user){
-
+  public static function login(User $user){
+    return $user->login();
   }
 
-  public function logout(User $user = null){
+  public static function logout(){
+  }
 
+  public static function loggedIn(){
+    return self::CI()->session->userdata(self::$session_var);
   }
 
   public function set($key, $value, $group = null){
@@ -47,6 +54,36 @@ class UserSession
 
   public function save(){
 
+  }
+
+  public function end(){
+
+  }
+
+  private static function CI(){
+    if(!self::$CI){
+      self::$CI = get_instance();
+    }
+    return self::$CI;
+  }
+
+  public static function Get_User(){
+    $userData = self::CI()->session->userdata(self::$session_var);
+    return User::Get($userData['userId']);
+  }
+
+  public static function Get_Organization(){
+    $userData = self::CI()->session->userdata(self::$session_var);
+    return Organization::Get($userData['organizationId']);
+  }
+
+  public static function start($data){
+    return self::CI()->session->set_userdata(array(self::$session_var => $data));
+  }
+
+  public static function value($key){
+    $userData = self::CI()->session->userdata(self::$session_var);
+    return $userData[$key];
   }
 
   private function __clone(){}

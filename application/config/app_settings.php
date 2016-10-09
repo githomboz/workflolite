@@ -100,7 +100,10 @@ $config['mongo_schema'] = array(
   'users' => array(
     'organizationId',
     'dateAdded',
-    'name',
+    'firstName',
+    'lastName',
+    'username',
+    'password',
     'email',
     'phone',
     'status',
@@ -131,18 +134,19 @@ $config['mongo_schema'] = array(
     'nativeToken',
     'partiesInvolved', // associative array of party members and their roles
     'viewableContacts', // the contacts that are able to view this job
+    'sortOrder', // Array with the orders of tasks for the job
     'meta',
     'settings',
   ),
   'tasks' => array(
-    'name', // FOR OVERRIDE
-    'instructions', // FOR OVERRIDE
-    'visibility', // FOR OVERRIDE
-    'estimatedTime', // FOR OVERRIDE
-    'sortOrder', // FOR OVERRIDE
-    'taskGroup', // FOR OVERRIDE
-    'publiclyAccessible', // FOR OVERRIDE
-    'optional', // FOR OVERRIDE
+//    'name', // FOR OVERRIDE
+//    'instructions', // FOR OVERRIDE
+//    'visibility', // FOR OVERRIDE
+//    'estimatedTime', // FOR OVERRIDE
+//    'sortOrder', // FOR OVERRIDE
+//    'taskGroup', // FOR OVERRIDE
+//    'publiclyAccessible', // FOR OVERRIDE
+//    'optional', // FOR OVERRIDE
     'organizationId', // Organization that the task belongs to
     'dateAdded',
     'taskTemplateId', // A link to default task options (to manage space...lots of repeated data)
@@ -169,10 +173,10 @@ $config['mongo_schema'] = array(
   'taskTemplates' => array(
     'name',
     'instructions',
+    'description', // Public explanation of what is done in this task
     'visibility', // Whether or not this task shows up on client progress portal
     'overviewVisibility', // Whether or not this task shows up on main jobs page
     'estimatedTime', // In hours, amount of time it should take to complete this task
-    'sortOrder', // The sequential arrangement of the tasks. ( In tenths )
     'taskGroup',
     'nativeTriggers', // Array of options divided into two stages. Before start and after complete
     'organizationId', // Org that this template belongs to
@@ -206,11 +210,12 @@ $config['mongo_schema'] = array(
     'active',
   ),
   'contacts' => array(
+    'dateAdded',
     'organizationId', // The organization that this contact belongs to
     'name',
     'phone',
+    'mobile',
     'email',
-    'role',
     'pin',
     'settings',
     'active',

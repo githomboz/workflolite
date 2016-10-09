@@ -1279,7 +1279,7 @@ textarea {
         font-weight: 600; }
       .sidepanel .job-meta .meta-pair .value {
         color: #7f7f7f; }
-        .sidepanel .job-meta .meta-pair .value.block {
+        .sidepanel .job-meta .meta-pair .value.multi-line {
           display: block; }
   .sidepanel h1 {
     line-height: 1.5em;
@@ -1532,6 +1532,11 @@ a.checkbox {
     line-height: 30px;
     -webkit-border-radius: 0 0 4px 4px;
             border-radius: 0 0 4px 4px; }
+
+.main-mid-section-inner > h4 {
+  position: relative;
+  top: -8px;
+  margin-bottom: 18px; }
 
 /********************************* End Common Styles *********************************/
 .tasklist {

@@ -185,7 +185,7 @@ textarea {
       .value {
         color: $sidepanel_color_light;
 
-        &.block {
+        &.multi-line {
           display: block;
         }
       }
@@ -530,6 +530,12 @@ $sendmessage_width: 730px;
     line-height: 30px;
     border-radius: 0 0 4px 4px;
   }
+}
+
+.main-mid-section-inner > h4 {
+  position: relative;
+  top: -8px;
+  margin-bottom: $paddingLarge;
 }
 
 

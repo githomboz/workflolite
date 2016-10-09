@@ -2,7 +2,7 @@
 
 require_once 'WorkflowFactory.php';
 
-class Organization extends WorkflowFactory implements WorkflowInterface
+class Organization extends WorkflowFactory
 {
 
   /**
@@ -34,17 +34,9 @@ class Organization extends WorkflowFactory implements WorkflowInterface
     }
   }
 
-  public static function ValidData(array $data){
-    return !empty($data) && isset($data['name']);
+  public static function Get($id){
+    $record = static::LoadId($id, static::$_collection);
+    $class = __CLASS__;
+    return new $class($record);
   }
-
-  public static function Create($data, $templateId = null){
-
-  }
-
-  public static function Duplicate($id, array $data = array()){
-    return null; // return new id
-  }
-
-
 }

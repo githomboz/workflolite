@@ -7,7 +7,7 @@
 
 class Base_Controller extends CI_Controller
 {
-  public $member_area = false;
+  public $user_area = false;
 
   public function __construct(){
     parent::__construct();
@@ -72,10 +72,10 @@ class Front_Controller extends Base_Controller
 
 }
 
-class Members_Controller extends Base_Controller
+class Users_Controller extends Base_Controller
 {
 
-  public $member_area = true;
+  public $user_area = true;
 
   public function __construct()
   {

@@ -2,7 +2,7 @@
 
 require_once 'WorkflowFactory.php';
 
-class TaskTemplate extends WorkflowFactory implements WorkflowInterface
+class TaskTemplate extends WorkflowFactory
 {
 
   /**
@@ -16,18 +16,6 @@ class TaskTemplate extends WorkflowFactory implements WorkflowInterface
     parent::__construct();
     $this->_initialize($data, $fullLoad);
   }
-
-  public static function ValidData(array $data){
-    return !empty($data) && isset($data['name']);
-  }
-
-  public static function Create($data, $templateId = null){
-
-  }
-
-  public static function Duplicate($id, array $data = array()){
-    return null; // return new id
-  }
-
+  
 
 }

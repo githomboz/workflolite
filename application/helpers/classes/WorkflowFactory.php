@@ -2,7 +2,7 @@
 
 require_once 'utilities/StringTemplater.php';
 
-class WorkflowFactory
+class WorkflowFactory extends WorkflowInterface
 {
 
   /**
@@ -16,7 +16,7 @@ class WorkflowFactory
    */
   protected $_current = null;
 
-  public static $mdb;
+  private static $CI;
   public static $dbInitialized = false;
 
   /**
@@ -61,11 +61,17 @@ class WorkflowFactory
     }
   }
 
+  protected static function CI(){
+    if(!self::$CI){
+      self::$CI = get_instance();
+    }
+    return self::$CI;
+  }
+
   public static function initDB(){
     if(!self::$dbInitialized){
-      self::$mdb =& get_instance();
-      self::$mdb->load->model(array(
-        'main_model','jobs_model','tasks_model','workflows_model','tasktemplates_model'
+      self::CI()->load->model(array(
+        'main_model','users_model','jobs_model','tasks_model','workflows_model','tasktemplates_model'
       ));
       self::$dbInitialized = true;
     }
@@ -85,7 +91,7 @@ class WorkflowFactory
    */
   public function loadOrganization(){
     if(isset($this->_current['organizationId'])){
-      $this->_current['organization'] = new Organization(self::LoadRecord($this->_current['organizationId'], 'organizations'));
+      $this->organization = new Organization(self::LoadRecord($this->_current['organizationId'], 'organizations'));
     }
     return $this;
   }
@@ -96,7 +102,7 @@ class WorkflowFactory
    */
   public function loadJob(){
     if(isset($this->_current['jobId'])){
-      $this->_current['job'] = new Job(self::LoadRecord($this->_current['jobId'], 'jobs'));
+      $this->job = new Job(self::LoadRecord($this->_current['jobId'], 'jobs'));
     }
     return $this;
   }
@@ -107,7 +113,7 @@ class WorkflowFactory
    */
   public function loadWorkflow(){
     if(isset($this->_current['workflowId'])){
-      $this->_current['workflow'] = new Workflow(self::LoadRecord($this->_current['workflowId'], 'workflows'));
+      $this->workflow = new Workflow(self::LoadRecord($this->_current['workflowId'], 'workflows'));
     }
     return $this;
   }
@@ -123,6 +129,10 @@ class WorkflowFactory
     return $this;
   }
 
+  public function getCurrent(){
+    return $this->_current;
+  }
+
   /**
    * Update data within this entity
    * @param array $data
@@ -130,6 +140,17 @@ class WorkflowFactory
    */
   public function setValues(array $data){
     if(!empty($data)) $this->_current = array_merge($this->_current, $data);
+    return $this;
+  }
+
+  /**
+   * Update field within this entity
+   * @param string $key
+   * @param mixed $value
+   * @return $this
+   */
+  public function setValue($key, $value){
+    $this->_current[$key] = $value;
     return $this;
   }
 
@@ -156,7 +177,6 @@ class WorkflowFactory
     } else {
       throw new Exception('Entity (' . __CLASS__ . ') can not be pulled without an _id');
     }
-
   }
 
   public function isTask(){
@@ -165,7 +185,7 @@ class WorkflowFactory
 
   public static function SaveToDb(MongoId $id, array $data){
     self::initDB();
-    return self::$mdb->main_model->_update($data, array('_id' => $id), static::$_collection);
+    return self::$CI->main_model->_update($data, array('_id' => $id), static::CollectionName());
   }
 
   /**
@@ -203,7 +223,7 @@ class WorkflowFactory
   }
 
   public static function LoadRecord($id, $collection = null){
-    $collection = $collection ? $collection : static::$_collection;
+    $collection = $collection ? $collection : static::CollectionName();
     if(self::IsCached($collection, (string) $id)){
       return self::GetFromCache($collection, (string) $id);
     } else {
@@ -215,13 +235,15 @@ class WorkflowFactory
 
   /**
    * @param $id
+   * @param $collection
+   * @return array
    */
   public static function LoadId($id, $collection = null){
     self::initDB();
     $collection = $collection ? $collection : static::$_collection;
     $modelName = $collection . '_model';
-    self::$mdb->load->model($modelName);
-    return self::$mdb->$modelName->get($id);
+    self::CI()->load->model($modelName);
+    return self::CI()->$modelName->get($id);
   }
 
   public static function LoadData(array $data, $class = null){
@@ -234,42 +256,47 @@ class WorkflowFactory
   }
 
 
+  public static function ValidData(array $data){
+    return !empty($data) && isset($data['name']);
+  }
+
+  public static function Create($data){
+    $filtered = di_allowed_only($data, mongo_get_allowed(static::CollectionName()));
+    return self::CI()->mdb->insert(static::CollectionName(), $filtered);
+  }
+
+  public static function Duplicate($id, array $data = array()){
+    return null; // return new id
+  }
 }
 
-interface WorkflowInterface
+abstract class WorkflowInterface
 {
-
-  /**
-   * @param $data Values that will create new entity
-   * @param null $templateId The id of the template from which to generate this entity
-   * @return mixed New entity
-   */
-  public static function Create($data, $templateId = null);
 
   /**
    * @param string|MongoId $id The id of the subject
    * @param array $data Values to be merged with new entity
    * @return MongoId New entity id
    */
-  public static function Duplicate($id, array $data = array());
+  abstract public static function Duplicate($id, array $data = array());
 
   /**
    * @param string|MongoId $id The id of the target
    * @return mixed Instance of entity class
    */
-  public static function LoadId($id);
+  abstract public static function LoadId($id);
 
   /**
    * @param array Data to be passed to load new instance
    * @param string $class The name of the object to return
    * @return mixed Instance of entity class
    */
-  public static function LoadData(array $data, $class);
+  abstract public static function LoadData(array $data, $class);
 
   /**
    * @param array Data to be validated
    * @return bool Whether data is valid or not
    */
-  public static function ValidData(array $data);
+  abstract public static function ValidData(array $data);
 
 }

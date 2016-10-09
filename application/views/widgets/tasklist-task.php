@@ -5,18 +5,11 @@
  * Date: 10/3/16
  * Time: 1:39 PM
  */
-
-$status = 'completed';
-if($i >= 3) $status = '';
-$checked = 'checked';
-if($status != 'completed') $checked = '';
-$overdue = '';
-if($i == 3) $overdue = 'overdue';
 ?>
 
-<div class="task <?php echo $status; echo ' ' . $overdue; ?>">
+<div class="task new">
   <div class="col-title">
-    <a href="#" class="checkbox <?php echo $checked ?>">
+    <a href="#" class="checkbox">
       <i class="fa fa-check"></i>
     </a>
     <span class="task-name">Task name <a href="#" class="fa fa-pencil"></a></span>

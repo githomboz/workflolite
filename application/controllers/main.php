@@ -3,6 +3,7 @@
 class Main extends Front_Controller {
 
   public function login(){
+    //var_dump(User::Authenticate('jahdy@spotflare.com','jahdy'));
     $redirect = '/';
     $redirect_override = $this->input->get('redirect');
     if(!logged_in()){
@@ -82,14 +83,35 @@ class Main extends Front_Controller {
     redirect('admin');
   }
 
-  public function tasks(){
-    $this->page = 'tasks';
-    $this->view('tasks');
+  public function jobs($jobId, $slug = 'tasks'){
+    $this->job = Job::Get($jobId);
+    if($this->job){
+      if($this->job->loadOrganization()->getValue('organization')->getValue('_id') == UserSession::value('organizationId')){
+        $this->job->loadWorkflow();
+        $successAddTask = _process_add_task($this->input->post());
+        $this->page = $slug;
+        $this->view($slug);
+      } else {
+        show_error('You are not authorized to view this page');
+      }
+    } else {
+      show_404();
+    }
   }
 
-  public function people(){
-    $this->page = 'people';
-    $this->view('people');
+  public function people($jobId){
+    $this->job = Job::Get($jobId);
+    if($this->job){
+      if($this->job->loadOrganization()->getValue('organization')->getValue('_id') == UserSession::value('organizationId')){
+        $this->job->loadWorkflow();
+        $this->page = 'people';
+        $this->view('people');
+      } else {
+        show_error('You are not authorized to view this page');
+      }
+    } else {
+      show_404();
+    }
   }
 
   public function notes(){
@@ -106,9 +128,5 @@ class Main extends Front_Controller {
     $this->page = 'client-view';
     $this->view('client-view');
   }
-
-  public function index(){
-    $this->tasks();
-	}
-
+  
 }

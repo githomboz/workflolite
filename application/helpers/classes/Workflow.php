@@ -2,7 +2,7 @@
 
 require_once 'WorkflowFactory.php';
 
-class Workflow extends WorkflowFactory implements WorkflowInterface
+class Workflow extends WorkflowFactory
 {
 
   /**
@@ -25,18 +25,6 @@ class Workflow extends WorkflowFactory implements WorkflowInterface
       throw new Exception('Job can not be added without an _id');
     }
   }
-
-  public static function ValidData(array $data){
-    return !empty($data) && isset($data['name']);
-  }
-
-  public static function Create($data, $templateId = null){
-
-  }
-
-  public static function Duplicate($id, array $data = array()){
-    return null; // return new id
-  }
-
+  
 
 }

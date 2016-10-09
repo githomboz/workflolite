@@ -3,7 +3,7 @@
 require_once 'WorkflowFactory.php';
 require_once 'Step.php';
 
-class Task extends WorkflowFactory implements WorkflowInterface
+class Task extends WorkflowFactory
 {
 
   /**
@@ -17,6 +17,11 @@ class Task extends WorkflowFactory implements WorkflowInterface
    * @var array
    */
   protected $preconditions = array();
+
+  public static $statusComplete = 'completed';
+  public static $statusDeleted = 'deleted';
+  public static $statusStarted = 'started';
+  public static $statusNew = 'new';
 
   /**
    * @var array Array of Step objects
@@ -54,7 +59,8 @@ class Task extends WorkflowFactory implements WorkflowInterface
     parent::_initialize($data, $fullLoad);
 
     // Get taskTemplate
-    $taskTemplate = self::LoadRecord($data['taskTemplateId'], 'taskTemplates');
+    $record = self::LoadRecord($data['taskTemplateId'], TaskTemplate::CollectionName());
+    $taskTemplate = new TaskTemplate($record);
 
     // Merge template into current
     $this->_mergeTemplateToTask($taskTemplate);
@@ -63,8 +69,8 @@ class Task extends WorkflowFactory implements WorkflowInterface
     if($fullLoad){
       $this->loadAssignees();
       $this->loadSteps();
-      $this->loadTaskTemplate();
     }
+    $this->loadTaskTemplate();
   }
 
   /**
@@ -99,7 +105,7 @@ class Task extends WorkflowFactory implements WorkflowInterface
    */
   public function loadTaskTemplate(){
     if(isset($this->_current['taskTemplateId'])){
-      $this->_current['taskTemplate'] = new TaskTemplate(self::LoadRecord($this->_current['taskTemplateId'], 'taskTemplates'));
+      $this->_current['taskTemplate'] = new TaskTemplate(self::LoadRecord($this->_current['taskTemplateId'], TaskTemplate::CollectionName()));
     }
     return $this;
   }
@@ -120,12 +126,27 @@ class Task extends WorkflowFactory implements WorkflowInterface
 
   }
 
+  /**
+   * Whether or not this task is active based on dependencies.
+   */
+  public function isActionable(){
+    $actionable = true;
+    if(!empty($this->preconditions)) $actionable = false;
+    if(in_array($this->getValue('status'), array(self::$statusComplete, self::$statusDeleted))) $actionable = false;
+    return $actionable;
+  }
+
+  public function isComplete(){
+    return $this->getValue('status') == self::$statusComplete;
+  }
+
   public function nextStepIndex(){
     end($this->steps);
     return key($this->steps);
   }
 
-  private function _mergeTemplateToTask($template){
+  private function _mergeTemplateToTask(TaskTemplate $template){
+    $template = $template->getCurrent();
 
     // Merge triggers
     $this->_mergeInTemplateTriggers($template);
@@ -161,18 +182,5 @@ class Task extends WorkflowFactory implements WorkflowInterface
     $this->_current['triggers'] = $tempTriggers;
 
   }
-
-  public static function ValidData(array $data){
-    return !empty($data) && isset($data['name']);
-  }
-
-  public static function Create($data, $templateId = null){
-
-  }
-
-  public static function Duplicate($id, array $data = array()){
-    return null; // return new id
-  }
-
-
+  
 }

@@ -52,7 +52,7 @@ $autoload['packages'] = array();
 |	$autoload['libraries'] = array('database', 'session', 'xmlrpc');
 */
 
-$autoload['libraries'] = array('modules');
+$autoload['libraries'] = array('modules','dummydata');
 
 
 /*
@@ -64,7 +64,7 @@ $autoload['libraries'] = array('modules');
 |	$autoload['helper'] = array('url', 'file');
 */
 
-$autoload['helper'] = array('mongo','hooks','general','debug','modules');
+$autoload['helper'] = array('mongo','hooks','general','debug','modules','users','workflow');
 
 
 /*
