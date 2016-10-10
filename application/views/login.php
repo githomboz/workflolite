@@ -2,10 +2,6 @@
     <div class="main-mid-section-inner clearfix">
       <?php include 'widgets/message-box.php' ?>
         <div id="user-tabs" class="bjl-tabs">
-            <ul class="tab-links clearfix">
-              <?php $fa = $this->input->post('form-action'); //var_dump($fa);?>
-                <li><a href="#" class="tlink active" rel="log-in">Log In</a></li>
-            </ul>
             <div class="tabs-content clearfix">
                 <form class="tab log-in clearfix" method="post" action="<?php if(isset($redirect_url)) echo '?redirect='.$redirect_url; ?>">
                     <p>Log in to your account.</p>

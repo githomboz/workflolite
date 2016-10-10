@@ -1178,16 +1178,18 @@ body, html {
     font-size: 11px;
     text-transform: uppercase; }
     .upper-head nav li.active {
-      background: #172b15;
+      background: #2a4d26;
       font-weight: 600; }
-  .upper-head .upper-links a {
-    color: #65af5c;
+  .upper-head .upper-links {
     line-height: 34px;
     top: 0;
     right: 10px;
     position: absolute;
     font-size: 13px; }
-    .upper-head .upper-links a .fa {
+    .upper-head .upper-links a {
+      color: #65af5c;
+      padding-left: 10px; }
+    .upper-head .upper-links .fa {
       font-size: 105%;
       padding-right: 3px; }
 
@@ -1207,10 +1209,11 @@ textarea {
   overflow: hidden; }
   .main-head .logo-container {
     float: left;
-    margin: 18px 10px 0 18px; }
+    margin: 18px 0 0 18px; }
   .main-head .page-title {
     float: left;
-    position: relative; }
+    position: relative;
+    margin-left: 10px; }
     .main-head .page-title h1 {
       font-size: 20px;
       color: #f7fbf6;
@@ -1345,7 +1348,8 @@ textarea {
   font-size: 13px;
   text-align: center; }
 
-a.checkbox {
+a.checkbox,
+span.checkbox {
   display: inline-block;
   width: 22px;
   height: 22px;
@@ -1357,7 +1361,13 @@ a.checkbox {
   text-align: center;
   line-height: 22px;
   font-size: 14px; }
-  a.checkbox.checked {
+  a.checkbox.clickable:hover,
+  span.checkbox.clickable:hover {
+    background: #d9d9d9;
+    border: 1px solid #b2b2b2;
+    color: #b2b2b2; }
+  a.checkbox.checked,
+  span.checkbox.checked {
     background: #e7f2e5;
     border: 1px solid #447d3d;
     color: #447d3d !important; }
@@ -1553,44 +1563,45 @@ a.checkbox {
       color: #555;
       margin-left: 10px;
       line-height: 36px; }
-  .tasklist .task {
+  .tasklist .task-style {
     position: relative;
     height: 36px;
     font-size: 13px;
     border-bottom: 1px solid #f2f2f2; }
-    .tasklist .task a.fa-pencil {
+    .tasklist .task-style a.fa-pencil {
       color: #7f7f7f;
       display: none; }
-    .tasklist .task .checkbox {
+    .tasklist .task-style .checkbox {
       margin-right: 8px; }
-    .tasklist .task.overdue .col-title {
+    .tasklist .task-style.overdue .col-title {
       color: #cc0000; }
-    .tasklist .task .col-title {
+    .tasklist .task-style .col-title {
       position: absolute;
       top: 0;
       left: 50px;
       min-width: 345px; }
-      .tasklist .task .col-title a.fa-pencil {
+      .tasklist .task-style .col-title a.fa-pencil {
         margin-left: 4px; }
-      .tasklist .task .col-title:hover a.fa-pencil {
+      .tasklist .task-style .col-title:hover a.fa-pencil {
         display: inline; }
-    .tasklist .task .col-meta {
+    .tasklist .task-style .col-meta {
       position: absolute;
       top: 0;
       left: 345px;
       width: 70%; }
-      .tasklist .task .col-meta .cols {
+      .tasklist .task-style .col-meta .cols {
         width: 100%; }
-      .tasklist .task .col-meta .col {
+      .tasklist .task-style .col-meta .col {
         float: left;
         padding: 0 10px; }
-        .tasklist .task .col-meta .col:hover a.fa-pencil {
+        .tasklist .task-style .col-meta .col:hover a.fa-pencil {
           display: inline; }
-        .tasklist .task .col-meta .col.col-1, .tasklist .task .col-meta .col.col-2 {
-          width: 12%; }
-        .tasklist .task .col-meta .col.col-3 {
-          width: 66%; }
-          .tasklist .task .col-meta .col.col-3.input input {
+        .tasklist .task-style .col-meta .col.col-1, .tasklist .task-style .col-meta .col.col-2 {
+          width: 16%;
+          text-align: center; }
+        .tasklist .task-style .col-meta .col.col-3 {
+          width: 58%; }
+          .tasklist .task-style .col-meta .col.col-3.input input {
             padding: 0 5px;
             height: 30px;
             -webkit-border-radius: 3px;
@@ -1602,7 +1613,7 @@ a.checkbox {
             position: relative;
             top: 0px;
             line-height: 30px; }
-          .tasklist .task .col-meta .col.col-3.input button {
+          .tasklist .task-style .col-meta .col.col-3.input button {
             height: 30px;
             background: #4992d0;
             color: #fff;
@@ -1752,7 +1763,8 @@ a.checkbox {
       border: none;
       padding: 0 10px;
       text-align: right;
-      font-size: 22px; }
+      font-size: 22px;
+      min-width: 5%; }
   .client-view .task {
     line-height: 1.5em;
     border-bottom: 1px solid #efefef;
@@ -1765,7 +1777,7 @@ a.checkbox {
       left: 10px;
       top: 5px; }
     .client-view .task .name {
-      display: inline-block; }
+      display: block; }
     .client-view .task .description {
       display: none;
       background: #e5e5e5;

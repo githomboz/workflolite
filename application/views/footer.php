@@ -26,12 +26,7 @@
           }
           return false;
         });
-
-        $(".notes-btn").click(function(){
-          $(".notes-box").toggle();
-          return false;
-        });
-
+        
       });
   </script>
 <?php echo get_registered_scripts_tags(false); ?>

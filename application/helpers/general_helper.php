@@ -1,7 +1,7 @@
 <?php
 // Functions specific to this site/app
 
-function _process_add_task($post){
+function _process_add_task($post, Job $job){
   if(isset($post['action']) && $post['action'] == 'add-task'){
     $response = array(
       'errors' => array(),
@@ -13,13 +13,13 @@ function _process_add_task($post){
     $post['instructions'] = '';
     $post['nativeTriggers'] = array();
     $post['publiclyAccessible'] = false;
-    $post['visibility'] = false;
+    $post['clientView'] = true;
     $post['optional'] = false;
     $post['activeUsers'] = array();
     $post['assigneeId'] = array();
     $post['triggers'] = array();
     $post['sortOrder'] = 100;
-    $post['status'] = 'new';
+    $post['status'] = 'active';
     $post['jobId'] = _id($post['jobId']);
     $post['organizationId'] = _id($post['organizationId']);
     $post['workflowId'] = _id($post['workflowId']);
@@ -37,6 +37,7 @@ function _process_add_task($post){
       $taskId = Task::Create($post);
       $response['taskTemplateId'] = $tasktemplateId;
       $response['taskId'] = $taskId;
+      $job->insertTaskAfter($taskId, $post['sortOrderAfter']);
       $response['success'] = $tasktemplateId && $taskId;
     }
     return $response;

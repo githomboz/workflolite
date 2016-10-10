@@ -157,8 +157,9 @@ $config['mongo_schema'] = array(
     'assigneeId', // One or more users assigned to a task
     'triggers', // triggers to be merged with taskTemplate.nativeTriggers ( name/payload/blocking )
     'status', // [notstarted, inprogress, complete, skipped]
-    'startedDate',
-    'completedDate',
+    'startDate',
+    'completeDate',
+    'comments', // Added specifically for JNBPA @todo remove this
     'dependencies', // Tasks that need to be completed before task can be completed
     'isPublicMilestone'
   ),
@@ -173,8 +174,9 @@ $config['mongo_schema'] = array(
   'taskTemplates' => array(
     'name',
     'instructions',
+    'mileStone', // Whether or not this task is a milestone
     'description', // Public explanation of what is done in this task
-    'visibility', // Whether or not this task shows up on client progress portal
+    'clientView', // Whether or not this task shows up on client progress portal
     'overviewVisibility', // Whether or not this task shows up on main jobs page
     'estimatedTime', // In hours, amount of time it should take to complete this task
     'taskGroup',

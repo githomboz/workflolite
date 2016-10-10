@@ -90,7 +90,7 @@ class WorkflowFactory extends WorkflowInterface
    * @return $this
    */
   public function loadOrganization(){
-    if(isset($this->_current['organizationId'])){
+    if(isset($this->_current['organizationId']) && !isset($this->organization)){
       $this->organization = new Organization(self::LoadRecord($this->_current['organizationId'], 'organizations'));
     }
     return $this;
@@ -101,7 +101,7 @@ class WorkflowFactory extends WorkflowInterface
    * @return $this
    */
   public function loadJob(){
-    if(isset($this->_current['jobId'])){
+    if(isset($this->_current['jobId']) && !isset($this->job)){
       $this->job = new Job(self::LoadRecord($this->_current['jobId'], 'jobs'));
     }
     return $this;
@@ -112,7 +112,7 @@ class WorkflowFactory extends WorkflowInterface
    * @return $this
    */
   public function loadWorkflow(){
-    if(isset($this->_current['workflowId'])){
+    if(isset($this->_current['workflowId']) && !isset($this->workflow)){
       $this->workflow = new Workflow(self::LoadRecord($this->_current['workflowId'], 'workflows'));
     }
     return $this;
@@ -264,6 +264,13 @@ class WorkflowFactory extends WorkflowInterface
     $filtered = di_allowed_only($data, mongo_get_allowed(static::CollectionName()));
     return self::CI()->mdb->insert(static::CollectionName(), $filtered);
   }
+
+  public static function Update($id, $data){
+    if(!is_array($id)) $id = array(_id($id));
+    foreach($id as $i => $theId) $id[$i] = _id($theId);
+    return self::CI()->mdb->whereIn('_id', $id)->set(di_allowed_only($data, mongo_get_allowed(static::CollectionName())))->updateAll(static::CollectionName());
+  }
+
 
   public static function Duplicate($id, array $data = array()){
     return null; // return new id

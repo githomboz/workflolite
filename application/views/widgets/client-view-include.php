@@ -4,23 +4,31 @@
       <img src="#" />
     </a>
   <span class="ref-id">
-    Reference ID: 301N38DW0AL
+    Reference ID: <?php echo $this->job->id(); ?>
   </span>
   </header>
   <section class="cv-main-body">
     <div class="title">File Progress
-      <span class="closing-date">Closing Date: 10/10/2016</span>
+      <span class="closing-date">Closing Date: {job.closingDate}</span>
     </div>
     <div class="progress-bar">
-      <div class="bar" style="width: 19%">19%</div>
+      <?php
+      $showableTasksGrouped = $this->job->getClientViewableTasks(true);
+      $showableTasks = array();
+      foreach($showableTasksGrouped as $taskGroup => $tasks){ foreach($tasks as $task){ $showableTasks[] = $task; }}
+      $completionPercentage = Job::CompletionPercentage($showableTasks, 2); ?>
+      <div class="bar" style="width: <?php echo $completionPercentage; ?>%"><?php echo $completionPercentage; ?>%</div>
     </div>
-    <?php for($i = 0; $i <= 20; $i ++) {?>
+    <?php
+    $lastTaskId = $showableTasks[(count($showableTasks)-1)]->id();
+    ?>
+    <?php foreach($showableTasks as $task){?>
       <div class="task clearfix">
-        <a href="#" class="checkbox checked">
+        <span href="#" class="checkbox <?php if($task->isComplete()) echo 'checked' ?>">
           <i class="fa fa-check"></i>
-        </a>
-        <span class="name">This is the task that is listed here. It is intentionally long to make sure that long tasks that have a line break still show up properly. I want this to be right even when the task goes onto two or even three lines of copy.</span>
-        <span class="description">This is a description of exactly what is happening in this task and how long it can take. This description area can definitely be several lines long as some tasks require more explanation than others. I am filibustering in case you couldn't tell.</span>
+        </span>
+        <span class="name"><?php echo $task->getValue('name')?></span>
+        <span class="description"><?php $description = $task->getValue('description'); if($description) echo $description; else echo '[ No description available for this task ]' ?></span>
       </div>
     <?php } ?>
   </section>

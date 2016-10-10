@@ -27,6 +27,7 @@
   <?php } ?>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-3.1.1.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/setTimeout.polyfill.js"></script>
   <link rel="shortcut icon" href="<?php echo base_url()?>favicon.png" type="image/x-icon">
   <link rel="icon" href="<?php echo base_url()?>favicon.png" type="image/x-icon">
   <title><?php echo config_item('site_name'); if(isset($this->page_header['header'])) echo '| '. $this->page_header['header'] ?></title>
@@ -36,18 +37,24 @@
 <header class="main-header clearfix">
   <div class="main-header-inner">
     <div class="upper-head">
+      <?php if(UserSession::loggedIn()) { ?>
       <nav class="clearfix">
         <ul>
-          <li><a href="#">Dashboard</a></li>
-          <li><a href="#">Workflows</a></li>
-          <li class="active"><a href="#">Jobs</a></li>
-          <li><a href="#">Customers</a></li>
-          <li><a href="#">Users</a></li>
-          <li><a href="#">Search</a></li>
+          <?php
+          $navItems = array('dashboard','workflows','jobs','contacts','users','search');
+          foreach($navItems as $navItem){ ?>
+            <li class="<?php if($this->navSelected == $navItem) echo 'active';?>"><a href="<?php echo site_url($navItem); ?>"><?php echo $navItem ?></a></li>
+          <?php } ?>
         </ul>
       </nav>
+      <?php } ?>
       <div class="upper-links">
-        <a href="#"><i class="fa fa-cog"></i> Settings</a>
+        <?php if(UserSession::loggedIn()) { ?>
+          <a href="#"><i class="fa fa-cog"></i> Settings</a>
+          <a href="<?php echo site_url('/logout')?>"> Logout</a>
+        <?php } else { ?>
+<!--          <a href="--><?php //echo site_url('/login')?><!--"> Log In</a>-->
+        <?php } ?>
       </div>
     </div><!--/.upper-head-->
     <div class="main-head clearfix">
@@ -56,12 +63,19 @@
         <a href="<?php echo _url("/")?>?rel=main-logo"><img src="<?php echo base_url()?>/assets/temp/main-logo.gif" /></a>
       </div><!--/logo-container-->
       <div class="page-title">
+          <?php if(isset($this->job)){ ?>
         <h1><?php echo $this->job->getValue('name')?></h1>
         <h3><?php echo $this->job->getValue('workflow')->getValue('name')?></h3>
+        <?php } ?>
       </div>
       <div class="search">
         <i class="fa fa-search"></i>
         <input placeholder="Search ..." />
+      </div>
+      <?php } else { // What to do if user is not logged in?>
+      <div class="page-title">
+        <h1>Workflo Lite</h1>
+        <h3>Workflow Management for the Modern Business</h3>
       </div>
       <?php } ?>
     </div><!--/main-head-->
@@ -70,8 +84,9 @@
 
 <div id="main-wrap" class="clearfix <?php if(isset($this->page_class)) { if(is_array($this->page_class)) echo join(' ', $this->page_class); else if(is_string($this->page_class)) echo $this->page_class; } ?>">
 
-<section class="sidepanel js-sidepanel">
+<section class="sidepanel js-sidepanel <?php if(isset($this->preCollapseSidePanel) && $this->preCollapseSidePanel == true) echo 'collapse'; ?>">
   <i class="js-toggle fa fa-chevron-left"></i>
+  <?php if(UserSession::loggedIn() && isset($this->job)) : ?>
   <div class="panel">
     <h1><i class="fa fa-list"></i> Job Details</h1>
     <div class="job-meta">
@@ -83,7 +98,6 @@
       <?php } ?>
     </div><!--/.job-meta-->
   </div><!--/.panel-->
-  <?php if(UserSession::loggedIn()) { ?>
   <div class="panel">
     <i class="js-send-message fa fa-envelope"></i>
     <h1><i class="fa fa-users"></i> Job Contacts</h1>
@@ -99,16 +113,18 @@
       <?php } ?>
     </ul>
   </div><!--/.panel-->
-  <?php } ?>
+  <?php endif; ?>
 </section>
 <section class="main-content">
-  <?php include_once 'widgets/send-message.php'?>
+  <?php if(UserSession::loggedIn() && isset($this->job)) :
+    include_once 'widgets/send-message.php';
+  ?>
   <ul class="inner-nav clearfix">
     <?php foreach(array('tasks','notes','people','time','client-view') as $i => $slug) { $this->page = isset($this->page) ? $this->page : 'tasks';?>
       <li class="<?php
       if($this->page == $slug) echo 'active ';
-      if($slug == 'notes') echo ' notes-btn ';
-      ?>"><a href="<?php echo site_url('jobs/' . $this->job->id(). '/' . $slug) ?>"><?php echo ucwords(str_replace('-',' ', $slug)) ?></a></li>
+      if($slug == 'notes') echo ' notes-btn';
+      ?>"><a href="<?php echo site_url('jobs/' . $this->job->id(). '/' . $slug) ?>" class="<?php if($slug == 'notes') echo 'double-click' ?>"><?php echo ucwords(str_replace('-',' ', $slug)) ?></a></li>
     <?php } ?>
   </ul>
   <div class="notes-box">
@@ -142,3 +158,35 @@
       <a href="#" class="more">more messages <i class="fa fa-caret-down"></i></a>
     </div>
   </div>
+
+  <script type="application/javascript">
+    var DC_Clicks = {};
+    $(document).on('click', ".double-click", function(e){
+      var $this = $(this), key = md5(this.innerHTML);
+      if(typeof DC_Clicks[key] == 'undefined') {DC_Clicks[key] = {}; DC_Clicks[key].count = 1;} else DC_Clicks[key].count++;
+      console.log($this, $this.attr('href'));
+      DC_Clicks[key].href = $this.attr('href');
+      DC_Clicks[key].timeoutId = window.setTimeout(clickAction, 800, key);
+      return false;
+    });
+
+    function clickAction(key){
+      if(!key) {
+        console.log('no key');
+        return;
+      }
+      if(DC_Clicks[key].count > 1){
+        // doubleclick
+        console.log('double click');
+        console.log(DC_Clicks[key]);
+        window.location = DC_Clicks[key].href;
+      } else {
+        // singleclick
+        console.log('single click');
+        $(".notes-box").toggle();
+      }
+      DC_Clicks[key].count = 0;
+      clearTimeout(DC_Clicks[key].timeoutId);
+    }
+  </script>
+<?php endif; ?>

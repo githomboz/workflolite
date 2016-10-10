@@ -47,15 +47,9 @@ $route['admin/login'] = 'main/admin_login';
 $route['admin/logout'] = 'main/admin_logout';
 
 
-$route['jobs/(:any)/(:any)'] = 'main/jobs/$1/$2';
+$route['jobs/(:any)/(:any)'] = 'jobs/single/$1/$2';
+$route['dashboard'] = 'jobs/dashboard';
 
-$route['o/(:any)/w/(:any)'] = 'jobs/all/$1/$2'; // A list of jobs belonging to the given workflow
-$route['o/(:any)/workflows'] = 'jobs/workflows/$1'; // List of workflows from a given org.
-$route['o/(:any)/workflows/(:any)'] = 'jobs/workflow/$1/$2'; // The given workflow's structure
-$route['o/(:any)/job/(:any)'] = 'jobs/tasklist/$1/$2'; // A list of tasks for a given job
-$route['o/(:any)/task/(:any)'] = 'jobs/task/$1/$2'; // A specific task
-$route['o/(:any)/webhooks'] = 'webhooks/process/$1'; // Process a webhook
-$route['progress/(:any)'] = 'job/progress/$1'; // A page for showing status to outside parties
 
 
 $route['api/v1/(:any)'] = 'api/v1/call_method/$1';

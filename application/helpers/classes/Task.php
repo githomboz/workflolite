@@ -20,8 +20,7 @@ class Task extends WorkflowFactory
 
   public static $statusComplete = 'completed';
   public static $statusDeleted = 'deleted';
-  public static $statusStarted = 'started';
-  public static $statusNew = 'new';
+  public static $statusActive = 'active';
 
   /**
    * @var array Array of Step objects
@@ -126,18 +125,85 @@ class Task extends WorkflowFactory
 
   }
 
+  public function getStartDate($format = 'l, F j, Y h:i:s'){
+    if($date = $this->getValue('startDate')){
+      return date($format, $date->sec);
+    }
+    return null;
+  }
+
+  public function getCompleteDate($format = 'l, F j, Y h:i:s'){
+    if($date = $this->getValue('completeDate')){
+      return date($format, $date->sec);
+    }
+    return null;
+  }
+
+  public function start(){
+    $update = array(
+      'startDate' => new MongoDate(),
+    );
+    $this->_current = array_merge($this->_current, $update);
+    return self::Update($this->id(), $update);
+  }
+
+  public function complete(){
+    $update = array(
+      'completeDate' => new MongoDate(),
+      'status' => Task::$statusComplete
+    );
+    $this->_current = array_merge($this->_current, $update);
+    return self::Update($this->id(), $update);
+  }
+
+  public function clearStart(){
+    $update = array(
+      'startDate' => null,
+    );
+    $this->_current = array_merge($this->_current, $update);
+    return self::Update($this->id(), $update);
+  }
+
+  public function clearComplete(){
+    $update = array(
+      'completeDate' => null,
+    );
+    $this->_current = array_merge($this->_current, $update);
+    return self::Update($this->id(), $update);
+  }
+
   /**
    * Whether or not this task is active based on dependencies.
    */
   public function isActionable(){
-    $actionable = true;
-    if(!empty($this->preconditions)) $actionable = false;
-    if(in_array($this->getValue('status'), array(self::$statusComplete, self::$statusDeleted))) $actionable = false;
-    return $actionable;
+    $response = true;
+    if(!empty($this->preconditions)) $response = false;
+    if(in_array($this->getValue('status'), array(self::$statusComplete, self::$statusDeleted))) $response = false;
+    return $response;
+  }
+
+  /**
+   * Whether or not this display this task
+   */
+  public function isShowable(){
+    $response = true;
+    if(in_array($this->getValue('status'), array(self::$statusDeleted))) $response = false;
+    return $response;
+  }
+
+  /**
+   * Whether or not this display this task
+   */
+  public function isClientViewable(){
+    return $this->getValue('clientView');
   }
 
   public function isComplete(){
     return $this->getValue('status') == self::$statusComplete;
+  }
+
+  public function isStarted(){
+    return $this->getValue('startDate');
   }
 
   public function nextStepIndex(){

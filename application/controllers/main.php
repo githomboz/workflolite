@@ -83,50 +83,9 @@ class Main extends Front_Controller {
     redirect('admin');
   }
 
-  public function jobs($jobId, $slug = 'tasks'){
-    $this->job = Job::Get($jobId);
-    if($this->job){
-      if($this->job->loadOrganization()->getValue('organization')->getValue('_id') == UserSession::value('organizationId')){
-        $this->job->loadWorkflow();
-        $successAddTask = _process_add_task($this->input->post());
-        $this->page = $slug;
-        $this->view($slug);
-      } else {
-        show_error('You are not authorized to view this page');
-      }
-    } else {
-      show_404();
-    }
+
+  public function index(){
+    redirect('dashboard');
   }
 
-  public function people($jobId){
-    $this->job = Job::Get($jobId);
-    if($this->job){
-      if($this->job->loadOrganization()->getValue('organization')->getValue('_id') == UserSession::value('organizationId')){
-        $this->job->loadWorkflow();
-        $this->page = 'people';
-        $this->view('people');
-      } else {
-        show_error('You are not authorized to view this page');
-      }
-    } else {
-      show_404();
-    }
-  }
-
-  public function notes(){
-    $this->page = 'notes';
-    $this->view('notes');
-  }
-
-  public function time(){
-    $this->page = 'time';
-    $this->view('time');
-  }
-
-  public function client_view(){
-    $this->page = 'client-view';
-    $this->view('client-view');
-  }
-  
 }

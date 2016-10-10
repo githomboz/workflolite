@@ -42,19 +42,23 @@ body, html {
     text-transform: uppercase;
 
     &.active {
-      background: darken($mainhead_bgcolor, 25%);
+      background: darken($mainhead_bgcolor, 15%);
       font-weight: $font-weight-semi-bold;
     }
 
   }
 
-  .upper-links a {
-    color: lighten($mainhead_bgcolor, 15%);
+  .upper-links {
     line-height: $upperhead_height;
     top: 0;
     right: $padding;
     position: absolute;
     font-size: $font-size-sm;
+
+    a {
+      color: lighten($mainhead_bgcolor, 15%);
+      padding-left: $padding;
+    }
 
     .fa {
       font-size: 105%;
@@ -80,12 +84,13 @@ textarea {
 
   .logo-container {
     float: left;
-    margin: $paddingLarge $padding 0 $paddingLarge;
+    margin: $paddingLarge 0 0 $paddingLarge;
   }
 
   .page-title {
     float: left;
     position: relative;
+    margin-left: $padding;
 
     h1 {
       font-size: 20px;
@@ -281,7 +286,8 @@ textarea {
   text-align: center;
 }
 
-a.checkbox {
+a.checkbox,
+span.checkbox {
   display: inline-block;
   width: 22px;
   height:22px;
@@ -292,6 +298,12 @@ a.checkbox {
   text-align: center;
   line-height: 22px;
   font-size: 14px;
+
+  &.clickable:hover {
+    background: darken($sidepanel_bg, 10%);
+    border: 1px solid darken($sidepanel_bg, 25%);
+    color: darken($sidepanel_bg, 25%);
+  }
 
   &.checked {
     background: lighten($mainhead_bgcolor, 55%);
@@ -561,7 +573,7 @@ $tasklist_height : 36px;
     }
   }
   
-  .task {
+  .task-style {
     position: relative;
     height: $tasklist_height;
     font-size: $font-size-sm;
@@ -617,11 +629,12 @@ $tasklist_height : 36px;
 
         &.col-1,
         &.col-2 {
-          width: 12%;
+          width: 16%;
+          text-align: center;
         }
 
         &.col-3 {
-          width: 66%;
+          width: 58%;
 
           &.input input {
             padding: 0 $padding/2;
@@ -841,6 +854,7 @@ $tasklist_height : 36px;
       padding: 0 $padding;
       text-align: right;
       font-size: $font-size-xl;
+      min-width: 5%;
     }
   }
 
@@ -859,7 +873,7 @@ $tasklist_height : 36px;
     }
 
     .name {
-      display: inline-block;
+      display: block;
     }
 
     .description {
