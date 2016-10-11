@@ -11,10 +11,10 @@ class Contact extends WorkflowFactory
    */
   protected static $_collection = 'contacts';
 
-  public function __construct(array $data, $fullLoad = false)
+  public function __construct(array $data)
   {
     parent::__construct();
-    $this->_initialize($data, $fullLoad);
+    $this->_initialize($data);
   }
 
   public function getRecipientData(){

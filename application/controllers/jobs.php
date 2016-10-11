@@ -10,24 +10,29 @@ class Jobs extends Users_Controller {
   }
 
   public function single($jobId, $slug = 'tasks'){
-    $this->preCollapseSidePanel = false;
-    $this->navSelected = 'jobs';
-    $this->job = Job::Get($jobId);
-    if($this->job){
-      if($this->job->loadOrganization()->getValue('organization')->getValue('_id') == UserSession::value('organizationId')){
-        $this->job->loadWorkflow();
-        $successfullPosts = array();
-        $AddTask = _process_add_task($this->input->post(), $this->job);
-        if($AddTask['success']){
-          $successfullPosts[] = $AddTask;
+    $this->navSelected = 'jobsInner';
+    $innerNav = _get_inner_nav($this->navSelected);
+    if(in_array($slug, _get_inner_nav_slugs($innerNav))){
+      $this->preCollapseSidePanel = false;
+      $this->job = Job::Get($jobId);
+      if(isset($this->job) && $this->job){
+        if($this->job->loadOrganization()->getValue('organization')->getValue('_id') == UserSession::value('organizationId')){
+          $this->job->loadWorkflow();
+          $successfullPosts = array();
+          $AddTask = _process_add_task($this->input->post(), $this->job);
+          if($AddTask['success']){
+            $successfullPosts[] = $AddTask;
+          }
+          if(!empty($successfullPosts)){
+            redirect(current_url().'?success');
+          }
+          $this->innerNavSelected = $slug;
+          $this->view('jobs-' . $slug);
+        } else {
+          show_error('You are not authorized to view this page');
         }
-        if(!empty($successfullPosts)){
-          redirect(current_url().'?success');
-        }
-        $this->page = $slug;
-        $this->view($slug);
       } else {
-        show_error('You are not authorized to view this page');
+        show_404();
       }
     } else {
       show_404();
@@ -36,14 +41,44 @@ class Jobs extends Users_Controller {
 
   public function dashboard(){
     $this->preCollapseSidePanel = true;
+    $this->pageTitle = 'My Dashboard';
     $this->navSelected = 'dashboard';
-    $this->view('dashboard');
+    $this->view('dashboard-page');
+	}
+
+  public function workflows(){
+    $this->preCollapseSidePanel = true;
+    $this->pageTitle = 'Workflows';
+    $this->navSelected = 'workflows';
+    $this->view('workflows-page');
+	}
+
+  public function contacts(){
+    $this->preCollapseSidePanel = true;
+    $this->pageTitle = 'Organization Contacts';
+    $this->navSelected = 'contacts';
+    $this->view('contacts-page');
+	}
+
+  public function users(){
+    $this->preCollapseSidePanel = true;
+    $this->pageTitle = 'User Management';
+    $this->navSelected = 'users';
+    $this->view('users-page.php');
+	}
+
+  public function search(){
+    $this->preCollapseSidePanel = true;
+    $this->pageTitle = 'Advanced Search';
+    $this->navSelected = 'search';
+    $this->view('search-page');
 	}
 
   public function archive(){
     $this->preCollapseSidePanel = true;
+    $this->pageTitle = 'Current Jobs';
     $this->navSelected = 'jobs';
-    $this->view('archive');
+    $this->view('jobs-page');
   }
 
   public function index(){

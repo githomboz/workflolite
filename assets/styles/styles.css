@@ -1165,6 +1165,21 @@ body, html {
   display: block;
   clear: both; }
 
+.boxed {
+  padding: 10px;
+  -webkit-border-radius: 3px;
+          border-radius: 3px;
+  border: 1px solid #d9d9d9;
+  -webkit-box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+          box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 18px; }
+
+.sidepanel-bg {
+  background: #f2f2f2; }
+
+.font-size-sm {
+  font-size: 13px; }
+
 .upper-head {
   height: 34px;
   background: #0e190d;
@@ -1220,6 +1235,9 @@ textarea {
       top: 6px;
       position: relative;
       font-weight: 600; }
+      .main-head .page-title h1.solo {
+        font-size: 24px;
+        line-height: 36px; }
     .main-head .page-title h3 {
       font-size: 13px;
       color: #76b76e; }
@@ -1318,6 +1336,8 @@ textarea {
   padding: 18px;
   position: relative;
   min-height: 600px; }
+  .main-content h1 a {
+    color: #4992d0; }
   .main-content .inner-nav {
     border-bottom: 2px solid #d9d9d9;
     margin-bottom: 10px; }
@@ -1787,6 +1807,50 @@ span.checkbox {
       margin: 10px 0; }
     .client-view .task.show-description .description {
       display: inline-block; }
+
+.workflow.entry {
+  position: relative; }
+  .workflow.entry:hover .js-edit {
+    display: inline-block; }
+  .workflow.entry .workflow-info {
+    padding-right: 130px; }
+    .workflow.entry .workflow-info .group {
+      display: block;
+      margin-bottom: .3em;
+      font-size: 13px; }
+      .workflow.entry .workflow-info .group .group-name {
+        font-style: italic; }
+    .workflow.entry .workflow-info h2 {
+      font-size: 1.1em;
+      line-height: 1.5em;
+      margin-bottom: .5em; }
+      .workflow.entry .workflow-info h2 a {
+        font-size: 13px;
+        display: none;
+        line-height: normal;
+        padding-left: 10px;
+        color: #4992d0; }
+    .workflow.entry .workflow-info h3 {
+      color: #7f7f7f; }
+  .workflow.entry .actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    text-align: center; }
+    .workflow.entry .actions .job-count {
+      text-align: right;
+      display: block;
+      margin-bottom: 10px; }
+      .workflow.entry .actions .job-count a {
+        color: #4992d0; }
+
+.list-entry.entry h2 {
+  font-size: 1.1em;
+  line-height: 1.5em; }
+  .list-entry.entry h2 a {
+    line-height: normal;
+    padding-left: 10px;
+    color: #4992d0; }
 
 .wrapper--progress {
   position: relative;

@@ -80,7 +80,12 @@ class Users_Controller extends Base_Controller
   public function __construct()
   {
     parent::__construct();
-    if(!UserSession::loggedIn()) redirect('login');
+    if(!UserSession::loggedIn()) {
+      redirect('login');
+    } else {
+      $this->user = UserSession::Get_User();
+      $this->organization = UserSession::Get_Organization();
+    }
   }
 
 }

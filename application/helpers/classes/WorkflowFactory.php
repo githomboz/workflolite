@@ -48,17 +48,9 @@ class WorkflowFactory extends WorkflowInterface
    * @param array $data
    * @param bool $fullLoad Whether or not to load all linked records
    */
-  protected function _initialize(array $data, $fullLoad = false){
+  protected function _initialize(array $data){
     $this->_current = $data;
     if(isset($data['_id'])) $this->_id = $data['_id'];
-    if($fullLoad){
-      $this->loadOrganization();
-      $this->loadJob();
-      $this->loadWorkflow();
-      if($this->isTask()){
-        $this->loadTask();
-      }
-    }
   }
 
   protected static function CI(){

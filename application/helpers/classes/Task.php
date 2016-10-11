@@ -27,11 +27,11 @@ class Task extends WorkflowFactory
    */
   protected $steps = array();
 
-  public function __construct(array $data, $fullLoad = false){
+  public function __construct(array $data){
     parent::__construct();
     // Needs to run before _initialize
     if(isset($data['_id'])) $data['taskId'] = $data['_id'];
-    $this->_initialize($data, $fullLoad);
+    $this->_initialize($data);
   }
 
   public function assign($userIds){

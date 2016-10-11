@@ -66,7 +66,15 @@
           <?php if(isset($this->job)){ ?>
         <h1><?php echo $this->job->getValue('name')?></h1>
         <h3><?php echo $this->job->getValue('workflow')->getValue('name')?></h3>
-        <?php } ?>
+        <?php } else {
+            if(isset($this->pageTitle)){ ?>
+        <h1 class="<?php if(!isset($this->pageDescription)) echo 'solo '?>"><?php echo $this->pageTitle; ?></h1>
+              <?php if(isset($this->pageDescription)) {?>
+                <h3><?php echo $this->pageDescription; ?></h3>
+              <?php } ?>
+          <?php
+            }
+          } ?>
       </div>
       <div class="search">
         <i class="fa fa-search"></i>
@@ -84,8 +92,8 @@
 
 <div id="main-wrap" class="clearfix <?php if(isset($this->page_class)) { if(is_array($this->page_class)) echo join(' ', $this->page_class); else if(is_string($this->page_class)) echo $this->page_class; } ?>">
 
-<section class="sidepanel js-sidepanel <?php if(isset($this->preCollapseSidePanel) && $this->preCollapseSidePanel == true) echo 'collapse'; ?>">
-  <i class="js-toggle fa fa-chevron-left"></i>
+<section class="sidepanel js-sidepanel <?php $collapse = isset($this->preCollapseSidePanel) && $this->preCollapseSidePanel == true; if($collapse) echo 'collapse'; ?>">
+  <i class="js-toggle fa fa-chevron-<?php if($collapse) echo 'right'; else echo 'left'; ?>"></i>
   <?php if(UserSession::loggedIn() && isset($this->job)) : ?>
   <div class="panel">
     <h1><i class="fa fa-list"></i> Job Details</h1>
@@ -116,48 +124,13 @@
   <?php endif; ?>
 </section>
 <section class="main-content">
-  <?php if(UserSession::loggedIn() && isset($this->job)) :
-    include_once 'widgets/send-message.php';
+  <?php
+  if(UserSession::loggedIn()) $object = in_array($this->navSelected, array('jobs', 'jobsInner')) ? 'job' : 'organization';
+  if(UserSession::loggedIn()) include_once 'widgets/inner-nav.php';
+  if(UserSession::loggedIn() && isset($this->job)) :
+  include_once 'widgets/send-message.php';
+  include_once 'widgets/notes-bubble.php';
   ?>
-  <ul class="inner-nav clearfix">
-    <?php foreach(array('tasks','notes','people','time','client-view') as $i => $slug) { $this->page = isset($this->page) ? $this->page : 'tasks';?>
-      <li class="<?php
-      if($this->page == $slug) echo 'active ';
-      if($slug == 'notes') echo ' notes-btn';
-      ?>"><a href="<?php echo site_url('jobs/' . $this->job->id(). '/' . $slug) ?>" class="<?php if($slug == 'notes') echo 'double-click' ?>"><?php echo ucwords(str_replace('-',' ', $slug)) ?></a></li>
-    <?php } ?>
-  </ul>
-  <div class="notes-box">
-    <div class="bubble">
-      <ul class="notes-list">
-        <li class="note clearfix">
-          <span class="author">Efran Jacobs</span>
-          <span class="date">8-28-2016 @ 4:44pm</span>
-          <div class="image"><img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" /></div>
-          <div class="message">Sure thing, boss!</div>
-        </li>
-        <li class="note clearfix">
-          <span class="author">Jim Brown</span>
-          <span class="date">8-28-2016 @ 3:34pm</span>
-          <div class="image"><img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" /></div>
-          <div class="message">Just got a response and I'm forwarding it to you now.</div>
-        </li>
-        <li class="note clearfix">
-          <span class="author">Jim Brown</span>
-          <span class="date">8-28-2016 @ 12:53pm</span>
-          <div class="image"><img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" /></div>
-          <div class="message">Emailed him; I should hear back soon</div>
-        </li>
-        <li class="note clearfix">
-          <span class="author">Efran Jacobs</span>
-          <span class="date">8-28-2016 @ 10:24pm</span>
-          <div class="image"><img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" /></div>
-          <div class="message">Customer doesn't seem to be responding. I'm going to need to escalate.</div>
-        </li>
-      </ul>
-      <a href="#" class="more">more messages <i class="fa fa-caret-down"></i></a>
-    </div>
-  </div>
 
   <script type="application/javascript">
     var DC_Clicks = {};
@@ -166,23 +139,15 @@
       if(typeof DC_Clicks[key] == 'undefined') {DC_Clicks[key] = {}; DC_Clicks[key].count = 1;} else DC_Clicks[key].count++;
       console.log($this, $this.attr('href'));
       DC_Clicks[key].href = $this.attr('href');
-      DC_Clicks[key].timeoutId = window.setTimeout(clickAction, 800, key);
+      DC_Clicks[key].timeoutId = window.setTimeout(clickAction, 400, key);
       return false;
     });
 
     function clickAction(key){
-      if(!key) {
-        console.log('no key');
-        return;
-      }
-      if(DC_Clicks[key].count > 1){
-        // doubleclick
-        console.log('double click');
-        console.log(DC_Clicks[key]);
+      if(!key) return;
+      if(DC_Clicks[key].count > 1){ // doubleclick
         window.location = DC_Clicks[key].href;
-      } else {
-        // singleclick
-        console.log('single click');
+      } else { // singleclick
         $(".notes-box").toggle();
       }
       DC_Clicks[key].count = 0;

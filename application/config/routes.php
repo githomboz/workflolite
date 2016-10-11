@@ -49,6 +49,10 @@ $route['admin/logout'] = 'main/admin_logout';
 
 $route['jobs/(:any)/(:any)'] = 'jobs/single/$1/$2';
 $route['dashboard'] = 'jobs/dashboard';
+$route['workflows/(:any)/(:any)'] = 'workflows/single/$1/$2';
+$route['contacts'] = 'jobs/contacts';
+$route['users'] = 'jobs/users';
+$route['search'] = 'jobs/search';
 
 
 

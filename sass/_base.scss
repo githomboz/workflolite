@@ -25,6 +25,23 @@ body, html {
 .clearfix {
   @include clearfix();
 }
+
+.boxed {
+  padding: $padding;
+  border-radius: 3px;
+  border: 1px solid darken($sidepanel_bg, 10%);
+  box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+  margin-bottom: $paddingLarge;
+}
+
+.sidepanel-bg {
+  background: $sidepanel_bg;
+}
+
+.font-size-sm {
+  font-size: $font-size-sm;
+}
+
 .upper-head {
   height: $upperhead_height;
   background: darken($mainhead_bgcolor, 30%);
@@ -98,6 +115,11 @@ textarea {
       top: 6px;
       position: relative;
       font-weight: $font-weight-semi-bold;
+
+      &.solo {
+        font-size: 24px;
+        line-height: 36px;
+      }
     }
 
     h3 {
@@ -243,6 +265,13 @@ textarea {
   padding: $paddingLarge;
   position: relative;
   min-height: 600px;
+
+  h1 {
+
+    a {
+      color: $button_blue;
+    }
+  }
 
   .inner-nav {
     border-bottom: 2px solid darken($sidepanel_bg, 10%);
@@ -890,5 +919,77 @@ $tasklist_height : 36px;
         display: inline-block;
       }
     }
+  }
+}
+
+.workflow.entry {
+  position: relative;
+
+  &:hover .js-edit {
+      display: inline-block;
+  }
+
+  .workflow-info {
+    padding-right: 130px;
+
+    .group {
+      display: block;
+      margin-bottom: .3em;
+      font-size: $font-size-sm;
+
+      .group-name {
+        font-style: italic;
+      }
+    }
+
+    h2 {
+      font-size: 1.1em;
+      line-height: 1.5em;
+      margin-bottom: .5em;
+
+      a {
+        font-size: $font-size-sm;
+        display: none;
+        line-height: normal;
+        padding-left: $padding;
+        color: $button_blue;
+      }
+
+    }
+
+    h3 {
+      color: $sidepanel_color_light;
+    }
+  }
+
+  .actions {
+    position: absolute;
+    top: $padding;
+    right: $padding;
+    text-align: center;
+
+    .job-count {
+      text-align: right;
+      display: block;
+      margin-bottom: $padding;
+
+      a {
+        color: $button_blue;
+      }
+    }
+  }
+}
+
+.list-entry.entry {
+  h2 {
+    font-size: 1.1em;
+    line-height: 1.5em;
+
+    a {
+      line-height: normal;
+      padding-left: $padding;
+      color: $button_blue;
+    }
+
   }
 }

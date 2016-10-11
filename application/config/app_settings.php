@@ -122,6 +122,7 @@ $config['mongo_schema'] = array(
     'categoryId',
     'description',
     'roles',
+    'group',
     'status',
   ),
   'jobs' => array(

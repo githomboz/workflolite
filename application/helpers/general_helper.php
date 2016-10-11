@@ -1,6 +1,73 @@
 <?php
 // Functions specific to this site/app
 
+function _get_inner_nav($selectedPage, $seg1 = null, $seg2 = null){
+  $navItems = array(
+    'jobsInner' => array(
+      array('slug' => 'tasks', 'href' => '/jobs/{job.id}/{slug}', 'default' => true),
+      array('slug' => 'notes', 'href' => '/jobs/{job.id}/{slug}',),
+      array('slug' => 'people', 'href' => '/jobs/{job.id}/{slug}',),
+      array('slug' => 'time', 'href' => '/jobs/{job.id}/{slug}',),
+      array('slug' => 'client-view', 'href' => '/jobs/{job.id}/{slug}',),
+    ),
+    'workflows' => array(
+      array('slug' => 'overview', 'href' => '/{page}', 'default' => true),
+      array('slug' => 'reports', 'href' => '/{page}/{slug}',),
+      array('slug' => 'jobs', 'href' => '/{page}/{slug}', 'hide' => true),
+    ),
+    'dashboard' => array(
+      array('slug' => 'overview', 'href' => '{page}', 'default' => true),
+    ),
+    'jobs' => array(
+      array('slug' => 'overview', 'href' => '{page}', 'default' => true),
+    ),
+    'contacts' => array(
+      array('slug' => 'overview', 'href' => '{page}', 'default' => true),
+    ),
+    'users' => array(
+      array('slug' => 'overview', 'href' => '{page}', 'default' => true),
+    ),
+    'search' => array(
+      array('slug' => 'overview', 'href' => '{page}', 'default' => true),
+    ),
+  );
+  foreach($navItems as $page => $items){
+    foreach($items as $i => $item){
+      $navItems[$page][$i]['href'] = str_replace('{slug}', $item['slug'], $item['href']);
+      $navItems[$page][$i]['href'] = str_replace('{page}', $page, $navItems[$page][$i]['href']);
+      if(!isset($item['name'])) $navItems[$page][$i]['name'] = ucwords(str_replace(array('-','_'), ' ', $item['slug']));
+      switch ($page){
+        case 'jobsInner' :
+          $navItems[$page][$i]['href'] = str_replace('{job.id}', $seg1, $navItems[$page][$i]['href']);
+          break;
+        case 'workflows' :
+          $navItems[$page][$i]['href'] = str_replace('{workflow.id}', $seg1, $navItems[$page][$i]['href']);
+          break;
+      }
+
+    }
+  }
+  return isset($navItems[$selectedPage]) ? $navItems[$selectedPage] : array();
+}
+
+function _get_inner_nav_slugs(array $innerNav){
+  $items = array();
+  foreach($innerNav as $item){
+    $items[] = $item['slug'];
+  }
+  return $items;
+}
+
+function _get_inner_nav_default(array $innerNav){
+  $items = array();
+  foreach($innerNav as $item){
+    if(isset($item['default']) && $item['default'] === true) return $item;
+  }
+  return;
+}
+
+
+
 function _process_add_task($post, Job $job){
   if(isset($post['action']) && $post['action'] == 'add-task'){
     $response = array(
