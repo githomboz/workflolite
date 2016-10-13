@@ -207,5 +207,30 @@ class Job extends WorkflowFactory
     return new $class($record);
   }
 
+  public function saveAsTemplate($name, $description = "", $group = "General"){
+    $this->loadWorkflow();
+    $newWorkflow = array(
+      'name' => $name,
+      'description' => $description,
+      'organizationId' => UserSession::Get_Organization()->id(),
+      'group' => $group ? $group : $this->workflow->getValue('group'),
+      'roles' => $this->workflow->getValue('roles'),
+      'status' => 'active',
+      'taskTemplates' => array(),
+      'accessibility' => array(),
+      'metaFields' => $this->workflow->getValue('metaFields'),
+    );
+
+    // Add Task Templates
+    $tasks = $this->getAllTasks();
+    foreach($tasks as $task) $newWorkflow['taskTemplates'][] = $task->getValue('taskTemplateId');
+    $id = Workflow::Create($newWorkflow);
+    if($id){
+      $newWorkflow['_id'] = $id;
+      return new Workflow($newWorkflow);
+    }
+    return false;
+  }
+
 
 }

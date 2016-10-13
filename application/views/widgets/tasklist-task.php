@@ -16,8 +16,8 @@
   </div>
   <div class="col-meta">
     <div class="cols">
-      <div class="col-1 col text-center"><?php if($date = $task->getStartDate('m/d/Y')) echo $date; else echo '-'?> <a href="#" class="fa fa-pencil"></a></div>
-      <div class="col-2 col text-center"><?php if($date = $task->getCompleteDate('m/d/Y')) echo $date; else echo '-'?> <a href="#" class="fa fa-pencil"></a></div>
+      <div class="col-1 col text-center"><?php if($date = $task->getStartDate('m/d/y')) echo $date; else echo '-'?> <a href="#" class="fa fa-pencil"></a></div>
+      <div class="col-2 col text-center"><?php if($date = $task->getCompleteDate('m/d/y')) echo $date; else echo '-'?> <a href="#" class="fa fa-pencil"></a></div>
       <?php $isInput = ($task->isStarted() && !$task->isComplete()); ?>
       <div class="col-3 col text-left <?php if($isInput) echo 'input' ?>">
         <?php if($isInput) { ?>

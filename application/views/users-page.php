@@ -1,7 +1,7 @@
 <div class="main-mid-section clearfix">
   <div class="main-mid-section-inner clearfix">
 
-    <h1><i class="fa "></i> Users</h1>
+    <h1><i class="fa "></i>Users</h1>
     <h4>Create, edit, or delete users.</h4>
 
     <div class="inner-nav-btns">

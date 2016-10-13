@@ -13,6 +13,7 @@
     <div class="message-forms">
       <div class="seg-email">
         <h2><i class="fa fa-envelope"></i> Email Message <span class="disclaimer">(This will be sent to all contacts)</span></h2>
+        <input id="email-subject" placeholder="Email Subject" value="We've recieved your order (#{job.orderNumber})" />
           <textarea id="email-copy">Dear {contact.name},
 
   The order for {job.name} is in progress. The closing date is set to {job.closingDate}.

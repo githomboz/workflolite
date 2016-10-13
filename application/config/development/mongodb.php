@@ -28,15 +28,15 @@ $config[$config_name]['mongo_query_safety'] = 'safe';
 $config[$config_name]['mongo_suppress_connect_error'] = true;
 $config[$config_name]['mongo_host_db_flag']   = true;
 
-$config_name = 'default';
-$config[$config_name]['mongo_hostbase'] = 'candidate.13.mongolayer.com:10879,candidate.12.mongolayer.com:10791';
-$config[$config_name]['mongo_username'] = 'workflowappuser';
-$config[$config_name]['mongo_password'] = 'nan4sdi1sdn';
-$config[$config_name]['mongo_database'] = 'WorkflowLite';
-$config[$config_name]['mongo_persist']  = true;
-$config[$config_name]['mongo_persist_key']	 = 'ci_persist';
-$config[$config_name]['mongo_replica_set']  = '54eed6c48ff6cc6d620000ed';
-$config[$config_name]['mongo_query_safety'] = 'safe';
-$config[$config_name]['mongo_suppress_connect_error'] = true;
-$config[$config_name]['mongo_host_db_flag']   = true;
+//$config_name = 'default';
+//$config[$config_name]['mongo_hostbase'] = 'candidate.13.mongolayer.com:10879,candidate.12.mongolayer.com:10791';
+//$config[$config_name]['mongo_username'] = 'workflowappuser';
+//$config[$config_name]['mongo_password'] = 'nan4sdi1sdn';
+//$config[$config_name]['mongo_database'] = 'WorkflowLite';
+//$config[$config_name]['mongo_persist']  = true;
+//$config[$config_name]['mongo_persist_key']	 = 'ci_persist';
+//$config[$config_name]['mongo_replica_set']  = '54eed6c48ff6cc6d620000ed';
+//$config[$config_name]['mongo_query_safety'] = 'safe';
+//$config[$config_name]['mongo_suppress_connect_error'] = true;
+//$config[$config_name]['mongo_host_db_flag']   = true;
 

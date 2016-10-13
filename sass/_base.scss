@@ -42,6 +42,10 @@ body, html {
   font-size: $font-size-sm;
 }
 
+a.dark {
+  color: $sidepanel_color_dark;
+}
+
 .upper-head {
   height: $upperhead_height;
   background: darken($mainhead_bgcolor, 30%);
@@ -419,8 +423,14 @@ $sendmessage_width: 730px;
         }
       }
 
+      #email-subject {
+        margin-bottom: $padding;
+        font-size: $font-size-sm;
+        padding: $padding;
+      }
+
       #email-copy {
-        height: 240px;
+        height: 178px;
         margin-bottom: $paddingLarge;
       }
 
@@ -573,10 +583,22 @@ $sendmessage_width: 730px;
   }
 }
 
+.main-mid-section-inner {
+
+  & > h1 {
+    .fa {
+      padding-right: $padding;
+    }
+  }
+
+  & > h4 {
+    position: relative;
+    top: -8px;
+    margin-bottom: $paddingLarge;
+  }
+}
+
 .main-mid-section-inner > h4 {
-  position: relative;
-  top: -8px;
-  margin-bottom: $paddingLarge;
 }
 
 
@@ -924,8 +946,9 @@ $tasklist_height : 36px;
 
 .workflow.entry {
   position: relative;
+  min-height: 82px;
 
-  &:hover .js-edit {
+  &:hover h2 .js-edit {
       display: inline-block;
   }
 
@@ -933,9 +956,10 @@ $tasklist_height : 36px;
     padding-right: 130px;
 
     .group {
-      display: block;
-      margin-bottom: .3em;
+      margin: 0 $paddingLarge .3em 0;
       font-size: $font-size-sm;
+      position: relative;
+      top: -3px;
 
       .group-name {
         font-style: italic;
@@ -948,11 +972,15 @@ $tasklist_height : 36px;
       margin-bottom: .5em;
 
       a {
+        line-height: normal;
+        color: $sidepanel_color_dark;
+      }
+
+      .js-edit {
         font-size: $font-size-sm;
         display: none;
-        line-height: normal;
-        padding-left: $padding;
         color: $button_blue;
+        padding-left: $padding;
       }
 
     }
@@ -992,4 +1020,151 @@ $tasklist_height : 36px;
     }
 
   }
+}
+
+.widget > h2 {
+  font-weight: $font-weight-semi-bold;
+  line-height: 2em;
+  margin-bottom: .5em;
+}
+
+.templates-list {
+  width: 60%;
+  float: left;
+
+  &.selected {
+    .template.entry .entry.preview {
+      opacity: .4;
+      cursor: auto;
+    }
+  }
+
+
+  .template.entry {
+
+    .entry {
+      position: relative;
+
+      &.form {
+        display: none;
+
+        .link-group {
+          position: absolute;
+          top: $padding;
+          right: $padding;
+          font-size: $font-size-sm;
+          line-height: 16px;
+
+          a {
+            color: $button_blue;
+            padding-left: $padding;
+          }
+        }
+
+        h2 {
+          margin-bottom: .5em;
+          border-bottom: 1px solid darken($sidepanel_bg, 15%);
+          padding-bottom: $padding;
+        }
+
+        .aside {
+          width: 36%;
+          float: right;
+
+          .form-input {
+            margin-bottom: $padding;
+          }
+        }
+
+        .form-group {
+          width: 64%;
+          float: left;
+          line-height: 32px;
+          margin-bottom: $padding;
+          font-size: $font-size-sm;
+
+          label {
+            display: block;
+            width: 22%;
+            float: left;
+          }
+
+          textarea {
+            line-height: 1.4em;
+          }
+
+          input, textarea {
+            width: 70%;
+          }
+        }
+      }
+    }
+
+    .entry.preview {
+      display: block;
+      position: relative;
+      cursor: pointer;
+    }
+
+
+    &.form-mode {
+      .entry.form {
+        display: block;
+      }
+
+      .entry.preview {
+        display: none;
+      }
+    }
+  }
+}
+
+.dynamic-list {
+  position: relative;
+
+  .list-item {
+    line-height: 1.4em;
+    position: relative;
+    padding: 10px 30px 10px 10px;
+    width: 100%;
+    background: darken($sidepanel_bg, 10%);
+    margin-bottom: 10px;
+    border-radius: 3px;
+    overflow: hidden;
+
+    a {
+      line-height: inherit;
+      position: absolute;
+      right: 10px;
+      color: $button_blue;
+    }
+  }
+
+}
+
+.entities-list.widget {
+  float: right;
+  width: 38%;
+
+  .form-group {
+    margin-bottom: $padding;
+  }
+
+  .entities {
+    margin-top: $padding;
+    padding-top: $padding;
+    border-top: 1px solid darken($sidepanel_bg, 15%);
+    font-size: $font-size-sm;
+  }
+
+  .entity {
+    position: relative;
+    line-height: 14px;
+    padding: 4px 30px 4px 10px;
+  }
+}
+
+.meta-list.widget {
+  float: right;
+  width: 38%
 }

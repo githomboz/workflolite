@@ -124,6 +124,9 @@ $config['mongo_schema'] = array(
     'roles',
     'group',
     'status',
+    'taskTemplates', // ordered list of taskTemplates
+    'accessibility', // Who has access to use this template
+    'metaFields', // Fields that are needed for job completion
   ),
   'jobs' => array(
     'organizationId',
@@ -164,23 +167,16 @@ $config['mongo_schema'] = array(
     'dependencies', // Tasks that need to be completed before task can be completed
     'isPublicMilestone'
   ),
-  'jobTemplates' => array( // A saved template of all the tasks and their settings
-    'workflowId',
-    'tasksTemplates', // ordered list of taskTemplates
-    'meta', // random information about the job
-    'organizationId', // Org that this template belongs to
-    'accessibility', // Who has access to use this template
-    'metaFields',
-  ),
   'taskTemplates' => array(
     'name',
     'instructions',
-    'mileStone', // Whether or not this task is a milestone
+    'milestone', // Whether or not this task is a milestone
     'description', // Public explanation of what is done in this task
     'clientView', // Whether or not this task shows up on client progress portal
     'overviewVisibility', // Whether or not this task shows up on main jobs page
     'estimatedTime', // In hours, amount of time it should take to complete this task
     'taskGroup',
+    'requestApproval', // Request approval of task before task can be completed
     'nativeTriggers', // Array of options divided into two stages. Before start and after complete
     'organizationId', // Org that this template belongs to
     'publiclyAccessible', // Who has access to use this template

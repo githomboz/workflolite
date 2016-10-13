@@ -1,7 +1,7 @@
 <div class="main-mid-section clearfix">
   <div class="main-mid-section-inner clearfix">
 
-    <h1><i class="fa fa-bar-chart"></i> Reports</h1>
+    <h1><i class="fa fa-bar-chart"></i>Reports</h1>
     <h4>Analyze work performance and discover ways to increase productivity</h4>
 
 

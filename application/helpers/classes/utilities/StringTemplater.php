@@ -64,4 +64,11 @@ class StringTemplater
     return $return;
   }
 
+  public static function CamelCase($string){
+    $words = explode(' ', $string);
+    foreach($words as $i => $word) if(trim($word) != '') $words[$i] = trim(ucwords($word)); else unset($words[$i]);
+    $words[0] = strtolower($words[0]);
+    return join('', $words);
+  }
+
 }

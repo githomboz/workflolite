@@ -37,17 +37,7 @@
 <header class="main-header clearfix">
   <div class="main-header-inner">
     <div class="upper-head">
-      <?php if(UserSession::loggedIn()) { ?>
-      <nav class="clearfix">
-        <ul>
-          <?php
-          $navItems = array('dashboard','workflows','jobs','contacts','users','search');
-          foreach($navItems as $navItem){ ?>
-            <li class="<?php if($this->navSelected == $navItem) echo 'active';?>"><a href="<?php echo site_url($navItem); ?>"><?php echo $navItem ?></a></li>
-          <?php } ?>
-        </ul>
-      </nav>
-      <?php } ?>
+      <?php if(UserSession::loggedIn()) include 'widgets/_main-nav.php'?>
       <div class="upper-links">
         <?php if(UserSession::loggedIn()) { ?>
           <a href="#"><i class="fa fa-cog"></i> Settings</a>
@@ -83,7 +73,7 @@
       <?php } else { // What to do if user is not logged in?>
       <div class="page-title">
         <h1>Workflo Lite</h1>
-        <h3>Workflow Management for the Modern Business</h3>
+        <h3>Workflow Management Software for the Modern Business</h3>
       </div>
       <?php } ?>
     </div><!--/main-head-->

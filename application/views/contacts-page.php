@@ -1,7 +1,7 @@
 <div class="main-mid-section clearfix">
   <div class="main-mid-section-inner clearfix">
 
-    <h1><i class="fa "></i> Contact Management</h1>
+    <h1><i class="fa "></i>Contact Management</h1>
     <h4>Add, edit, and remove contacts.</h4>
 
     <div class="inner-nav-btns">

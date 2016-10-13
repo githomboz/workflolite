@@ -1180,6 +1180,9 @@ body, html {
 .font-size-sm {
   font-size: 13px; }
 
+a.dark {
+  color: #555; }
+
 .upper-head {
   height: 34px;
   background: #0e190d;
@@ -1445,8 +1448,12 @@ span.checkbox {
         top: 2px;
         right: 0;
         font-size: 13px; }
+    .send-message .message-body .message-forms #email-subject {
+      margin-bottom: 10px;
+      font-size: 13px;
+      padding: 10px; }
     .send-message .message-body .message-forms #email-copy {
-      height: 240px;
+      height: 178px;
       margin-bottom: 18px; }
     .send-message .message-body .message-forms #sms-copy {
       height: 60px;
@@ -1562,6 +1569,9 @@ span.checkbox {
     line-height: 30px;
     -webkit-border-radius: 0 0 4px 4px;
             border-radius: 0 0 4px 4px; }
+
+.main-mid-section-inner > h1 .fa {
+  padding-right: 10px; }
 
 .main-mid-section-inner > h4 {
   position: relative;
@@ -1809,15 +1819,17 @@ span.checkbox {
       display: inline-block; }
 
 .workflow.entry {
-  position: relative; }
-  .workflow.entry:hover .js-edit {
+  position: relative;
+  min-height: 82px; }
+  .workflow.entry:hover h2 .js-edit {
     display: inline-block; }
   .workflow.entry .workflow-info {
     padding-right: 130px; }
     .workflow.entry .workflow-info .group {
-      display: block;
-      margin-bottom: .3em;
-      font-size: 13px; }
+      margin: 0 18px 0.3em 0;
+      font-size: 13px;
+      position: relative;
+      top: -3px; }
       .workflow.entry .workflow-info .group .group-name {
         font-style: italic; }
     .workflow.entry .workflow-info h2 {
@@ -1825,11 +1837,13 @@ span.checkbox {
       line-height: 1.5em;
       margin-bottom: .5em; }
       .workflow.entry .workflow-info h2 a {
+        line-height: normal;
+        color: #555; }
+      .workflow.entry .workflow-info h2 .js-edit {
         font-size: 13px;
         display: none;
-        line-height: normal;
-        padding-left: 10px;
-        color: #4992d0; }
+        color: #4992d0;
+        padding-left: 10px; }
     .workflow.entry .workflow-info h3 {
       color: #7f7f7f; }
   .workflow.entry .actions {
@@ -1851,6 +1865,99 @@ span.checkbox {
     line-height: normal;
     padding-left: 10px;
     color: #4992d0; }
+
+.widget > h2 {
+  font-weight: 600;
+  line-height: 2em;
+  margin-bottom: .5em; }
+
+.templates-list {
+  width: 60%;
+  float: left; }
+  .templates-list.selected .template.entry .entry.preview {
+    opacity: .4;
+    cursor: auto; }
+  .templates-list .template.entry .entry {
+    position: relative; }
+    .templates-list .template.entry .entry.form {
+      display: none; }
+      .templates-list .template.entry .entry.form .link-group {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 13px;
+        line-height: 16px; }
+        .templates-list .template.entry .entry.form .link-group a {
+          color: #4992d0;
+          padding-left: 10px; }
+      .templates-list .template.entry .entry.form h2 {
+        margin-bottom: .5em;
+        border-bottom: 1px solid #cccccc;
+        padding-bottom: 10px; }
+      .templates-list .template.entry .entry.form .aside {
+        width: 36%;
+        float: right; }
+        .templates-list .template.entry .entry.form .aside .form-input {
+          margin-bottom: 10px; }
+      .templates-list .template.entry .entry.form .form-group {
+        width: 64%;
+        float: left;
+        line-height: 32px;
+        margin-bottom: 10px;
+        font-size: 13px; }
+        .templates-list .template.entry .entry.form .form-group label {
+          display: block;
+          width: 22%;
+          float: left; }
+        .templates-list .template.entry .entry.form .form-group textarea {
+          line-height: 1.4em; }
+        .templates-list .template.entry .entry.form .form-group input, .templates-list .template.entry .entry.form .form-group textarea {
+          width: 70%; }
+  .templates-list .template.entry .entry.preview {
+    display: block;
+    position: relative;
+    cursor: pointer; }
+  .templates-list .template.entry.form-mode .entry.form {
+    display: block; }
+  .templates-list .template.entry.form-mode .entry.preview {
+    display: none; }
+
+.dynamic-list {
+  position: relative; }
+  .dynamic-list .list-item {
+    line-height: 1.4em;
+    position: relative;
+    padding: 10px 30px 10px 10px;
+    width: 100%;
+    background: #d9d9d9;
+    margin-bottom: 10px;
+    -webkit-border-radius: 3px;
+            border-radius: 3px;
+    overflow: hidden; }
+    .dynamic-list .list-item a {
+      line-height: inherit;
+      position: absolute;
+      right: 10px;
+      color: #4992d0; }
+
+.entities-list.widget {
+  float: right;
+  width: 38%; }
+  .entities-list.widget .form-group {
+    margin-bottom: 10px; }
+  .entities-list.widget .entities {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #cccccc;
+    font-size: 13px; }
+  .entities-list.widget .entity {
+    position: relative;
+    line-height: 14px;
+    padding: 4px 30px 4px 10px; }
+
+.meta-list.widget {
+  float: right;
+  width: 38%; }
 
 .wrapper--progress {
   position: relative;

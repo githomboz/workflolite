@@ -33,6 +33,19 @@ class Workflows extends Users_Controller {
     }
   }
 
+  public function details($workflowId){
+    $this->preCollapseSidePanel = true;
+    $this->pageTitle = 'Workflow Template Details';
+    $this->navSelected = 'workflows';
+    $this->innerNavSelected = 'details';
+    $this->workflow = Workflow::Get($workflowId);
+    if(isset($this->workflow) && $this->workflow){
+      $this->view($this->navSelected . '-details');
+    } else {
+      show_404();
+    }
+  }
+
   public function archive(){
     $this->preCollapseSidePanel = true;
     $this->pageTitle = 'Workflow Management';

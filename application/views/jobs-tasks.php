@@ -1,4 +1,4 @@
-<?php //var_dump($this->job); ?>
+<?php //var_dump($this->job->saveAsTemplate('New JNBPA workflow')); ?>
 <?php //var_dump($this->job->getActionableTasks()); ?>
 <div class="main-mid-section clearfix">
     <div class="main-mid-section-inner clearfix">
@@ -12,7 +12,7 @@
             foreach($showableTasksGrouped as $taskGroup => $tasks){ foreach($tasks as $task){ $showableTasks[] = $task; }}
             $lastTaskId = $showableTasks[(count($showableTasks)-1)]->id();
         ?>
-        <form action="" method="post">
+        <form action="" method="post" class="form-add-task" style="display: none;">
             <input type="hidden" name="jobId" value="<?php echo $this->job->id()?>" />
             <input type="hidden" name="action" value="add-task" />
             <input type="hidden" name="organizationId" value="<?php echo $this->job->getValue('organizationId')?>" />

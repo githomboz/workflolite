@@ -1,7 +1,7 @@
 <div class="main-mid-section clearfix">
     <div class="main-mid-section-inner clearfix">
 
-        <h1><i class="fa fa-users"></i> Interested Parties</h1>
+        <h1><i class="fa fa-users"></i>Interested Parties</h1>
         <h4>Manage this job's contacts and communication options.</h4>
         <div class="inner-nav-btns">
             <a href="#" class="btn-sync-contacts btn"><i class="fa fa-refresh"></i> Sync Contacts</a>

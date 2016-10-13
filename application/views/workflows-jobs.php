@@ -1,7 +1,7 @@
 <div class="main-mid-section clearfix">
   <div class="main-mid-section-inner clearfix">
 
-    <h1><i class="fa fa-eye"></i> Jobs from Workflow <span class="workflow-name font-size-sm">(
+    <h1><i class="fa fa-eye"></i>Jobs from Workflow <span class="workflow-name font-size-sm">(
         <a href="<?php echo $this->workflow->getUrl() ?>">
         <?php echo $this->workflow->getValue('name') ?>
         </a>

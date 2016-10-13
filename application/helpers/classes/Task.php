@@ -49,6 +49,14 @@ class Task extends WorkflowFactory
     }
   }
 
+  public function runPostRoutines(){
+
+  }
+
+  public function queueTriggers(){
+
+  }
+
   /**
    * Prepare data and class for processing
    * @param array $data
@@ -153,6 +161,8 @@ class Task extends WorkflowFactory
       'status' => Task::$statusComplete
     );
     $this->_current = array_merge($this->_current, $update);
+    $this->runPostRoutines();
+    $this->queueTriggers();
     return self::Update($this->id(), $update);
   }
 

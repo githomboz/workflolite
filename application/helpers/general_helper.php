@@ -12,7 +12,7 @@ function _get_inner_nav($selectedPage, $seg1 = null, $seg2 = null){
     ),
     'workflows' => array(
       array('slug' => 'overview', 'href' => '/{page}', 'default' => true),
-      array('slug' => 'reports', 'href' => '/{page}/{slug}',),
+      //array('slug' => 'reports', 'href' => '/{page}/{slug}',),
       array('slug' => 'jobs', 'href' => '/{page}/{slug}', 'hide' => true),
     ),
     'dashboard' => array(
