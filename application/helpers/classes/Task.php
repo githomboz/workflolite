@@ -258,5 +258,12 @@ class Task extends WorkflowFactory
     $this->_current['triggers'] = $tempTriggers;
 
   }
-  
+
+  public static function Get($id){
+    $record = static::LoadId($id, static::$_collection);
+    $class = __CLASS__;
+    return new $class($record);
+  }
+
+
 }

@@ -185,6 +185,11 @@ class Job extends WorkflowFactory
     return false;
   }
 
+  public function getCurrentTask(){
+    $tasks = $this->getActionableTasks();
+    foreach($tasks as $task) if(!$task->isComplete()) return $task;
+  }
+  
   public function getMeta(){
     return $this->getValue('meta');
   }

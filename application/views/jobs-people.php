@@ -17,25 +17,25 @@
                 <div class="form-input icon"><i class="fa fa-envelope"></i> <input type="text" name="email" placeholder="Email" /></div>
                 <div class="form-input icon"><i class="fa fa-phone"></i> <input type="text" name="phone" placeholder="Home / Work Phone" /></div>
                 <div class="form-input icon"><i class="fa fa-mobile"></i> <input type="text" name="mobile" placeholder="Mobile" /></div>
-                <button type="submit"><i class="fa fa-plus"></i> Add Contact to Job</button>
+                <button type="submit" class="btn submit"><i class="fa fa-plus"></i> Add Contact to Job</button>
                 <div class="contact-settings clearfix">
                     <span class="setting"><input type="checkbox" /> Email Updates</span>
                     <span class="setting"><input type="checkbox" /> SMS Updates</span>
                 </div>
             </div>
-            <?php for($i = 0; $i < 7; $i ++) { ?>
-            <div class="people entry clearfix">
+            <?php foreach($this->job->getContacts() as $i => $contact){ //var_dump($contact)?>
+                <div class="people entry clearfix">
                 <div class="head-links">
                     <a href="#edit" class="fa fa-pencil"></a> &nbsp; 
                     <a href="#close" class="fa fa-times"></a>
                 </div>
-                <div class="role">Paralegal</div>
+                <div class="role"><?php echo $contact->getValue('role') ?></div>
                 <div class="image"><img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" /></div>
                 <div class="meta">
-                    <span class="data name">Deanna Courtney</span>
-                    <span class="data email"><i class="fa fa-envelope"></i> deanna.courtney@jnbpa.com</span>
-                    <span class="data phone"><i class="fa fa-phone"></i> (561) 863 - 9411 ext# 11</span>
-                    <span class="data mobile"><i class="fa fa-mobile"></i> (561) 707 - 4823</span>
+                    <span class="data name"><?php echo $contact->getValue('name') ?></span>
+                    <span class="data email"><i class="fa fa-envelope"></i> <?php echo $contact->getValue('email') ?></span>
+                    <span class="data phone"><i class="fa fa-phone"></i> <?php echo phoneFormat($contact->getValue('phone')) ?></span>
+                    <span class="data mobile"><i class="fa fa-mobile"></i> <?php echo phoneFormat($contact->getValue('mobile')) ?></span>
                 </div>
                 <div class="contact-settings clearfix">
                     <span class="setting"><input type="checkbox" /> Email Updates</span>

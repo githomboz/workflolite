@@ -88,7 +88,7 @@
     <?php //$this->workflow->addMeta('Buyer Price') ?>
     <div class="meta-list entities-list widget">
       <h2>Job Meta Data: </h2>
-      <form method="post" class="boxed sidepanel-bg">
+      <div class="boxed sidepanel-bg">
         <div class="form-group">
           <label for="labelField">Label Name</label> <input type="text" id="labelField" name="metaFieldName" placeholder="Label the field name" />
           <select name="dataType">
@@ -97,21 +97,19 @@
             <option value="<?php echo $dataType ?>"><?php echo ucwords($dataType); ?></option>
             <?php } ?>
           </select>
-          <div class="form-group">
-          </div>
           <form class="type-form <?php $dataType = 'string'; echo $dataType; ?>">
             <div class="main-fields">
               <label for="">Max String Length</label>
               <input type="text" name="maxLengthDefault" value="<?php ?>" />
               <span class="helpful-tip">The maximum length allowable for this string</span>
             </div>
-            <input type="checkbox" id="defaultCheckbox<?php echo md5($dataType) ?>" /> <label for="defaultCheckbox<?php echo md5($dataType) ?>">Add Default Values</label>
+            <a href="#" class="set-default-link">Add / Update Default Values</a>
             <div class="set-default ">
               <label id="">Default Value: </label><input name="defaultValue" />
             </div>
           </form>
           <form class="type-form <?php $dataType = 'integer'; echo $dataType; ?>">
-            <input type="checkbox" id="defaultCheckbox<?php echo md5($dataType) ?>" /> <label for="defaultCheckbox<?php echo md5($dataType) ?>">Add Default Values</label>
+            <a href="#" class="set-default-link">Add / Update Default Values</a>
             <div class="set-default ">
               <label id="">Default Value: </label><input name="defaultValue" />
             </div>
@@ -146,16 +144,16 @@
                 <option value="us">United States</option>
               </select>
             </div>
-            <input type="checkbox" id="defaultCheckbox<?php echo md5($dataType) ?>" /> <label for="defaultCheckbox<?php echo md5($dataType) ?>">Add Default Values</label>
+            <a href="#" class="set-default-link">Add / Update Default Values</a>
             <div class="set-default ">
               <div class="data-type-address data-type-form no-labels">
-                <div class="row">
+                <div class="group">
                   <label>Address</label><input type="input" name="address" placeholder="Address" />
                 </div>
-                <div class="row">
+                <div class="group">
                   <label>Address 2</label><input type="input" name="address2" placeholder="Address 2" />
                 </div>
-                <div class="row">
+                <div class="group">
                   <input type="input" name="city" placeholder="City" />
                   <input type="input" name="state" placeholder="State" />
                   <input type="input" name="zip" placeholder="Zip" />
@@ -174,7 +172,7 @@
             <?php } ?>
           </div>
         <?php } ?>
-      </form>
+      </div>
     </div><!--/.widget-->
 
 
@@ -219,7 +217,23 @@
   }
 
   var selectedTemplate = window.location.hash.substr(1);
-  var templateId = selectedTemplate.split('-')[1];
-  var $template = $(".template-" + templateId);
-  selectTemplate($template);
+  if(selectedTemplate.search('tasktemplate-') >= 0){
+    var templateId = selectedTemplate.split('-')[1];
+    var $template = $(".template-" + templateId);
+    selectTemplate($template);
+  }
+
+  $( "select[name=dataType]" )
+    .change(function () {
+      var val = $(this).val();
+      $(".type-form").removeClass('active');
+      if(val.trim() != '') $(".type-form." + val.trim()).addClass('active');
+    })
+    .change();
+
+  $(document).on('click', ".set-default-link", function(){
+    var $this = $(this);
+    $this.parents('form').find('.set-default').show();
+    return false;
+  });
 </script>

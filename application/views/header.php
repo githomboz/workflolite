@@ -25,7 +25,9 @@
   <?php if(config_item('set_noindex_nofollow')){ ?>
     <meta name="robots" content="noindex, nofollow">
   <?php } ?>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/pubsub.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-3.1.1.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_API.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/setTimeout.polyfill.js"></script>
   <link rel="shortcut icon" href="<?php echo base_url()?>favicon.png" type="image/x-icon">

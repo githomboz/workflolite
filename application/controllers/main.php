@@ -88,4 +88,14 @@ class Main extends Front_Controller {
     redirect('dashboard');
   }
 
+  public function progress($jobId){
+    $this->job = Job::Get($jobId);
+    if($this->job){
+      $this->organization = Organization::Get($this->job->getValue('organizationId'));
+      $this->load->view('client-view');
+    } else {
+      show_404();
+    }
+  }
+
 }

@@ -110,3 +110,7 @@ function _process_add_task($post, Job $job){
     return $response;
   }
 }
+
+function phoneFormat($string){
+  return '(' . substr($string, 0, 3) . ') ' . substr($string, 3, 3) . '-' . substr($string, 6, 4);
+}

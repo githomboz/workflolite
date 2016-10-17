@@ -296,6 +296,10 @@ textarea {
         position: relative;
         bottom: -2px;
         border-bottom: 2px solid darken($sidepanel_bg, 10%);
+
+        &:hover {
+          color: darken($sidepanel_color_light, 15%);
+        }
       }
 
       &.active a {
@@ -644,6 +648,24 @@ $tasklist_height : 36px;
       color: #cc0000;
     }
 
+    &.completed {
+
+      .col-title {
+
+        &:hover a.fa-pencil {
+          display: none;
+        }
+      }
+
+      .col {
+
+        &:hover a.fa-pencil {
+          //display: none !important;
+        }
+      }
+    }
+
+
 
     .col-title {
       position: absolute;
@@ -674,6 +696,10 @@ $tasklist_height : 36px;
         float: left;
         padding: 0 $padding;
 
+        .fa-clock-o {
+          color: $button_blue;
+        }
+
         &:hover a.fa-pencil {
           display: inline;
         }
@@ -687,16 +713,31 @@ $tasklist_height : 36px;
         &.col-3 {
           width: 58%;
 
-          &.input input {
-            padding: 0 $padding/2;
-            height: 30px;
-            border-radius: 3px;
-            border: 1px solid darken($sidepanel_bg, 5%);
-            box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
-            width: 80%;
-            position: relative;
-            top: 0px;
-            line-height: 30px;
+          .comment-form {
+            display: none;
+          }
+
+          &.input {
+
+            .comment-form {
+              display: block;
+            }
+
+            .comment-content {
+              display: none;
+            }
+
+            input {
+              padding: 0 $padding/2;
+              height: 30px;
+              border-radius: 3px;
+              border: 1px solid darken($sidepanel_bg, 5%);
+              box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+              width: 80%;
+              position: relative;
+              top: 0px;
+              line-height: 30px;
+            }
           }
 
           &.input button {
@@ -709,6 +750,37 @@ $tasklist_height : 36px;
             top: 0px;
             border: none;
             line-height: 30px;
+          }
+
+          .comment-content {
+
+            .no-comment {
+              display: none;
+
+              a {
+                color: $button_blue;
+              }
+
+            }
+
+            &.no-comment {
+              .no-comment {
+                display: block;
+
+                a {
+                  display: none;
+                }
+
+                &:hover a {
+                  display: inline-block;
+                }
+
+              }
+
+              .has-comment {
+                display: none;
+              }
+            }
           }
         }
 
@@ -790,9 +862,9 @@ $tasklist_height : 36px;
     }
 
     button {
-      background: none;
+      color: #fff;
       border: none;
-      color: $button_blue;
+      background: $button_blue;
       float: right;
       font-size: $font-size-sm;
       font-weight: $font-weight-semi-bold;
@@ -856,6 +928,10 @@ $tasklist_height : 36px;
       }
     }
   }
+}
+
+.client-view-container {
+  padding: $padding;
 }
 
 .client-view {
@@ -1161,6 +1237,22 @@ $tasklist_height : 36px;
     position: relative;
     line-height: 14px;
     padding: 4px 30px 4px 10px;
+  }
+
+  .type-form {
+    display: none;
+    
+    &.active {
+      display: block;
+    }
+
+    .set-default {
+      display: none;
+    }
+
+    .set-default-link {
+      color: $button_blue;
+    }
   }
 }
 

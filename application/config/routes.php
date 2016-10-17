@@ -54,6 +54,7 @@ $route['workflows/(:any)'] = 'workflows/details/$1';
 $route['contacts'] = 'jobs/contacts';
 $route['users'] = 'jobs/users';
 $route['search'] = 'jobs/search';
+$route['progress/(:any)'] = 'main/progress/$1';
 
 
 

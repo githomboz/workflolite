@@ -160,11 +160,24 @@ class WorkflowFactory extends WorkflowInterface
   /**
    * Save the _current data to db
    * @throws Exception
+   * @param mixed $fields String or array of fields to save
    * @return $this
    */
-  public function save(){
+  public function save($fields = null){
     if($this->hasId()){
-      self::SaveToDb($this->id(), $this->_current);
+
+      if(is_string($fields)) $fields = array($fields);
+
+      $data = array();
+      if($fields){
+        foreach($fields as $field){
+          $data[$field] = $this->_current[$field];
+        }
+      }
+
+      if(empty($data)) $data = $this->_current;
+
+      self::SaveToDb($this->id(), $data);
       return $this;
     } else {
       throw new Exception('Entity (' . __CLASS__ . ') can not be pulled without an _id');

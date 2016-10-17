@@ -1358,6 +1358,8 @@ textarea {
         position: relative;
         bottom: -2px;
         border-bottom: 2px solid #d9d9d9; }
+        .main-content .inner-nav li a:hover {
+          color: #595959; }
       .main-content .inner-nav li.active a {
         color: #050804;
         border-bottom-color: #59a250;
@@ -1605,6 +1607,8 @@ span.checkbox {
       margin-right: 8px; }
     .tasklist .task-style.overdue .col-title {
       color: #cc0000; }
+    .tasklist .task-style.completed .col-title:hover a.fa-pencil {
+      display: none; }
     .tasklist .task-style .col-title {
       position: absolute;
       top: 0;
@@ -1624,6 +1628,8 @@ span.checkbox {
       .tasklist .task-style .col-meta .col {
         float: left;
         padding: 0 10px; }
+        .tasklist .task-style .col-meta .col .fa-clock-o {
+          color: #4992d0; }
         .tasklist .task-style .col-meta .col:hover a.fa-pencil {
           display: inline; }
         .tasklist .task-style .col-meta .col.col-1, .tasklist .task-style .col-meta .col.col-2 {
@@ -1631,6 +1637,12 @@ span.checkbox {
           text-align: center; }
         .tasklist .task-style .col-meta .col.col-3 {
           width: 58%; }
+          .tasklist .task-style .col-meta .col.col-3 .comment-form {
+            display: none; }
+          .tasklist .task-style .col-meta .col.col-3.input .comment-form {
+            display: block; }
+          .tasklist .task-style .col-meta .col.col-3.input .comment-content {
+            display: none; }
           .tasklist .task-style .col-meta .col.col-3.input input {
             padding: 0 5px;
             height: 30px;
@@ -1654,6 +1666,18 @@ span.checkbox {
             top: 0px;
             border: none;
             line-height: 30px; }
+          .tasklist .task-style .col-meta .col.col-3 .comment-content .no-comment {
+            display: none; }
+            .tasklist .task-style .col-meta .col.col-3 .comment-content .no-comment a {
+              color: #4992d0; }
+          .tasklist .task-style .col-meta .col.col-3 .comment-content.no-comment .no-comment {
+            display: block; }
+            .tasklist .task-style .col-meta .col.col-3 .comment-content.no-comment .no-comment a {
+              display: none; }
+            .tasklist .task-style .col-meta .col.col-3 .comment-content.no-comment .no-comment:hover a {
+              display: inline-block; }
+          .tasklist .task-style .col-meta .col.col-3 .comment-content.no-comment .has-comment {
+            display: none; }
 
 .search-contacts {
   display: inline-block;
@@ -1706,9 +1730,9 @@ span.checkbox {
     width: 88%; }
 
 .people-list .people-form button {
-  background: none;
+  color: #fff;
   border: none;
-  color: #4992d0;
+  background: #4992d0;
   float: right;
   font-size: 13px;
   font-weight: 600; }
@@ -1755,6 +1779,9 @@ span.checkbox {
       display: inline-block;
       width: 1em;
       text-align: center; }
+
+.client-view-container {
+  padding: 10px; }
 
 .client-view {
   position: relative; }
@@ -1954,6 +1981,14 @@ span.checkbox {
     position: relative;
     line-height: 14px;
     padding: 4px 30px 4px 10px; }
+  .entities-list.widget .type-form {
+    display: none; }
+    .entities-list.widget .type-form.active {
+      display: block; }
+    .entities-list.widget .type-form .set-default {
+      display: none; }
+    .entities-list.widget .type-form .set-default-link {
+      color: #4992d0; }
 
 .meta-list.widget {
   float: right;

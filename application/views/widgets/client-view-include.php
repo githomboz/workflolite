@@ -1,7 +1,7 @@
 <div class="client-view clearfix">
   <header>
     <a class="cv-logo">
-      <img src="<?php echo $this->organization->getValue("image"); ?>" />
+      <img src="<?php echo base_url() . $this->organization->getValue("image"); ?>" />
     </a>
   <span class="ref-id">
     Reference ID: <?php echo $this->job->id(); ?>

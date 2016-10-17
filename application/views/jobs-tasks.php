@@ -64,3 +64,197 @@
         </div>
     </div><!--/.main-mid-section-inner-->
 </div><!--/#main-mid-section-->
+<script type="text/javascript">
+
+    var TASK_CACHE = {};
+
+    $(document).on('click', ".checkbox", function(){
+        var $checkbox = $(this), $task = $checkbox.parents('.task-style');
+        if($checkbox.is('.clickable') && _validateMarkTaskCompleteData()){
+            _ajaxMarkTaskComplete({
+                'taskId' : $task.data('task_id')
+            });
+        }
+        return false;
+    });
+
+    $(document).on('click', '.task-style .start-task', function () {
+        var $this = $(this), taskId = $this.attr('href').split('-')[1];
+        _ajaxStartTask({
+            taskId : taskId
+        });
+    });
+
+    $(document).on('click', '.js-leave-comment', function () {
+        var $this = $(this), taskId = $this.attr('href').split('-')[1];
+        var $task = _getTaskRow_JobTasks(taskId);
+        var data = {
+            task : $task
+        };
+        _htmlUpdateShowCommentForm(data);
+    });
+
+    $(document).on('click', '.js-close-comments', function () {
+        var $this = $(this), taskId = $this.attr('id').split('-')[1];
+        _htmlUpdateHideCommentForm(_getTaskRow_JobTasks(taskId));
+    });
+
+    $(document).on('click', '.js-save-comment', function () {
+        var $this = $(this), taskId = $this.attr('id').split('-')[1];
+
+        var $task = _getTaskRow_JobTasks(taskId);
+        var val = $task.find('input.comments').val();
+        if(val.trim() != ''){
+            _ajaxSaveTaskComment({
+                taskId : taskId,
+                comments : val
+            });
+        } else {
+            alert('You must enter a comment to save');
+        }
+    });
+
+    function _handleMarkTaskCompleteError($task, errors){
+        console.log('//@todo: error handling')
+    }
+
+    function _validateMarkTaskCompleteData(){
+        return true;
+    }
+
+    function _ajaxSaveTaskComment(data){
+        var $task = _getTaskRow_JobTasks(data.taskId), $btn = $task.find('.js-save-comment');
+        CS_API.call('ajax/save_comment',
+          function(){ // beforeSend
+              $btn.addClass('sidepanel-bg');
+              $btn.find('.fa').removeClass('fa-save').addClass('fa-spin fa-spinner');
+          },
+          function(data){
+              // success
+              if(data.errors == false){
+                  $btn.find('.fa').addClass('fa-save').removeClass('fa-spin fa-spinner');
+                  data.response.task = $task;
+                  PubSub.publish('taskChange.commentSaved', data.response);
+              }
+          },
+          function(){ // error
+          },
+          data,
+          {
+              method: 'POST',
+              preferCache : false
+          }
+        );
+    }
+
+    function _ajaxStartTask(taskData){
+        CS_API.call('ajax/start_task',
+          function(){ // beforeSend
+          },
+          function(data){
+              // success
+              if(data.errors == false){
+                  PubSub.publish('taskChange.taskStarted', data.response);
+              }
+          },
+          function(){ // error
+          },
+          taskData,
+          {
+              method: 'POST',
+              preferCache : false
+          }
+        );
+    }
+
+    function _ajaxMarkTaskComplete(taskData){
+        var $task = _getTaskRow_JobTasks(taskData.taskId);
+        var $checkbox = $task.find('.checkbox');
+
+        CS_API.call('ajax/mark_complete',
+          function(){
+              // beforeSend
+              $checkbox.html('<i class="fa fa-spin fa-spinner"></i>');
+          },
+          function(data){
+              // success
+              if(data.errors == false){
+                  data.response.task = $task;
+                  data.response.checkbox = $checkbox;
+                  data.response.taskId = taskData.taskId;
+                  PubSub.publish('taskChange.taskComplete', data.response);
+              } else {
+                  _handleMarkTaskCompleteError($task, data.errors);
+              }
+          },
+          function(){
+              // error
+              _handleMarkTaskCompleteError($task);
+          },
+          taskData,
+          {
+              method: 'POST',
+              preferCache : false
+          }
+        );
+    }
+
+    function _htmlUpdateStartTask(topic, taskData){
+        var $task = _getTaskRow_JobTasks(taskData.taskId);
+        if($task){
+            // Add date to start column
+            var html = taskData.startDate + ' <a href="#editStart-' + taskData.taskId + '" class="fa fa-pencil"></a>';
+            $task.find('.col.start').html(html);
+            // Add comment input box
+        }
+    }
+
+    function _htmlUpdateClearStartTask(topic, taskData){
+        var $task = _getTaskRow_JobTasks(taskData.taskId);
+    }
+
+    function _htmlUpdateMarkComplete(topic, taskData){
+        taskData.checkbox
+          .html('<i class="fa fa-check"></i>')
+          .addClass('checked')
+          .removeClass('clickable');
+        taskData.task.addClass('completed');
+        var html = taskData.endDate + ' <a href="#editComplete-' + taskData.taskId + '" class="fa fa-pencil"></a>';
+        taskData.task.find('.col.complete').html(html);
+        if(typeof taskData.startDate != 'undefined'){
+            var html = taskData.startDate + ' <a href="#editStart-' + taskData.taskId + '" class="fa fa-pencil"></a>';
+            taskData.task.find('.col.start').html(html);
+        }
+    }
+
+    function _htmlUpdateShowCommentForm(taskData){
+        var startingVal = taskData.task.find('.comment-content .comment').html();
+        taskData.task.find('.col-3 input.comments').val(startingVal);
+        taskData.task.find('.col-3').addClass('input');
+    }
+
+    function _htmlUpdateHideCommentForm($task){
+        $task.find('.col-3').removeClass('input');
+    }
+
+    function _getTaskRow_JobTasks(taskId){
+        if(typeof TASK_CACHE[taskId] != 'undefined') return TASK_CACHE[taskId];
+        var $task = $(".task-style.task-" + taskId);
+        TASK_CACHE[taskId] = $task;
+        return $task;
+    }
+
+    function _htmlUpdateCommentSaved(topic, taskData){
+        taskData.task.find('.col-3').removeClass('input');
+        var $commentContent = taskData.task.find('.comment-content');
+        $commentContent.removeClass('no-comment');
+        $commentContent.find('.comment').html(taskData.comments);
+    }
+
+
+    PubSub.subscribe('taskChange.taskStarted', _htmlUpdateStartTask);
+    PubSub.subscribe('taskChange.taskStartCleared', _htmlUpdateClearStartTask);
+    PubSub.subscribe('taskChange.taskComplete', _htmlUpdateMarkComplete);
+    PubSub.subscribe('taskChange.commentSaved', _htmlUpdateCommentSaved);
+
+</script>
