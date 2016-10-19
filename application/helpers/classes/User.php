@@ -41,6 +41,13 @@ class User extends WorkflowFactory
 
   }
 
+  public static function GetByIds(array $contactIds){
+    $contacts = self::CI()->mdb->whereIn('_id', $contactIds)->get(self::CollectionName());
+    $class = __CLASS__;
+    foreach($contacts as $i => $contact) $contacts[$i] = new $class($contact);
+    return $contacts;
+  }
+
   public static function Get($id){
     $record = static::LoadId($id, static::$_collection);
     $class = __CLASS__;

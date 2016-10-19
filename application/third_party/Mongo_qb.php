@@ -1773,4 +1773,12 @@ class Builder
     return $this->_dbhandle;
   }
 
+  /**
+   * @alias get_handler()
+   * @return \MongoDB
+   */
+  public function handler(){
+    return $this->get_handler();
+  }
+
 }

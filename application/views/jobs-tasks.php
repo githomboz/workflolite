@@ -71,9 +71,11 @@
     $(document).on('click', ".checkbox", function(){
         var $checkbox = $(this), $task = $checkbox.parents('.task-style');
         if($checkbox.is('.clickable') && _validateMarkTaskCompleteData()){
-            _ajaxMarkTaskComplete({
-                'taskId' : $task.data('task_id')
-            });
+            if(confirm('Are you sure you want to mark task "' + $task.find('.task-name').text() + '" complete?')){
+                _ajaxMarkTaskComplete({
+                    'taskId' : $task.data('task_id'),
+                });
+            }
         }
         return false;
     });

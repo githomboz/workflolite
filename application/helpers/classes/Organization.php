@@ -7,6 +7,8 @@ class Organization extends WorkflowFactory
 
   public $workflows = array();
 
+  private static $contactCache = array();
+
   /**
    * The collection that this record belongs to
    * @var string
@@ -39,6 +41,50 @@ class Organization extends WorkflowFactory
     } else {
       throw new Exception('Workflows can not be pulled without an _id');
     }
+  }
+
+  public function searchContactsByName($string, $limit = 10, $field = 'name'){
+//    $query = array(
+//      'organizationId' => $this->getValue('organizationId'),
+//      'name' => array(
+//        '$regex' => '/^'.$string.'/i'
+//      )
+//    );
+//    var_dump($query);
+//    $o = $this->CI()->mdb->handler()->selectCollection(Contact::CollectionName())->find($query);
+//    if(is_numeric($limit)) $o = $o->limit($limit);
+//    return iterator_to_array($o);
+
+    $matches = array();
+
+    // Get all records
+    if(isset(self::$contactCache[(string) $this->id()])){
+      $contacts = self::$contactCache[(string) $this->id()];
+    } else {
+      $contacts = $this->getContacts(9999);
+      self::$contactCache[(string) $this->id()] = $contacts;
+    }
+    // Check for string occurrence
+    foreach($contacts as $contact){
+      if(strpos(strtolower($contact[$field]), strtolower($string)) !== false){
+        $matches[] = array(
+          'contactId' => (string) $contact['_id'],
+          'name' => $contact['name'],
+          'email' => $contact['email'],
+          'phone' => $contact['phone'],
+          'mobile' => $contact['mobile'],
+          'collection' => 'contacts',
+          'settings' => $contact['settings'],
+        );
+      }
+    }
+    // Return id, name, and collection
+    return $matches;
+  }
+
+  public function getContacts($limit = 500, $page = 1){
+    $offset = ($page - 1) * $limit;
+    return $this->CI()->mdb->where('organizationId', $this->id())->offset($offset)->limit($limit)->get(Contact::CollectionName());
   }
 
   public static function Get($id){

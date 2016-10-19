@@ -7,6 +7,7 @@
   <?php if(offline_mode()){ ?>
     <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/font-awesome.min.css"/>
     <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/fontsOpenSans.css"/>
+    <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/jquery-ui.min.css"/>
     <!--[if IE]>
     <script src="<?php echo base_url()?>assets/js/html5shiv.js"></script>
     <![endif]-->
@@ -27,14 +28,24 @@
   <?php } ?>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/pubsub.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-3.1.1.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-migrate-3.0.0.min.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-ui.min.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_API.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_MessageBox.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/setTimeout.polyfill.js"></script>
   <link rel="shortcut icon" href="<?php echo base_url()?>favicon.png" type="image/x-icon">
   <link rel="icon" href="<?php echo base_url()?>favicon.png" type="image/x-icon">
   <title><?php echo config_item('site_name'); if(isset($this->page_header['header'])) echo '| '. $this->page_header['header'] ?></title>
 </head>
-<body>
+<body
+  <?php if(UserSession::loggedIn()){ ?>
+  data-organization="<?php echo UserSession::Get_Organization()->id()?>"
+  data-workflow="<?php if(isset($this->workflow)) echo $this->workflow->id()?>"
+  data-job="<?php if(isset($this->job)) echo $this->job->id()?>"
+  data-user="<?php echo UserSession::Get_User()->id()?>"
+  <?php } ?>
+>
 
 <header class="main-header clearfix">
   <div class="main-header-inner">
@@ -101,17 +112,11 @@
   <div class="panel">
     <i class="js-send-message fa fa-envelope"></i>
     <h1><i class="fa fa-users"></i> Job Contacts</h1>
-    <ul class="contact-list">
-      <?php foreach($this->job->getContacts() as $i => $contact){ ?>
-      <li class="contact-entry clearfix is-staff">
-        <div class="image">
-          <img src="<?php echo base_url() ?>/assets/images/user-avatar.gif" />
-        </div>
-        <h3><?php echo $contact->getValue('name') ?></h3>
-        <span class="role"><?php echo $contact->getValue('role') ?></span>
-      </li>
-      <?php } ?>
-    </ul>
+    <div class="contact-list">
+      <?php foreach($this->job->getContacts() as $i => $contact){
+        include 'widgets/_sidebar-contact-include.php';
+      } ?>
+    </div>
   </div><!--/.panel-->
   <?php endif; ?>
 </section>

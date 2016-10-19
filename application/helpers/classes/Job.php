@@ -165,14 +165,25 @@ class Job extends WorkflowFactory
     $contacts = $this->getValue(self::$_contactsField);
     $roles = array();
     $contactIds = array();
+    $userIds = array();
     foreach($contacts as $contact) {
-      if(isset($contact['contactId'])) $contactIds[] = $contact['contactId'];
-      $roles[(string) $contact['contactId']] = $contact['role'];
+      $userType = null;
+      if(isset($contact['contactId'])) {
+        $contactIds[] = $contact['contactId'];
+        $userType = 'contactId';
+      }
+      if(isset($contact['userId'])) {
+        $userIds[] = $contact['userId'];
+        $userType = 'userId';
+      }
+      $roles[(string) $contact[$userType]] = $contact['role'];
     }
     $contacts = Contact::GetByIds($contactIds);
+    $users = User::GetByIds($userIds);
     foreach($contacts as $i => $contact) if(isset($roles[(string) $contact->id()])) $contacts[$i]->setValue('role', $roles[(string) $contact->id()]);
+    foreach($users as $i => $user) if(isset($roles[(string) $user->id()])) $users[$i]->setValue('role', $roles[(string) $user->id()]);
 
-    return $contacts;
+    return array_merge($contacts, $users);
   }
 
   /**
@@ -194,12 +205,64 @@ class Job extends WorkflowFactory
     return $this->getValue('meta');
   }
 
-  public function addContact(Contact $contact){
-
+  public function addContactById($contact_or_user_id, $role, $isClient = false, $isContact = true){
+    $contactsField = 'partiesInvolved';
+    $contacts = $this->getValue($contactsField);
+    $contacts = array_values($contacts);
+    $userType = $isContact ? 'contactId' : 'userId';
+    $contacts[] = array(
+      $userType => _id($contact_or_user_id),
+      'role' => $role,
+      'isClient' => (bool) $isClient,
+    );
+    $this->setValue($contactsField, $contacts)->save($contactsField);
+    return $this;
   }
 
-  public function removeContact(Contact $contact){
+  /**
+   * Check if the passed id is a contact of $this job
+   * @param $contact_or_user_id
+   * @param bool $isContact
+   * @return bool
+   */
+  public function isContact($contact_or_user_id, $isContact = true){
+    $contactsField = 'partiesInvolved';
+    $contacts = $this->getValue($contactsField);
+    $userType = $isContact ? 'contactId' : 'userId';
+    foreach($contacts as $contact) if((string) $contact[$userType] == (string) $contact_or_user_id) return true;
+    return false;
+  }
 
+  public function removeContact($contactId){
+    $save = false;
+    $contactsField = 'partiesInvolved';
+    $contacts = $this->getValue($contactsField);
+    foreach($contacts as $i => $contact){
+      if($contact['contactId'] == _id($contactId)) {
+        $save = true;
+        unset($contacts[$i]);
+      }
+    }
+    if($save){
+      $this->setValue($contactsField, $contacts)->save($contactsField);
+    }
+    return $this;
+  }
+
+  public function updateContactRole($contactId, $role){
+    $save = false;
+    $contactsField = 'partiesInvolved';
+    $contacts = $this->getValue($contactsField);
+    foreach($contacts as $i => $contact){
+      if($contact['contactId'] == _id($contactId)) {
+        $save = true;
+        $contacts[$i]['role'] = $role;
+      }
+    }
+    if($save){
+      $this->setValue($contactsField, $contacts)->save($contactsField);
+    }
+    return $this;
   }
 
   public function getUrl(){
