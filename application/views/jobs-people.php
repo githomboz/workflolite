@@ -86,7 +86,7 @@
             }
         } else {
             var error = CS_ERRORS[CS_ERRORS.length - 1];
-            alert(error);
+            alertify.alert('<i class="fa fa-times-circle error-red"></i> An error has occured', error);
             CS_MessageBox.add(error);
         }
 
@@ -102,19 +102,23 @@
             contactId: $this.attr('href').split('-')[1],
             jobId: _CS_Get_Job_ID()
         };
-        if(confirm('Are you sure you want to remove this contact the job?')){
+        alertify.confirm('Confirm', 'Are you sure you want to remove this contact the job?', function(){
             CS_API.call(
-                '/ajax/remove_contact',
-                function(){
+              '/ajax/remove_contact',
+              function(){
                   // before
-                },
+              },
               function(data){
                   if(data.errors == false) {
                       PubSub.publish('contactsChange.contactRemoved', post);
+                      alertify.success('Contact Removed');
+                  } else {
+                      alertify.error('An error has occurred while attempting to remove your contact')
                   }
               },
               function(){
                   // error
+                  alertify.error('An error has occurred while attempting to remove your contact');
               },
               post
               ,
@@ -123,7 +127,9 @@
                   preferCache : false
               }
             );
-        }
+        }, function(){
+        });
+
     });
 
     function _validateAddContactData(data, action){
@@ -158,15 +164,17 @@
                   if(data.response.success){
                       _resetFormPeopleAddContact();
                       PubSub.publish('contactsChange.contactAdded', data.response);
+                      alertify.success('Contact Added');
                   } else {
-                      console.log('An error has occurred while trying to create your contact');
+                      alertify.error('An error has occurred while attempting to create your contact');
                   }
               } else {
-
+                  alertify.error('An error has occurred while attempting to create your contact');
               }
           },
           function(){
               // Errors
+              alertify.error('An error has occurred while attempting to create your contact');
           },
           post,
           {
@@ -185,16 +193,18 @@
           function(data){
               if(data.errors == false){
                   if(data.response.success){
-                      PubSub.publish('contactsChange.contactUpdated', data.response);
+                      PubSub.publish('contactsChange.contactUpdated', data.response.updateContactData);
+                      alertify.success('Contact Updated');
                   } else {
-                      console.log('An error has occurred while trying to update your contact');
+                      alertify.error('An error has occurred while attempting to update your contact');
                   }
               } else {
-
+                  alertify.error('An error has occurred while attempting to update your contact');
               }
           },
           function(){
               // Errors
+              alertify.error('An error has occurred while attempting to update your contact');
           },
           post,
           {
@@ -258,6 +268,7 @@
                 },
                 function() {
                     // error
+
                 },
                 {
                     organizationId : _CS_Get_Organization_ID(),
@@ -298,19 +309,43 @@
         $(".sidepanel .contact-" + data.contactId).fadeOut();
     }
 
-    function _updateHTMLUpdateCurrentContactsList(topic, data){
+    function _updateHTMLUpdateAddToCurrentContactsList(topic, data){
         var $peopleList = $(".people-list"), currentContacts = $peopleList.data('current_contacts');
-        console.log(currentContacts, data);
         currentContacts.push(data.contactId);
         $peopleList.attr('data-current_contacts', JSON.stringify(currentContacts));
+    }
+
+    function _updateHTMLUpdateRemoveFromCurrentContactsList(topic, data){
+        var $peopleList = $(".people-list"), currentContacts = $peopleList.data('current_contacts');
+        delete currentContacts[currentContacts.indexOf(data.contactId)];
+        $peopleList.attr('data-current_contacts', JSON.stringify(currentContacts));
+    }
+
+    function _updateHTMLUpdateContactInfo(topic, data){
+        console.log(data);
+        // sidebar
+        var $sidePanel = $(".sidepanel .contact-" + data.contactId);
+        $sidePanel.find('h3').html(data.name);
+        $sidePanel.find('.role').html(data.role);
+
+        // people
+        var $contactCard = $(".people.contact-" + data.contactId);
+        $contactCard.find('.data.name').html(data.name);
+        $contactCard.find('.data.email').html(data.email);
+        $contactCard.find('.data.phone').html(data.phone);
+        $contactCard.find('.data.mobile').html(data.mobile);
+        $contactCard.find('.role').html(data.role);
+        $contactCard.removeClass('edit-mode');
     }
 
     PubSub.subscribe('searchForm.selectedContact', _peopleSearchContactsItemSelected);
 
     PubSub.subscribe('contactsChange.contactAdded', _updateHtmlSidebarContactAdded);
     PubSub.subscribe('contactsChange.contactAdded', _updateHtmlPeopleContactAdded);
-    PubSub.subscribe('contactsChange.contactAdded', _updateHTMLUpdateCurrentContactsList);
+    PubSub.subscribe('contactsChange.contactAdded', _updateHTMLUpdateAddToCurrentContactsList);
     PubSub.subscribe('contactsChange.contactRemoved', _updateHTMLPeopleRemoveContact);
     PubSub.subscribe('contactsChange.contactRemoved', _updateHTMLSidebarRemoveContact);
+    PubSub.subscribe('contactsChange.contactRemoved', _updateHTMLUpdateRemoveFromCurrentContactsList);
+    PubSub.subscribe('contactsChange.contactUpdated', _updateHTMLUpdateContactInfo);
 
 </script>

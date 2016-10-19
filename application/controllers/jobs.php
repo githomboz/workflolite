@@ -18,6 +18,7 @@ class Jobs extends Users_Controller {
       if(isset($this->job) && $this->job){
         if($this->job->loadOrganization()->getValue('organization')->getValue('_id') == UserSession::value('organizationId')){
           $this->job->loadWorkflow();
+          $this->workflow = $this->job->getValue('workflow');
           $successfullPosts = array();
           $AddTask = _process_add_task($this->input->post(), $this->job);
           if($AddTask['success']){

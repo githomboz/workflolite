@@ -60,6 +60,15 @@ class Workflow extends WorkflowFactory
     return $this->getUrl() . '/jobs';
   }
 
+  public function getMetaSettings($slug = null){
+    $fields = $this->getValue('metaFields');
+    if($slug){
+      foreach($fields as $i => $field) if($slug == $field['slug']) return $field;
+      return false;
+    }
+    return null;
+  }
+
   public static function MetaDataTypes(){
     $dataFormats = array(
       'string' => array(

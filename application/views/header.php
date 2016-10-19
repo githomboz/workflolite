@@ -4,10 +4,12 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/reset.css"/>
   <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/styles/styles.css"/>
+  <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/jquery-ui.min.css"/>
+  <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/alertify.min.css"/>
+  <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/alertify.default.min.css"/>
   <?php if(offline_mode()){ ?>
     <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/font-awesome.min.css"/>
     <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/fontsOpenSans.css"/>
-    <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/jquery-ui.min.css"/>
     <!--[if IE]>
     <script src="<?php echo base_url()?>assets/js/html5shiv.js"></script>
     <![endif]-->
@@ -30,6 +32,7 @@
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-3.1.1.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-migrate-3.0.0.min.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/alertify.min.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_API.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_MessageBox.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
@@ -101,9 +104,11 @@
   <div class="panel">
     <h1><i class="fa fa-list"></i> Job Details</h1>
     <div class="job-meta">
-      <?php foreach($this->job->getMeta() as $key => $value){ ?>
+      <?php foreach($this->job->getMeta() as $key => $value){
+        $metaSettings = $this->workflow->getMetaSettings($key);
+        ?>
       <div class="meta-pair">
-        <span class="title"><?php echo $key ?>: </span>
+        <span class="title"><?php echo $metaSettings['field'] ?>: </span>
         <span class="value <?php if((strlen($key) + strlen($value) + 2) > 33) echo 'multi-line'?>"><?php echo $value ?></span>
       </div><!--/.meta-pair-->
       <?php } ?>

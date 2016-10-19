@@ -29,7 +29,7 @@
         <?php if($date = $task->getCompleteDate('m/d/y')) { ?>
         <?php if($date) echo $date . ' <a href="#editEnd-'. $task->id() . '" class="fa fa-pencil"></a>'; ?>
         <?php } else  { ?>
-          -
+          <?php if($task->isStarted()) { ?><a href="#markComplete-<?php echo $task->id(); ?>" class="fa fa-check link-blue js-mark-complete"></a><?php } ?>
         <?php } ?>
         <div class="time-changer">
           

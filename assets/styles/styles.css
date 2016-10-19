@@ -1183,6 +1183,14 @@ body, html {
 a.dark {
   color: #555; }
 
+.link-blue {
+  color: #4992d0; }
+
+.error-red {
+  -webkit-columns: #930810;
+     -moz-columns: #930810;
+          columns: #930810; }
+
 .upper-head {
   height: 34px;
   background: #0e190d;
@@ -1709,7 +1717,7 @@ span.checkbox {
   margin: 0 20px 18px 0;
   position: relative; }
   .people-list .entry.main-form {
-    padding-bottom: 34px; }
+    padding-bottom: 30px; }
   .people-list .entry .contact-settings {
     font-size: 13px;
     margin-bottom: 10px; }

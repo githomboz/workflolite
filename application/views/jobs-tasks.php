@@ -80,6 +80,18 @@
         return false;
     });
 
+    $(document).on('click', ".js-mark-complete", function(){
+        var $this = $(this), $task = $this.parents('.task-style');
+        if(_validateMarkTaskCompleteData()){
+            if(confirm('Are you sure you want to mark task "' + $task.find('.task-name').text() + '" complete?')){
+                _ajaxMarkTaskComplete({
+                    'taskId' : $task.data('task_id'),
+                });
+            }
+        }
+        return false;
+    });
+
     $(document).on('click', '.task-style .start-task', function () {
         var $this = $(this), taskId = $this.attr('href').split('-')[1];
         _ajaxStartTask({
@@ -207,12 +219,10 @@
             // Add date to start column
             var html = taskData.startDate + ' <a href="#editStart-' + taskData.taskId + '" class="fa fa-pencil"></a>';
             $task.find('.col.start').html(html);
-            // Add comment input box
+            // Add clickable complete button
+            html = ' <a href="#markComplete-' + taskData.taskId + '" class="fa fa-check link-blue"></a>';
+            $task.find('.col.complete').html(html);
         }
-    }
-
-    function _htmlUpdateClearStartTask(topic, taskData){
-        var $task = _getTaskRow_JobTasks(taskData.taskId);
     }
 
     function _htmlUpdateMarkComplete(topic, taskData){
@@ -239,6 +249,10 @@
         $task.find('.col-3').removeClass('input');
     }
 
+    function _htmlUpdateExpandFullComment($task){
+        
+    }
+
     function _getTaskRow_JobTasks(taskId){
         if(typeof TASK_CACHE[taskId] != 'undefined') return TASK_CACHE[taskId];
         var $task = $(".task-style.task-" + taskId);
@@ -255,7 +269,6 @@
 
 
     PubSub.subscribe('taskChange.taskStarted', _htmlUpdateStartTask);
-    PubSub.subscribe('taskChange.taskStartCleared', _htmlUpdateClearStartTask);
     PubSub.subscribe('taskChange.taskComplete', _htmlUpdateMarkComplete);
     PubSub.subscribe('taskChange.commentSaved', _htmlUpdateCommentSaved);
 

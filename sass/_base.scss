@@ -11,6 +11,7 @@ $sidepanel_color_dark: #555;
 $sidepanel_color_light: #7f7f7f;
 
 $button_blue: #4992d0;
+$error_red: #930810;
 
 
 
@@ -44,6 +45,14 @@ body, html {
 
 a.dark {
   color: $sidepanel_color_dark;
+}
+
+.link-blue {
+  color: $button_blue;
+}
+
+.error-red {
+  columns: $error_red;
 }
 
 .upper-head {
@@ -825,7 +834,7 @@ $tasklist_height : 36px;
     position: relative;
 
     &.main-form {
-      padding-bottom: 34px;
+      padding-bottom: 30px;
     }
 
     .contact-settings {
