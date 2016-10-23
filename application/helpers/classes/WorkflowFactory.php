@@ -35,7 +35,7 @@ class WorkflowFactory extends WorkflowInterface
    * Class that processes strings and applies data if necessary
    * @var StringTemplater
    */
-  public $templater;
+  public $templater = null;
 
   public function __construct()
   {
@@ -53,7 +53,7 @@ class WorkflowFactory extends WorkflowInterface
     if(isset($data['_id'])) $this->_id = $data['_id'];
   }
 
-  protected static function CI(){
+  public static function CI(){
     if(!self::$CI){
       self::$CI = get_instance();
     }

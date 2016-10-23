@@ -100,20 +100,9 @@
 
 <section class="sidepanel js-sidepanel <?php $collapse = isset($this->preCollapseSidePanel) && $this->preCollapseSidePanel == true; if($collapse) echo 'collapse'; ?>">
   <i class="js-toggle fa fa-chevron-<?php if($collapse) echo 'right'; else echo 'left'; ?>"></i>
-  <?php if(UserSession::loggedIn() && isset($this->job)) : ?>
-  <div class="panel">
-    <h1><i class="fa fa-list"></i> Job Details</h1>
-    <div class="job-meta">
-      <?php foreach($this->job->getMeta() as $key => $value){
-        $metaSettings = $this->workflow->getMetaSettings($key);
-        ?>
-      <div class="meta-pair">
-        <span class="title"><?php echo $metaSettings['field'] ?>: </span>
-        <span class="value <?php if((strlen($key) + strlen($value) + 2) > 33) echo 'multi-line'?>"><?php echo $value ?></span>
-      </div><!--/.meta-pair-->
-      <?php } ?>
-    </div><!--/.job-meta-->
-  </div><!--/.panel-->
+  <?php if(UserSession::loggedIn() && isset($this->job)) :
+    include_once 'widgets/_sidebar-meta-include.php';
+    ?>
   <div class="panel">
     <i class="js-send-message fa fa-envelope"></i>
     <h1><i class="fa fa-users"></i> Job Contacts</h1>
@@ -157,3 +146,7 @@
     }
   </script>
 <?php endif; ?>
+
+
+
+<?php if(isset($this->job)) var_dump($this->job->meta()->getAll()); ?>

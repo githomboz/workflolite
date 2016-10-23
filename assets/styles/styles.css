@@ -1165,6 +1165,11 @@ body, html {
   display: block;
   clear: both; }
 
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; }
+
 .boxed {
   padding: 10px;
   -webkit-border-radius: 3px;
@@ -1311,8 +1316,23 @@ textarea {
         font-weight: 600; }
       .sidepanel .job-meta .meta-pair .value {
         color: #7f7f7f; }
+        .sidepanel .job-meta .meta-pair .value a {
+          color: #4992d0; }
         .sidepanel .job-meta .meta-pair .value.multi-line {
           display: block; }
+        .sidepanel .job-meta .meta-pair .value .meta-array {
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          margin-bottom: .5em; }
+          .sidepanel .job-meta .meta-pair .value .meta-array .fa-arrow-right {
+            font-size: 11px;
+            position: relative;
+            top: -2px; }
+          .sidepanel .job-meta .meta-pair .value .meta-array .array-key {
+            color: #555;
+            padding-left: 5px;
+            padding-right: 5px; }
   .sidepanel h1 {
     line-height: 1.5em;
     font-size: 18px; }
@@ -1346,7 +1366,7 @@ textarea {
   overflow: hidden;
   padding: 18px;
   position: relative;
-  min-height: 600px; }
+  min-height: 700px; }
   .main-content h1 a {
     color: #4992d0; }
   .main-content .inner-nav {

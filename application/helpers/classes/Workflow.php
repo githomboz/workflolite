@@ -15,6 +15,7 @@ class Workflow extends WorkflowFactory
   {
     parent::__construct();
     $this->_initialize($data);
+    $this->sortMetaSettings();
   }
 
   public function addJob(Job $job){
@@ -60,25 +61,40 @@ class Workflow extends WorkflowFactory
     return $this->getUrl() . '/jobs';
   }
 
+  public function sortMetaSettings(){
+    // Handle Sorting
+    $settings = array();
+    foreach($this->getMetaSettings() as $i => $fieldData) $settings[$fieldData['sort']] = $fieldData;
+    $this->setValue('metaFields', $settings);
+    ksort($this->_current['metaFields'], SORT_NUMERIC);
+  }
+
   public function getMetaSettings($slug = null){
     $fields = $this->getValue('metaFields');
     if($slug){
       foreach($fields as $i => $field) if($slug == $field['slug']) return $field;
       return false;
     }
-    return null;
+    return $fields;
   }
 
   public static function MetaDataTypes(){
     $dataFormats = array(
       'string' => array(
-        'maxLengthDefault' => 255
+        'validation' => array(
+          'maxLengthDefault' => 255,
+        ),
+        'multiLine' => null
       ),
-      'integer' => array(
-
+      'text' => array(
+        'multiLine' => true
+      ),
+      'number' => array(
+        'multiLine' => false
       ),
       'date' => array(
         'formatDefault' => 'n/j/Y',
+        'multiLine' => null,
         'options' => array(
           'formats' => array(
             'n/j/y',
@@ -94,11 +110,10 @@ class Workflow extends WorkflowFactory
       ),
       'time' => array(
         'formatDefault' => 'g:i a',
+        'multiLine' => false,
         'options' => array(
           'formats' => array(
             'g:ia',
-            'g:i a',
-            'g:i A',
             'H:i:s',
             'G:i:s',
           )
@@ -106,14 +121,22 @@ class Workflow extends WorkflowFactory
       ),
       'dateTime' => array(
         'formatDefault' => 'n/j/Y g:i a',
+        'multiLine' => null,
         'options' => array(
           'formats' => array()
         )
       ),
-      'address' => array(),
-      'url' => array(),
+      'address' => array(
+        'multiLine' => true
+      ),
+      'url' => array(
+        'multiLine' => null
+      ),
+      'phone' => array(
+        'multiLine' => null
+      ),
       'array' => array(
-
+        'multiLine' => true
       )
     );
 
@@ -125,22 +148,24 @@ class Workflow extends WorkflowFactory
     return $dataFormats;
   }
 
-  public function addMeta($key, $slug = null, $type = null, $hide = false, $defaultValue = ''){
+  public function addMeta($key, $slug = null, $type = null, $hide = false, $defaultValue = null){
     $dataTypes = self::MetaDataTypes();
     $dataFields = array_keys($dataTypes);
 
     $meta = array(
       'field' => $key,
+      'sort' => null,
       'type' => in_array($type, $dataFields) ? $type : 'string',
       'hide' => (bool) $hide,
       'slug' => $slug ? $slug : StringTemplater::CamelCase($key),
-      'value' => $defaultValue
     );
+    if($defaultValue) $meta['defaultValue'] = $defaultValue;
     $this->_current['metaFields'][] = $meta;
     foreach($this->_current['metaFields'] as $i => $metaField){
+      if(!isset($metaField['sort'])) $this->_current['metaFields'][$i]['sort'] = $i;
       if(!isset($metaField['hide'])) $this->_current['metaFields'][$i]['hide'] = false;
       if(!isset($metaField['slug'])) $this->_current['metaFields'][$i]['slug'] = StringTemplater::CamelCase($metaField['field']);
-      if(!isset($metaField['value'])) $this->_current['metaFields'][$i]['value'] = '';
+      if(!isset($metaField['defaultValue'])) $this->_current['metaFields'][$i]['defaultValue'] = '';
       switch($metaField['type']){
         case 'string':
         case 'date':
@@ -162,7 +187,8 @@ class Workflow extends WorkflowFactory
     }
     //foreach($this->_current['metaFields'] as $i => $metaField) if(is_numeric($i)) unset($this->_current['metaFields'][$i]);
     $this->_current['metaFields'] = array_values($this->_current['metaFields']);
-    return self::Update($this->id(), array( 'metaFields' => $this->_current['metaFields'] ));
+    return $this->save('metaFields');
+    //return self::Update($this->id(), array( 'metaFields' => $this->_current['metaFields'] ));
   }
 
 

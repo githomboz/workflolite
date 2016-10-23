@@ -1,5 +1,6 @@
 <?php
 
+require_once 'Meta.php';
 require_once 'WorkflowFactory.php';
 
 class Job extends WorkflowFactory
@@ -15,12 +16,19 @@ class Job extends WorkflowFactory
 
   private $sortOrder = array();
 
+  /**
+   * Meta class
+   * @var null Meta
+   */
+  private $meta = null;
+
   protected static $_contactsField = 'partiesInvolved';
 
   public function __construct(array $data)
   {
     parent::__construct();
     $this->_initialize($data);
+    $this->meta = new Meta($data['meta'], $this);
   }
 
   public function _initialize(array $data)
@@ -202,7 +210,8 @@ class Job extends WorkflowFactory
   }
   
   public function getMeta(){
-    return $this->getValue('meta');
+    return $this->meta->getAll();
+    //return $this->getValue('meta');
   }
 
   public function addContactById($contact_or_user_id, $role, $isClient = false, $isContact = true){
@@ -298,6 +307,16 @@ class Job extends WorkflowFactory
       return new Workflow($newWorkflow);
     }
     return false;
+  }
+
+  public function isMilestone(){
+    // check if is last task (automatically a milestone)
+    // check if is milestone
+
+  }
+
+  public function meta(){
+    return $this->meta;
   }
 
 

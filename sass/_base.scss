@@ -27,6 +27,11 @@ body, html {
   @include clearfix();
 }
 
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .boxed {
   padding: $padding;
   border-radius: 3px;
@@ -225,8 +230,34 @@ textarea {
       .value {
         color: $sidepanel_color_light;
 
+        a {
+          color: $button_blue;
+        }
+
         &.multi-line {
           display: block;
+        }
+
+        .meta-array {
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          margin-bottom: .5em;
+
+          .fa-arrow-right {
+            font-size: $font-size-xs;
+            position: relative;
+            top: -2px;
+          }
+
+          .array-key {
+            color: $sidepanel_color_dark;
+            padding-left: $padding/2;
+            padding-right: $padding/2;
+          }
+
+          .array-value {
+          }
         }
       }
     }
@@ -277,7 +308,7 @@ textarea {
   overflow: hidden;
   padding: $paddingLarge;
   position: relative;
-  min-height: 600px;
+  min-height: 700px;
 
   h1 {
 
