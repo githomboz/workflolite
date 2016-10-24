@@ -28,6 +28,8 @@ class Meta
 
   private static $_errors = array();
 
+  private $_clientViewEnabled = false;
+
 
   public function __construct(array $metaData, Job $job){
     $this->_job = $job;
@@ -139,6 +141,8 @@ class Meta
       if($this->_data[$field]['value'] instanceof MetaString)
       $this->_data[$field]['html']['rowStrLen'] = strlen($this->_data[$field]['field']) + strlen($this->_data[$field]['value']->get());
 
+      if(isset($this->_data[$field]['clientView']) && $this->_data[$field]['clientView'] === true) $this->_clientViewEnabled = true;
+
     } else {
       throw new Exception("Invalid field passed");
     }
@@ -157,6 +161,10 @@ class Meta
       self::$_errors[] = 'Class [ ' . $metaClass . ' ] does not exist';
     }
     return false;
+  }
+
+  public function clientMeta(){
+    return $this->_clientViewEnabled;
   }
 
   public function getAll(){

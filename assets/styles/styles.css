@@ -1314,6 +1314,8 @@ textarea {
       margin-bottom: 1em; }
       .sidepanel .job-meta .meta-pair .meta-type-form {
         display: none; }
+      .sidepanel .job-meta .meta-pair .array-group input[type=text] {
+        width: 45%; }
       .sidepanel .job-meta .meta-pair .meta-title {
         font-weight: 600; }
       .sidepanel .job-meta .meta-pair .meta-value {
@@ -1833,6 +1835,21 @@ span.checkbox {
 
 .client-view {
   position: relative; }
+  .client-view .job-meta {
+    background: #f2f2f2;
+    margin-bottom: 18px;
+    padding: 10px;
+    -webkit-border-radius: 3px;
+            border-radius: 3px; }
+    .client-view .job-meta h2 {
+      line-height: 1.5em;
+      margin-bottom: .5em; }
+    .client-view .job-meta .meta-group {
+      line-height: 1.5em;
+      font-size: 13px;
+      margin-bottom: .5em; }
+      .client-view .job-meta .meta-group .meta-title {
+        font-weight: 600; }
   .client-view .cv-logo {
     width: 220px;
     height: 60px;

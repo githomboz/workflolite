@@ -8,9 +8,7 @@
   </span>
   </header>
   <section class="cv-main-body">
-    <div class="title">File Progress
-      <span class="closing-date">Closing Date: {job.closingDate}</span>
-    </div>
+    <div class="title">File Progress</div>
     <div class="progress-bar">
       <?php
       $showableTasksGrouped = $this->job->getClientViewableTasks(true);
@@ -22,6 +20,21 @@
     <?php
     $lastTaskId = $showableTasks[(count($showableTasks)-1)]->id();
     ?>
+
+    <?php if($this->job->meta()->clientMeta()){ ?>
+
+      <div class="job-meta">
+        <h2>Job Details</h2>
+        <?php foreach($this->job->meta()->getAll() as $slug => $meta){ if(isset($meta['clientView']) && $meta['clientView'] === true) { ?>
+          <div class="meta-group">
+            <span class="meta-title"><?php echo $meta['field'] ?>: </span>
+            <span class="meta-value"><?php echo strip_tags($meta['value']->display()) ?></span>
+          </div>
+        <?php } } ?>
+
+      </div>
+    <?php } ?>
+
     <?php foreach($showableTasks as $task){?>
       <div class="task clearfix">
         <span href="#" class="checkbox <?php if($task->isComplete()) echo 'checked' ?>">

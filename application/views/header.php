@@ -149,4 +149,4 @@
 
 
 
-<?php if(isset($this->job)) var_dump($this->job->meta()->getAll()); ?>
+<?php //if(isset($this->job)) var_dump($this->job->meta()->getAll()); ?>

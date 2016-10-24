@@ -133,7 +133,10 @@
   $(document).on('click', '.meta-type-form.array .fa-minus-circle', function(){
     var $btn = $(this), $group = $btn.parents('.array-group'), $metaTypeForm = $group.parents('.meta-type-form');
 
-    $group.hide();
+    alertify.confirm('Are you sure you want to remove this item from the array?', function(){
+      $group.hide();
+      alertify.notify('Item removed');
+    }, function(){});
     return false;
   });
 
@@ -141,16 +144,31 @@
     var $btn = $(this),
       $group = $btn.parents('.array-group'),
       $metaTypeForm = $group.parents('.meta-type-form'),
-      key = $group.find('input:first').val();
+      key = $group.find('input:first').val(),
+      value = $group.find('input:last').val();
 
     if(key.trim() != ''){
-      var $newGroup = $group.clone();
-      $newGroup.find('.fa-plus-circle').removeClass('fa-plus-circle').addClass('fa-minus-circle');
-      $newGroup.remove('main');
 
-      $metaTypeForm.find('.array-list').append($newGroup);
-      $group.find('input').val('');
-      $group.find('input:first').focus();
+      function addNewArrayItem(){
+        var $newGroup = $group.clone();
+        $newGroup.find('.fa-plus-circle').removeClass('fa-plus-circle').addClass('fa-minus-circle');
+        $newGroup.remove('main');
+
+        $metaTypeForm.find('.array-list').append($newGroup);
+        $group.find('input').val('');
+        $group.find('input:first').focus();
+      }
+
+      if(value.trim() == ''){
+        alertify.confirm('Are you sure you want to add this item with an empty value?', function(){
+          addNewArrayItem();
+        },
+        function(){
+          alertify.notify('Insertion cancelled');
+        });
+      } else {
+        addNewArrayItem();
+      }
     } else {
       alertify.alert('Invalid array key provided');
     }

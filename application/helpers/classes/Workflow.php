@@ -161,6 +161,7 @@ class Workflow extends WorkflowFactory
       'type' => in_array($type, $dataFields) ? $type : 'string',
       'hide' => (bool) $hide,
       'slug' => $slug ? $slug : StringTemplater::CamelCase($key),
+      'clientView' => false
     );
     if($defaultValue) $meta['defaultValue'] = $defaultValue;
     $this->_current['metaFields'][] = $meta;

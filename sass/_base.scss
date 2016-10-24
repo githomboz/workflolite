@@ -225,6 +225,15 @@ textarea {
 
       .meta-type-form {
         display: none;
+
+      }
+
+      .array-group {
+
+        input[type=text] {
+          width: 45%;
+        }
+
       }
 
       .meta-title {
@@ -1024,6 +1033,28 @@ $tasklist_height : 36px;
 
 .client-view {
   position: relative;
+
+  .job-meta {
+    background: $sidepanel_bg;
+    margin-bottom: $paddingLarge;
+    padding: $padding;
+    border-radius: 3px;
+
+    h2 {
+      line-height: 1.5em;
+      margin-bottom: .5em;
+    }
+
+    .meta-group {
+      line-height: 1.5em;
+      font-size: $font-size-sm;
+      margin-bottom: .5em;
+
+      .meta-title {
+        font-weight: $font-weight-semi-bold;
+      }
+    }
+  }
 
   .cv-logo {
     width: 220px;
