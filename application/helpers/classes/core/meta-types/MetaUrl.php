@@ -45,7 +45,7 @@ class MetaUrl extends MetaObject {
 
   public static function url_exists($val){
     $url_data = parse_url($val); // scheme, host, port, path, query
-    return (bool) fsockopen($url_data['host'], isset($url_data['port']) ? $url_data['port'] : 80);
+    return (bool) @fsockopen($url_data['host'], isset($url_data['port']) ? $url_data['port'] : 80);
   }
 
   public static function test_url_exists(){

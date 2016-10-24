@@ -4,6 +4,31 @@
   right: $paddingLarge;
 }
 
+.btn-style {
+  border-radius: 3px;
+  box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, .08);
+  color: $sidepanel_color_dark;
+  background: $sidepanel_bg;
+  border: none;
+  font-size: $font-size-md;
+  font-weight: $font-weight-light;
+  padding: 0 2px;
+
+  .fa {
+    color: $button_blue;
+  }
+
+  &.submit {
+    color: #fff;
+    background: $button_blue;
+
+    .fa {
+      color: inherit;
+    }
+
+  }
+}
+
 .btn {
   border-radius: 3px;
   box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, .08);

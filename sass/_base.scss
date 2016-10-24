@@ -212,7 +212,7 @@ textarea {
     position: relative;
 
     .fa {
-      padding-right: 5px;
+      padding-right: 2px;
     }
   }
 
@@ -223,15 +223,30 @@ textarea {
     .meta-pair {
       margin-bottom: 1em;
 
-      .title {
-        font-weight: $font-weight-semi-bold;
+      .meta-type-form {
+        display: none;
       }
 
-      .value {
+      .meta-title {
+        font-weight: $font-weight-semi-bold;
+
+      }
+
+      .meta-value {
         color: $sidepanel_color_light;
 
+        .fa-pencil {
+          display: none;
+        }
+        
+        &:hover {
+          .fa-pencil {
+            display: inline-block;
+          }
+        }
+        
         a {
-          color: $button_blue;
+          color: $mainhead_bgcolor;
         }
 
         &.multi-line {
@@ -257,7 +272,19 @@ textarea {
           }
 
           .array-value {
+            padding-left: 5px;
           }
+        }
+      }
+
+      &.edit-mode {
+
+        .meta-value {
+          display: none;
+        }
+
+        .meta-type-form {
+          display: block;
         }
       }
     }

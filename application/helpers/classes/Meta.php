@@ -24,6 +24,8 @@ class Meta
 
   private $_settings = array();
 
+  protected $_toSave = array();
+
   private static $_errors = array();
 
 
@@ -55,6 +57,23 @@ class Meta
   public function job(){
     return $this->_job;
   }
+
+  public function set($mixed, $value = null){
+    if(is_string($mixed) && isset($value)) $this->_toSave[$mixed] = $value;
+    if(is_array($mixed)) foreach($mixed as $k => $v) $this->_toSave[$k] = $v;
+    return $this;
+  }
+
+  public function save(){
+    if(!empty($this->_toSave)){
+        foreach($this->_toSave as $key => $value) $this->job()->setValue($key, $value)->save($key);
+
+      $this->_toSave = array();
+    }
+    return $this;
+  }
+
+
 
   public function workflow(){
     if($this->_workflow) return $this->_workflow;
@@ -158,7 +177,7 @@ class Meta
 
   public function getFieldFormHTML(array $field){
     if($field['value'] instanceof MetaObject){
-      return get_include($field['value']->getFormHtmlPath($field['type']), $field);
+      return get_include($field['value']->getFormHtmlPath($field['type']), array('meta' => $field), true);
     }
     return false;
   }

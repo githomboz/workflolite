@@ -43,6 +43,10 @@ class MetaDateTime extends MetaObject {
     }
   }
 
+  public function dbValue(){
+    return new MongoDate(strtotime($this->_data));
+  }
+
   public static function test_is_datetime(){
     $cases = array(
       array('val' => '12-09-1984', 'assert' => true),

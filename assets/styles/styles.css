@@ -1306,33 +1306,45 @@ textarea {
     margin-bottom: 20px;
     position: relative; }
     .sidepanel .panel .fa {
-      padding-right: 5px; }
+      padding-right: 2px; }
   .sidepanel .job-meta {
     line-height: 1.4em;
     font-size: 13px; }
     .sidepanel .job-meta .meta-pair {
       margin-bottom: 1em; }
-      .sidepanel .job-meta .meta-pair .title {
+      .sidepanel .job-meta .meta-pair .meta-type-form {
+        display: none; }
+      .sidepanel .job-meta .meta-pair .meta-title {
         font-weight: 600; }
-      .sidepanel .job-meta .meta-pair .value {
+      .sidepanel .job-meta .meta-pair .meta-value {
         color: #7f7f7f; }
-        .sidepanel .job-meta .meta-pair .value a {
-          color: #4992d0; }
-        .sidepanel .job-meta .meta-pair .value.multi-line {
+        .sidepanel .job-meta .meta-pair .meta-value .fa-pencil {
+          display: none; }
+        .sidepanel .job-meta .meta-pair .meta-value:hover .fa-pencil {
+          display: inline-block; }
+        .sidepanel .job-meta .meta-pair .meta-value a {
+          color: #46803f; }
+        .sidepanel .job-meta .meta-pair .meta-value.multi-line {
           display: block; }
-        .sidepanel .job-meta .meta-pair .value .meta-array {
+        .sidepanel .job-meta .meta-pair .meta-value .meta-array {
           display: block;
           overflow: hidden;
           text-overflow: ellipsis;
           margin-bottom: .5em; }
-          .sidepanel .job-meta .meta-pair .value .meta-array .fa-arrow-right {
+          .sidepanel .job-meta .meta-pair .meta-value .meta-array .fa-arrow-right {
             font-size: 11px;
             position: relative;
             top: -2px; }
-          .sidepanel .job-meta .meta-pair .value .meta-array .array-key {
+          .sidepanel .job-meta .meta-pair .meta-value .meta-array .array-key {
             color: #555;
             padding-left: 5px;
             padding-right: 5px; }
+          .sidepanel .job-meta .meta-pair .meta-value .meta-array .array-value {
+            padding-left: 5px; }
+      .sidepanel .job-meta .meta-pair.edit-mode .meta-value {
+        display: none; }
+      .sidepanel .job-meta .meta-pair.edit-mode .meta-type-form {
+        display: block; }
   .sidepanel h1 {
     line-height: 1.5em;
     font-size: 18px; }
@@ -2148,6 +2160,25 @@ span.checkbox {
   position: absolute;
   top: 70px;
   right: 18px; }
+
+.btn-style {
+  -webkit-border-radius: 3px;
+          border-radius: 3px;
+  -webkit-box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0.08);
+          box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0.08);
+  color: #555;
+  background: #f2f2f2;
+  border: none;
+  font-size: 16px;
+  font-weight: 300;
+  padding: 0 2px; }
+  .btn-style .fa {
+    color: #4992d0; }
+  .btn-style.submit {
+    color: #fff;
+    background: #4992d0; }
+    .btn-style.submit .fa {
+      color: inherit; }
 
 .btn {
   -webkit-border-radius: 3px;

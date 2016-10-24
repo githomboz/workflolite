@@ -1,12 +1,7 @@
-<?php if(!isset($metaDataTypes)) $metaDataTypes = Workflow::MetaDataTypes(); ?>
-<form class="type-form <?php $dataType = 'time'; echo $dataType; ?>">
-  <div class="main-fields">
-    <?php //var_dump($metaDataTypes[$dataType]); ?>
-    <label for="">Format</label>
-    <select name="format">
-      <?php foreach($metaDataTypes[$dataType]['options']['formats'] as $format){ ?>
-        <option value="<?php echo $format ?>"><?php echo date($format, strtotime('4/9/2013 3:02 pm')) . ' | ' . date($format, strtotime('8/18/2010 5:35 am')) ?></option>
-      <?php } ?>
-    </select>
+<?php if(isset($meta)) { if($meta['value'] instanceof MetaObject) : ?>
+  <div class="meta-type-form <?php echo $meta['type'] ?> meta-object-<?php echo $meta['slug'] ?>" data-type="<?php echo $meta['type'] ?>" data-record="<?php $jobId = (string) job()->id(); echo di_encrypt_s($jobId, salt()); ?>" data-collection="<?php echo di_encrypt_s(Job::CollectionName(), salt()) ?>" data-slug="<?php echo $meta['slug'] ?>" data-interface="<?php echo $meta['value']::className() ?>">
+    <input name="meta_<?php echo $meta['slug'] ?>" value="<?php echo $meta['value']->get() ?>" />
+    <button type="submit" class="btn-style submit"><i class="fa fa-save"></i> </button>
+    <button class="btn-style js-edit-mode"><i class="fa fa-times"></i> </button>
   </div>
-</form>
+<?php endif; } ?>

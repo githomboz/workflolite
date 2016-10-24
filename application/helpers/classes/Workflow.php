@@ -64,7 +64,10 @@ class Workflow extends WorkflowFactory
   public function sortMetaSettings(){
     // Handle Sorting
     $settings = array();
-    foreach($this->getMetaSettings() as $i => $fieldData) $settings[$fieldData['sort']] = $fieldData;
+    foreach($this->getMetaSettings() as $i => $fieldData) {
+      if(isset($fieldData['sort']) && !isset($settings[$fieldData['sort']])) $settings[$fieldData['sort']] = $fieldData;
+      else $settings[] = $fieldData;
+    }
     $this->setValue('metaFields', $settings);
     ksort($this->_current['metaFields'], SORT_NUMERIC);
   }

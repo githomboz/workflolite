@@ -271,5 +271,42 @@ function update_contact_required_fields(){
   return array('contactId','name','role','email');
 }
 
+function save_meta(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $response['response']['success'] = false;
+  $collection = di_decrypt_s($data['collection'], salt());
+  $jobId = di_decrypt_s($data['record'], salt());
+  $job = Job::Get($jobId);
+  $field = 'meta.' . $data['field'];
+  if($job){
+    $meta = new $data['metaObject']($data['value']);
+    if(!$meta->errors()){
+      $job->meta()->set($field, $data['value'])->save();
+      $response['response']['raw'] = $meta->get();
+      $response['response']['display'] = $meta->display();
+      $response['response']['success'] = true;
+    }
+  } else {
+    $response['errors'][] = 'Invalid job id provided';
+  }
+
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function save_meta_args_map(){
+  return array('metaObject','record','collection','field','value');
+}
+
+// Field names of fields required
+function save_meta_required_fields(){
+  return array('metaObject','record','collection','field','value');
+}
+
 
 

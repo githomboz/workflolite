@@ -13,6 +13,9 @@ abstract class MetaObject
   protected $_input = null;
   protected $_data = null;
   protected $_errors = false;
+
+  protected static $_instanceId = 0;
+
   /**
    * Display content to avoid redraw
    * @var null
@@ -21,6 +24,7 @@ abstract class MetaObject
 
   public function __construct($val)
   {
+    self::$_instanceId ++;
     $this->_input = $val;
     $this->set($val);
   }
@@ -97,9 +101,25 @@ abstract class MetaObject
   }
 
   public static function getFormHtmlPath($type){
-    $html_location = APPPATH . '/views/widgets/_meta-' . $type . '-form.php';
+    $html_location = APPPATH . '/views/widgets/_meta-' . strtolower($type) . '-form.php';
     if(file_exists($html_location)) return $html_location;
     return null;
+  }
+
+  public static function get_instance(){
+    return static::$_instanceId;
+  }
+
+  public static function className(){
+    return get_called_class();
+  }
+
+
+  /**
+   * Value that will be stored in the DB
+   */
+  public function dbValue(){
+    return $this->_data;
   }
 
   public abstract static function formatData($val);
