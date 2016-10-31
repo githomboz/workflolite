@@ -62,6 +62,21 @@ class Workflows extends Users_Controller {
     $this->view($this->navSelected . '-reports');
   }
 
+  public function create_job(){
+    $workflowId = $this->input->get('workflow');
+    if($form_submitted = _process_create_job($this->input->post())){
+      if($form_submitted['success'] && $form_submitted['success']['jobId'] instanceof MongoId){
+        redirect(site_url('jobs/create?created='.$form_submitted['success']['jobId'].'&name='.$form_submitted['success']['name']));
+      }
+    }
+    $this->preCollapseSidePanel = true;
+    $this->pageTitle = 'Create a Job';
+    $this->navSelected = 'jobs';
+    $this->innerNavSelected = 'overview';
+    $this->view($this->navSelected . '-create');
+  }
+
+
   public function index(){
     $this->archive();
   }

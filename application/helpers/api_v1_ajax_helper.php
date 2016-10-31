@@ -281,11 +281,14 @@ function save_meta(){
   $collection = di_decrypt_s($data['collection'], salt());
   $jobId = di_decrypt_s($data['record'], salt());
   $job = Job::Get($jobId);
-  $field = 'meta.' . $data['field'];
+  $metaArray = $job->getRawMeta();
+  $response['response']['rawMeta'] = $metaArray;
+  $field = $data['field'];
   if($job){
     $meta = new $data['metaObject']($data['value']);
     if(!$meta->errors()){
-      $job->meta()->set($field, $data['value'])->save();
+      $metaArray[$field] = $meta->get();
+      $job->meta()->set('meta', $metaArray)->save('meta');
       $response['response']['raw'] = $meta->get();
       $response['response']['display'] = $meta->display();
       $response['response']['success'] = true;

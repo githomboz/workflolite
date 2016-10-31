@@ -211,7 +211,10 @@ class Job extends WorkflowFactory
   
   public function getMeta(){
     return $this->meta->getAll();
-    //return $this->getValue('meta');
+  }
+
+  public function getRawMeta(){
+    return $this->getValue('meta');
   }
 
   public function addContactById($contact_or_user_id, $role, $isClient = false, $isContact = true){
@@ -313,6 +316,49 @@ class Job extends WorkflowFactory
     // check if is last task (automatically a milestone)
     // check if is milestone
 
+  }
+
+  public static function Create($data){
+    // Create Job
+    $jobData = array(
+      'dateAdded' => new MongoDate(),
+      'name' => $data['name'],
+      'dueDate' => null,
+      'approxEndDate' => null,
+      'partiesInvolved' => array(),
+      'nativeId' => _generate_unique_id(Job::CollectionName(), 'nativeId', 7),
+      'organizationId' => isset($data['organizationId']) ? $data['organizationId'] : UserSession::Get_Organization()->id(),
+      'viewableContacts' => array(),
+      'meta' => array(),
+      'notes' => array(),
+      'workflowId' => _id($data['workflowId']),
+      'sortOrder' => array()
+    );
+    $jobId = parent::Create($jobData);
+
+    // Get Tasks Templates
+    $workflow = Workflow::Get($data['workflowId']);
+    $templates = $workflow->getTemplates();
+
+    foreach($templates as $taskTemplate){
+      $taskData = array(
+        'dateAdded' => new MongoDate(),
+        'taskTemplateId' => $taskTemplate->id(),
+        'organizationId' => $jobData['organizationId'],
+        'jobId' => $jobId,
+        'workflowId' => $data['workflowId'],
+        'activeUsers' => array(),
+        'assigneeId' => array(),
+        'triggers' => array(),
+        'status' => 'new',
+        'comments' => ''
+      );
+      Task::Create($taskData);
+    }
+
+
+    // Create Tasks
+    return $jobId;
   }
 
   public function meta(){

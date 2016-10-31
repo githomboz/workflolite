@@ -16,6 +16,10 @@ class TaskTemplate extends WorkflowFactory
     parent::__construct();
     $this->_initialize($data);
   }
+
+  public static function GetTaskTemplatesByWorkflow(Workflow $workflow){
+    return $workflow->getTemplates();
+  }
   
 
 }

@@ -1089,7 +1089,7 @@ $tasklist_height : 36px;
     background: lighten($mainhead_bgcolor, 55%);
     border: 1px solid lighten($mainhead_bgcolor, 20%);
     line-height: 40px;
-    border-radius: 6px;
+    border-radius: 3px;
     margin-bottom: $paddingLarge;
     overflow: hidden;
 
@@ -1379,3 +1379,4 @@ $tasklist_height : 36px;
   float: right;
   width: 38%
 }
+

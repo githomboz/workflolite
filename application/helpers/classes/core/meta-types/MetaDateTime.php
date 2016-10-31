@@ -36,10 +36,12 @@ class MetaDateTime extends MetaObject {
   }
 
   public function display($dateFormat = 'm-d-Y'){
-    if($this->_cache) return $this->_cache;
-    else {
-      $this->_cache = date($dateFormat, strtotime($this->get())) . ' <a href=#add_to_calendar"><i class="fa fa-calendar-plus-o"></i></a>';
-      return $this->_cache;
+    if($this->get()){
+      if($this->_cache) return $this->_cache;
+      else {
+        $this->_cache = date($dateFormat, strtotime($this->get())) . ' <a href=#add_to_calendar"><i class="fa fa-calendar-plus-o"></i></a>';
+        return $this->_cache;
+      }
     }
   }
 

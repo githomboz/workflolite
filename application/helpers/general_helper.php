@@ -111,6 +111,29 @@ function _process_add_task($post, Job $job){
   }
 }
 
+function _process_create_job($post){
+  if(isset($post['action']) && $post['action'] == 'create-job'){
+    $response = array(
+      'errors' => array(),
+      'success' => false,
+      'response' => null
+    );
+
+    // Validate
+    if($post['name'] == '') $response['errors'][] = 'Name is not set';
+    if($post['workflowId'] == '') $response['errors'][] = 'Workflow is not set';
+
+    // Create Records
+    if(empty($response['errors'])){
+      $jobId = Job::Create($post);
+      $response['success']['jobId'] = $jobId;
+      $response['success']['name'] = $post['name'];
+    }
+    return $response;
+  }
+}
+
+
 function phoneFormat($string){
   return '(' . substr($string, 0, 3) . ') ' . substr($string, 3, 3) . '-' . substr($string, 6, 4);
 }

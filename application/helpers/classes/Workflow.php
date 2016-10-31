@@ -195,5 +195,13 @@ class Workflow extends WorkflowFactory
     //return self::Update($this->id(), array( 'metaFields' => $this->_current['metaFields'] ));
   }
 
+  public static function GetAll(){
+    $records = self::CI()->mdb->where('organizationId', UserSession::Get_Organization()->id())->get(self::CollectionName());
+    foreach($records as $i => $record) $records[$i] = new Workflow($record);
+    return $records;
+  }
+
+
+
 
 }

@@ -49,6 +49,7 @@ $route['admin/logout'] = 'main/admin_logout';
 
 $route['jobs/(:any)/(:any)'] = 'jobs/single/$1/$2';
 $route['jobs/(:any)'] = 'jobs/single/$1/tasks';
+$route['jobs/create'] = 'workflows/create_job';
 $route['dashboard'] = 'jobs/dashboard';
 $route['workflows/(:any)/(:any)'] = 'workflows/single/$1/$2';
 $route['workflows/(:any)'] = 'workflows/details/$1';
