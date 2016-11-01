@@ -220,7 +220,7 @@
             var html = taskData.startDate + ' <a href="#editStart-' + taskData.taskId + '" class="fa fa-pencil"></a>';
             $task.find('.col.start').html(html);
             // Add clickable complete button
-            html = ' <a href="#markComplete-' + taskData.taskId + '" class="fa fa-check link-blue"></a>';
+            html = ' <a href="#markComplete-' + taskData.taskId + '" class="fa fa-check link-blue js-mark-complete"></a>';
             $task.find('.col.complete').html(html);
         }
     }

@@ -48,6 +48,13 @@ class Job extends WorkflowFactory
     }
   }
 
+  public function displayDetails(){
+    $data = array(
+    );
+
+    return $data;
+  }
+
   public function acknowledgeTask(Task $task){
     $this->tasks[] = $task;
     if(!in_array((string) $task->id(), $this->sortOrder)){
@@ -159,14 +166,39 @@ class Job extends WorkflowFactory
     return $actionable;
   }
 
-  public static function CompletionPercentage(array $taskSet){
-    $completedCount = 0;
-    $taskCount = 0;
-    foreach($taskSet as $task) {
-      $taskCount ++;
-      if($task->isComplete()) $completedCount++;
+  public function getNextTask(){
+    foreach($this->getActionableTasks() as $i => $task){
+      return $task;
     }
-    return round(($completedCount/$taskCount) * 100);
+  }
+
+  public function stats(){
+    return self::CompletionStats($this->getShowableTasks());
+  }
+
+  public static function CompletionStats(array $taskSet){
+    $stats = array(
+      'total' => 0,
+      'completed' => 0,
+      'deleted' => 0,
+      'skipped' => 0,
+      'forceSkipped' => 0,
+      'completionPercentage' => 0
+    );
+    foreach($taskSet as $task) {
+      $stats['total'] ++;
+      if($task->isComplete()) $stats['completed'] ++;
+      if($task->isSkipped()) $stats['skipped'] ++;
+      if($task->isForceSkipped()) $stats['forceSkipped'] ++;
+      if($task->isDeleted()) $stats['deleted'] ++;
+    }
+    $stats['completionPercentage'] = round(($stats['completed']/$stats['total']) * 100);
+    return $stats;
+  }
+
+  public static function CompletionPercentage(array $taskSet){
+    $stats = self::CompletionStats($taskSet);
+    return $stats['completionPercentage'];
   }
 
   public function getContacts(){

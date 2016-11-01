@@ -27,6 +27,14 @@ class Workflow extends WorkflowFactory
     }
   }
 
+  public function displayDetails(){
+    $data = array(
+      'taskCount' => $this->taskCount()
+    );
+
+    return $data;
+  }
+
   public function jobCount(){
     return self::CI()->mdb->where(array('workflowId' => $this->id()))->count(Job::CollectionName());
   }

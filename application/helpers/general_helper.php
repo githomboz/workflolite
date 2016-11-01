@@ -1,6 +1,19 @@
 <?php
 // Functions specific to this site/app
 
+function CI(){
+  return get_instance();
+}
+
+function salt(){
+  return config_item('PAK');
+}
+
+function organization(){
+  if(UserSession::loggedIn()) return UserSession::Get_Organization();
+  return null;
+}
+
 function _get_inner_nav($selectedPage, $seg1 = null, $seg2 = null){
   $navItems = array(
     'jobsInner' => array(
@@ -136,14 +149,6 @@ function _process_create_job($post){
 
 function phoneFormat($string){
   return '(' . substr($string, 0, 3) . ') ' . substr($string, 3, 3) . '-' . substr($string, 6, 4);
-}
-
-function CI(){
-  return get_instance();
-}
-
-function salt(){
-  return config_item('PAK');
 }
 
 function job(){

@@ -14,7 +14,7 @@
       $showableTasksGrouped = $this->job->getClientViewableTasks(true);
       $showableTasks = array();
       foreach($showableTasksGrouped as $taskGroup => $tasks){ foreach($tasks as $task){ $showableTasks[] = $task; }}
-      $completionPercentage = Job::CompletionPercentage($showableTasks, 2); ?>
+      $completionPercentage = Job::CompletionPercentage($showableTasks); ?>
       <div class="bar" style="width: <?php echo $completionPercentage; ?>%"><?php echo $completionPercentage; ?>%</div>
     </div>
     <?php

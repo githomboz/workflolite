@@ -20,9 +20,11 @@
           if($this.is(".fa-chevron-left")){
             $this.removeClass("fa-chevron-left").addClass("fa-chevron-right");
             $this.parents('.sidepanel').addClass('collapse');
+            PubSub.publish('viewport.change.minimize', {});
           } else {
             $this.removeClass("fa-chevron-right").addClass("fa-chevron-left");
             $this.parents('.sidepanel').removeClass('collapse');
+            PubSub.publish('viewport.change.maximize', {});
           }
           return false;
         });
@@ -30,4 +32,5 @@
       });
   </script>
 <?php echo get_registered_scripts_tags(false); ?>
+<script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_JobsViewer.js"></script>
 </html>

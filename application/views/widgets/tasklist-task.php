@@ -32,7 +32,7 @@
           <?php if($task->isStarted()) { ?><a href="#markComplete-<?php echo $task->id(); ?>" class="fa fa-check link-blue js-mark-complete"></a><?php } ?>
         <?php } ?>
         <div class="time-changer">
-          
+          &nbsp;
         </div>
       </div>
       <div class="col-3 col text-left">

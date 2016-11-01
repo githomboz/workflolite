@@ -1,5 +1,5 @@
 /**
- * @package         CS_MessageBox
+ * @package         CS_API
  * @author          Benezer Jahdy Lancelot <jahdy@cosmicstrawberry.com>
  * @copyright       2016 Cosmic Strawberry, LLC
  * @version         1.0.0
@@ -14,13 +14,13 @@ var CS_API = (function(){
             preferCache             : true // If caching enabled, check cache first before running
         },
         /**
-         * Array of errors
+         * Errors
          * @type {Array}
          */
         errors            = [],
 
         /**
-         * Array of logs
+         * Logs
          * @type {Array}
          */
         logs                      = [],
@@ -38,7 +38,7 @@ var CS_API = (function(){
         cache             = {},
 
         /**
-         * API Settings
+         * Settings
          * @type {{}}
          */
         options           = {};

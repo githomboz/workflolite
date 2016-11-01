@@ -1,4 +1,17 @@
+.js-change-views {
+  position: absolute;
+  right: $paddingLarge;
+}
+
 .jobs-list {
+
+  > h2 {
+    font-size: $font-size-lg;
+    line-height: 1.3em;
+    margin-bottom: $paddingLarge;
+    padding-bottom: $padding;
+    border-bottom: 1px solid darken($sidepanel_bg, 10%);
+  }
 
   .job-entry {
     display: flex;
@@ -6,24 +19,78 @@
     border-radius: 3px;
     border: 1px solid darken($sidepanel_bg, 10%);
     box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+    margin-bottom: $paddingLarge;
+
 
     .job-title {
       flex: 1 150px;
       border-right: 1px solid darken($sidepanel_bg, 10%);
+
+      h2 {
+        position: relative;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        a {
+          color: $button_blue;
+        }
+      }
+
+      .completion-count {
+        position: relative;
+      }
+
     }
 
-    .job-tasks {
+    .cs-job-tasks {
       flex: 10;
 
-      .job-task {
+      .cs-task {
         float: left;
         padding: 0;
-        min-height: 60px;
         min-width: $padding;
         border-right: 1px solid darken($sidepanel_bg, 10%);
 
+        &:hover {
+          cursor: pointer;
+        }
+
         .job-inner {
           padding: $padding;
+          position: relative;
+
+          &.task-group-1 {
+            background: #f0faff;
+          }
+
+          &.task-group-2 {
+            background: #f6fff4;
+          }
+
+          &.task-group-3 {
+            background: #ffece0;
+          }
+
+          &.task-group-4 {
+            background: #e1edff;
+          }
+
+          &.task-group-5 {
+            background: #f3e6ff;
+          }
+
+          &.task-group-6 {
+            background: #e3ffff;
+          }
+
+          &.task-group-7 {
+            background: #ffedec;
+          }
+
+          &.task-group-8 {
+            background: #e3ffff;
+          }
+
         }
 
         &:last-child {
@@ -32,22 +99,188 @@
 
         .status {
           line-height: 20px;
-          background: darken($sidepanel_bg, 10%);
           height: 20px;
+          display: block;
+          position: relative;
+          padding-left: $padding;
+
+          .fa-times {
+            position: absolute;
+            right: $padding;
+            top: 3px;
+            cursor: pointer;
+          }
+
+          &.completed {
+            background: #008000;
+            color: darken($sidepanel_bg, 0);
+          }
+
+          &.new {
+            background: darken($sidepanel_bg, 20%);
+          }
+
+          &.active {
+            background: lighten(#008000, 10%);
+            color: darken($sidepanel_bg, 0);
+          }
+
+          &.skipped {
+            background: darken($sidepanel_bg, 30%);
+          }
+
         }
 
         .content {
           display: none;
         }
 
-        &.active {
+        &.selected {
+
+          cursor: auto;
+
+          h2 {
+            line-height: 1.3em;
+            position: relative;
+            top: -2px;
+          }
 
           .content {
             display: block;
+            font-size: $font-size-sm;
+
+            &.dates {
+              position: relative;
+              width: 100%;
+              display: block;
+              padding-top: 12px;
+              font-size: $font-size-xs;
+
+              > span {
+                position: absolute;
+                top: -3px;
+                color: lighten($sidepanel_color_light, 20%);
+              }
+
+              .start-date {
+                left: 0;
+              }
+
+              .completion-date {
+                right: 0;
+              }
+            }
+
+            &.task-details {
+              position: absolute;
+              bottom: 7px;
+              width: 100%;
+              display: block;
+              padding-top: 12px;
+              font-size: $font-size-xs;
+
+              > span {
+                position: absolute;
+                bottom: 0px;
+                right: $padding * 2;
+                color: lighten($sidepanel_color_light, 20%);
+              }
+
+              > a {
+                position: absolute;
+                bottom: 0px;
+                left: 0px;
+                color: $button_blue;
+              }
+
+            }
           }
 
         }
 
+      }
+
+    }
+
+    &.view-glance {
+      overflow: hidden;
+
+      .job-title {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        height: 1em;
+
+        .completion-count {
+          display: none;
+        }
+
+        h2 {
+          line-height: 1.5em;
+          padding-left: $padding;
+          font-size: $font-size-sm;
+        }
+      }
+
+
+      .job-inner {
+        display: none;
+      }
+
+    }
+
+    &.view-normal {
+
+      .completion-count {
+        display: none;
+      }
+
+      .job-title {
+        padding-top: $paddingLarge;
+        padding-left: $padding;
+
+        h2 {
+          line-height: 1.3em;
+        }
+      }
+
+      .job-inner {
+        min-height: 50px;
+        padding-bottom: 7px !important;
+
+        .content {
+
+          &.dates {
+            display: none !important;
+          }
+
+          &.task-details {
+            display: none !important;
+          }
+        }
+      }
+
+    }
+
+    &.view-full {
+
+      .completion-count {
+        color: darken($sidepanel_color_light, 0);
+        font-size: $font-size-sm;
+        font-style: italic;
+      }
+
+      .job-title {
+        padding-top: $paddingLarge;
+        padding-left: $padding;
+
+        h2 {
+          line-height: 1.3em;
+          margin-bottom: 5px;
+        }
+      }
+
+      .job-inner {
+        min-height: 70px;
       }
 
     }

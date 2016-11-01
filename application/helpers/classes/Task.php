@@ -20,7 +20,10 @@ class Task extends WorkflowFactory
 
   public static $statusComplete = 'completed';
   public static $statusDeleted = 'deleted';
+  public static $statusSkipped = 'skipped';
+  public static $statusForceSkipped = 'force_skipped';
   public static $statusActive = 'active';
+  public static $statusNotStarted = 'new';
 
   /**
    * @var array Array of Step objects
@@ -150,6 +153,7 @@ class Task extends WorkflowFactory
   public function start(){
     $update = array(
       'startDate' => new MongoDate(),
+      'status' => Task::$statusActive
     );
     $this->_current = array_merge($this->_current, $update);
     return self::Update($this->id(), $update);
@@ -183,12 +187,30 @@ class Task extends WorkflowFactory
   }
 
   /**
-   * Whether or not this task is active based on dependencies.
+   * Whether or not this task is active based on dependencies
    */
   public function isActionable(){
     $response = true;
     if(!empty($this->preconditions)) $response = false;
-    if(in_array($this->getValue('status'), array(self::$statusComplete, self::$statusDeleted))) $response = false;
+    if(in_array($this->getValue('status'), array(self::$statusComplete, self::$statusSkipped, self::$statusForceSkipped, self::$statusDeleted))) $response = false;
+    return $response;
+  }
+
+  /**
+   * Whether or not this task is skipped based on dependencies or user action
+   */
+  public function isSkipped(){
+    $response = false;
+    if(in_array($this->getValue('status'), array(self::$statusSkipped, self::$statusForceSkipped))) $response = true;
+    return $response;
+  }
+
+  /**
+   * Whether or not this task is skipped based on user action
+   */
+  public function isForceSkipped(){
+    $response = false;
+    if(in_array($this->getValue('status'), array(self::$statusForceSkipped))) $response = true;
     return $response;
   }
 
@@ -196,8 +218,15 @@ class Task extends WorkflowFactory
    * Whether or not this display this task
    */
   public function isShowable(){
-    $response = true;
-    if(in_array($this->getValue('status'), array(self::$statusDeleted))) $response = false;
+    return !$this->isDeleted();
+  }
+
+  /**
+   * Whether or not this task has been deleted
+   */
+  public function isDeleted(){
+    $response = false;
+    if(in_array($this->getValue('status'), array(self::$statusDeleted))) $response = true;
     return $response;
   }
 
@@ -219,6 +248,10 @@ class Task extends WorkflowFactory
   public function nextStepIndex(){
     end($this->steps);
     return key($this->steps);
+  }
+
+  public function statusText(){
+    return self::GetStatusText($this->getValue('status'));
   }
 
   private function _mergeTemplateToTask(TaskTemplate $template){
@@ -263,6 +296,20 @@ class Task extends WorkflowFactory
     $record = static::LoadId($id, static::$_collection);
     $class = __CLASS__;
     return new $class($record);
+  }
+
+  public static function GetStatusText($status){
+    switch ($status){
+      case self::$statusForceSkipped :
+          return 'Skipped by User';
+        break;
+      case self::$statusNotStarted :
+          return 'Not Started';
+        break;
+      default:
+        return ucwords(join(' ', explode(' ', $status)));
+        break;
+    }
   }
 
 
