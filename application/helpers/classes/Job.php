@@ -183,14 +183,20 @@ class Job extends WorkflowFactory
       'deleted' => 0,
       'skipped' => 0,
       'forceSkipped' => 0,
-      'completionPercentage' => 0
+      'completionPercentage' => 0,
+      'totalEstimatedTime' => 0,
+      'completedTime' => 0
     );
     foreach($taskSet as $task) {
       $stats['total'] ++;
-      if($task->isComplete()) $stats['completed'] ++;
+      if($task->isComplete()) {
+        $stats['completed'] ++;
+        $stats['completedTime'] += (float) $task->getValue('estimatedTime');
+      }
       if($task->isSkipped()) $stats['skipped'] ++;
       if($task->isForceSkipped()) $stats['forceSkipped'] ++;
       if($task->isDeleted()) $stats['deleted'] ++;
+      $stats['totalEstimatedTime'] += (float) $task->getValue('estimatedTime');
     }
     $stats['completionPercentage'] = round(($stats['completed']/$stats['total']) * 100);
     return $stats;

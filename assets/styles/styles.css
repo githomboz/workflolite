@@ -2059,6 +2059,19 @@ span.checkbox {
   float: right;
   width: 38%; }
 
+.create-job-form {
+  max-width: 400px;
+  background: #f2f2f2;
+  margin: 0 auto 18px; }
+  .create-job-form label {
+    line-height: 1.5em;
+    margin-bottom: .5em; }
+  .create-job-form [name=workflowId] {
+    margin-bottom: 10px; }
+  .create-job-form [name=name] {
+    margin-bottom: 18px;
+    width: 60%; }
+
 .inner-nav-btns {
   position: absolute;
   top: 70px;
@@ -2257,6 +2270,11 @@ span.checkbox {
 .js-change-views {
   position: absolute;
   right: 18px; }
+  .js-change-views.no-float {
+    position: relative;
+    text-align: right;
+    right: 0;
+    margin-bottom: 10px; }
 
 .jobs-list > h2 {
   font-size: 18px;
@@ -2307,7 +2325,7 @@ span.checkbox {
         padding: 10px;
         position: relative; }
         .jobs-list .job-entry .cs-job-tasks .cs-task .job-inner.task-group-1 {
-          background: #f0faff; }
+          background: #edfcff; }
         .jobs-list .job-entry .cs-job-tasks .cs-task .job-inner.task-group-2 {
           background: #f6fff4; }
         .jobs-list .job-entry .cs-job-tasks .cs-task .job-inner.task-group-3 {
@@ -2395,6 +2413,8 @@ span.checkbox {
       height: 1em; }
       .jobs-list .job-entry.view-glance .job-title .completion-count {
         display: none; }
+      .jobs-list .job-entry.view-glance .job-title .estimated-hours {
+        display: none; }
       .jobs-list .job-entry.view-glance .job-title h2 {
         line-height: 1.5em;
         padding-left: 10px;
@@ -2402,6 +2422,8 @@ span.checkbox {
     .jobs-list .job-entry.view-glance .job-inner {
       display: none; }
   .jobs-list .job-entry.view-normal .completion-count {
+    display: none; }
+  .jobs-list .job-entry.view-normal .estimated-hours {
     display: none; }
   .jobs-list .job-entry.view-normal .job-title {
     padding-top: 18px;
@@ -2416,11 +2438,18 @@ span.checkbox {
     .jobs-list .job-entry.view-normal .job-inner .content.task-details {
       display: none !important; }
   .jobs-list .job-entry.view-full .completion-count {
+    display: block;
+    color: #7f7f7f;
+    font-size: 13px;
+    font-style: italic;
+    margin-bottom: .5em; }
+  .jobs-list .job-entry.view-full .estimated-hours {
+    display: block;
     color: #7f7f7f;
     font-size: 13px;
     font-style: italic; }
   .jobs-list .job-entry.view-full .job-title {
-    padding-top: 18px;
+    padding-top: 6px;
     padding-left: 10px; }
     .jobs-list .job-entry.view-full .job-title h2 {
       line-height: 1.3em;

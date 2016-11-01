@@ -20,7 +20,7 @@
       </div>
       <div class="actions">
         <span class="job-count">Jobs: <?php echo $workflow->jobCount(); ?>  | <a href="<?php echo $workflow->getJobsUrl() ?>">Browse</a> </span>
-        <a href="<?php ?>#" class="btn icon submit"><i class="fa fa-plus"></i> New Job</a>
+        <a href="<?php echo $workflow->createJobUrl() ?>" class="btn icon submit"><i class="fa fa-plus"></i> New Job</a>
       </div>
     </div>
     <?php } ?>

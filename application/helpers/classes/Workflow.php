@@ -69,6 +69,14 @@ class Workflow extends WorkflowFactory
     return $this->getUrl() . '/jobs';
   }
 
+  public function createJobUrl(){
+    return self::GetCreateJobUrl($this->id());
+  }
+
+  public static function GetCreateJobUrl($workflowId = null){
+    return site_url('jobs/create') . ($workflowId ? '?workflow=' . $workflowId : '');
+  }
+
   public function sortMetaSettings(){
     // Handle Sorting
     $settings = array();

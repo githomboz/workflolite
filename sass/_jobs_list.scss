@@ -1,6 +1,13 @@
 .js-change-views {
   position: absolute;
   right: $paddingLarge;
+
+  &.no-float {
+    position: relative;
+    text-align: right;
+    right: 0;
+    margin-bottom: $padding;
+  }
 }
 
 .jobs-list {
@@ -60,7 +67,7 @@
           position: relative;
 
           &.task-group-1 {
-            background: #f0faff;
+            background: #edfcff;
           }
 
           &.task-group-2 {
@@ -213,6 +220,10 @@
         .completion-count {
           display: none;
         }
+        
+        .estimated-hours {
+          display: none;
+        }
 
         h2 {
           line-height: 1.5em;
@@ -231,6 +242,10 @@
     &.view-normal {
 
       .completion-count {
+        display: none;
+      }
+
+      .estimated-hours {
         display: none;
       }
 
@@ -264,13 +279,22 @@
     &.view-full {
 
       .completion-count {
+        display: block;
+        color: darken($sidepanel_color_light, 0);
+        font-size: $font-size-sm;
+        font-style: italic;
+        margin-bottom: .5em;
+      }
+
+      .estimated-hours {
+        display: block;
         color: darken($sidepanel_color_light, 0);
         font-size: $font-size-sm;
         font-style: italic;
       }
 
       .job-title {
-        padding-top: $paddingLarge;
+        padding-top: 6px;
         padding-left: $padding;
 
         h2 {

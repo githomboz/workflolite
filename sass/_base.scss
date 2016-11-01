@@ -1380,3 +1380,22 @@ $tasklist_height : 36px;
   width: 38%
 }
 
+.create-job-form {
+  max-width: 400px;
+  background: $sidepanel_bg;
+  margin: 0 auto $paddingLarge;
+
+  label {
+    line-height: 1.5em;
+    margin-bottom: .5em;
+  }
+
+  [name=workflowId] {
+    margin-bottom: $padding;
+  }
+
+  [name=name] {
+    margin-bottom: $paddingLarge;
+    width: 60%;
+  }
+}

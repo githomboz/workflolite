@@ -4,7 +4,7 @@
     <?php foreach($this->job->getMeta() as $key => $meta){
       $metaSettings = $this->workflow->getMetaSettings($key);
       ?>
-      <div class="meta-pair meta-<?php echo $meta['slug'] ?> <?php if($meta['hide']) echo 'not-priority '; else echo 'priority '; if(is_null($meta['value']->get()) || ($meta['value'] instanceof MetaArray && empty($meta['value']->get()))) echo 'edit-mode '?>">
+      <div class="meta-pair meta-<?php echo $meta['slug'] ?> <?php if($meta['hide']) echo 'not-priority '; else echo 'priority '; $value = $meta['value']->get(); if(is_null($value) || ($meta['value'] instanceof MetaArray && empty($value))) echo 'edit-mode '?>">
         <span class="meta-title"><?php echo $metaSettings['field'] ?>: </span>
         <?php
         $valueLength = strlen($meta['value']->display());
