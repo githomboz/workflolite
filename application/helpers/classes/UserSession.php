@@ -86,6 +86,11 @@ class UserSession
     return $userData[$key];
   }
 
+  public static function EncodePassword($password){
+    CI()->load->helper('data_input');
+    return di_encrypt_s($password, salt());
+  }
+
   private function __clone(){}
 
   private function __wakeup(){}

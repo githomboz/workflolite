@@ -34,6 +34,7 @@
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-ui.min.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/alertify.min.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_API.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_CSSOverride.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_MessageBox.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/setTimeout.polyfill.js"></script>
@@ -49,7 +50,7 @@
   data-user="<?php echo UserSession::Get_User()->id()?>"
   <?php } ?>
 >
-
+<style class="js-styles-override" type="text/css"></style> <!--/ Under penalty of death, do not remove -->
 <header class="main-header clearfix">
   <div class="main-header-inner">
     <div class="upper-head">
@@ -99,7 +100,7 @@
 <div id="main-wrap" class="clearfix <?php if(isset($this->page_class)) { if(is_array($this->page_class)) echo join(' ', $this->page_class); else if(is_string($this->page_class)) echo $this->page_class; } ?>">
 
 <section class="sidepanel js-sidepanel <?php $collapse = isset($this->preCollapseSidePanel) && $this->preCollapseSidePanel == true; if($collapse) echo 'collapse'; ?>">
-  <i class="js-toggle fa fa-chevron-<?php if($collapse) echo 'right'; else echo 'left'; ?>"></i>
+  <i class="js-toggle js-toggle-sidebar fa fa-chevron-<?php if($collapse) echo 'right'; else echo 'left'; ?>"></i>
   <?php if(UserSession::loggedIn() && isset($this->job)) :
     include_once 'widgets/_sidebar-meta-include.php';
     ?>
@@ -149,4 +150,4 @@
 
 
 
-<?php //if(isset($this->job)) var_dump($this->job->meta()->getAll()); ?>
+<?php //if(isset($this->job)) var_dump($this->job->meta()->getAll());  ?>

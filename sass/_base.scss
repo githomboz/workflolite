@@ -220,8 +220,21 @@ textarea {
     line-height: 1.4em;
     font-size: $font-size-sm;
 
+    &.show-all {
+
+      .meta-pair {
+        &.not-priority {
+          display: block;
+        }
+      }
+    }
+
     .meta-pair {
       margin-bottom: 1em;
+
+      &.not-priority {
+        display: none;
+      }
 
       .meta-type-form {
         display: none;
@@ -701,6 +714,14 @@ $tasklist_height : 36px;
       color: $sidepanel_color_dark;
       margin-left: $padding;
       line-height: $tasklist_height;
+    }
+  }
+  
+  .task-body {
+    display: block;
+    
+    &.collapse {
+      display: none;
     }
   }
   

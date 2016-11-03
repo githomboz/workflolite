@@ -1,4 +1,4 @@
-<div class="send-message">
+<div class="send-message cs-send-message">
   <header>
     <h1>Send a Message</h1>
     <div class="select-template">

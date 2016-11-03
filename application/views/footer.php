@@ -10,12 +10,13 @@
 </body>
   <script type="text/javascript">
       $(document).ready(function(){
-        $(".sidepanel .js-send-message").click(function(){
+        $(".sidepanel .js-send-message").click(function(e){
           $(".send-message").toggle();
           return false;
         });
 
-        $(".js-toggle").click(function(){
+        $(".js-toggle-sidebar").click(function(e){
+          e.preventDefault();
           var $this = $(this);
           if($this.is(".fa-chevron-left")){
             $this.removeClass("fa-chevron-left").addClass("fa-chevron-right");
@@ -26,9 +27,19 @@
             $this.parents('.sidepanel').removeClass('collapse');
             PubSub.publish('viewport.change.maximize', {});
           }
-          return false;
         });
         
+      });
+
+      $(document).on('click', function(event) {
+        if (!$(event.target).closest('.cs-notes-box').length) {
+          $(".cs-notes-box").hide();
+        }
+      });
+      $(document).on('click', function(event) {
+        if (!$(event.target).closest('.cs-send-message').length) {
+          $(".cs-send-message").hide();
+        }
       });
   </script>
 <?php echo get_registered_scripts_tags(false); ?>

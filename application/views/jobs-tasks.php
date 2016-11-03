@@ -41,7 +41,7 @@
             //var_dump($showableTasksGrouped);
             foreach($showableTasksGrouped as $taskGroup => $tasks) { ?>
                 <div class="task-head task-style">
-                    <a href="#" class="expander fa fa-minus-square-o"></a>
+                    <a href="#" class="expander cs-group-expander fa fa-minus-square-o" data-group="<?php echo md5($taskGroup) ?>"></a>
                     <div class="col-title"><?php echo $taskGroup ?> (<span class="count"><?php echo count($showableTasksGrouped[$taskGroup])?></span>)</div>
                     <div class="col-meta">
                         <div class="cols">
@@ -51,7 +51,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="task-body">
+                <div class="task-body group-<?php echo md5($taskGroup) ?>">
                     <?php
                     foreach($tasks as $i => $task){
                         include 'widgets/tasklist-task.php';
@@ -67,6 +67,23 @@
 <script type="text/javascript">
 
     var TASK_CACHE = {};
+
+    $(document).on('click', ".cs-group-expander", function(){
+        var
+          $this = $(this),
+          isOpen = $this.is('.fa-minus-square-o'),
+          group = $this.data('group'),
+          $taskGroup = $(".task-body.group-" + group);
+        
+        if(isOpen){
+            $this.addClass('fa-plus-square-o').removeClass('fa-minus-square-o');
+            $taskGroup.addClass('collapse');
+        } else {
+            $this.addClass('fa-minus-square-o').removeClass('fa-plus-square-o');
+            $taskGroup.removeClass('collapse');
+        }
+        return false;
+    });
 
     $(document).on('click', ".checkbox", function(){
         var $checkbox = $(this), $task = $checkbox.parents('.task-style');

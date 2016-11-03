@@ -14,6 +14,15 @@ function organization(){
   return null;
 }
 
+function user(){
+  $CI =& CI();
+  if(!isset($CI->me) && UserSession::loggedIn()) {
+    $CI->me = UserSession::Get_User();
+    return CI()->me;
+  }
+  return null;
+}
+
 function _get_inner_nav($selectedPage, $seg1 = null, $seg2 = null){
   $navItems = array(
     'jobsInner' => array(

@@ -1,5 +1,18 @@
-<div class="notes-box">
+<div class="notes-box cs-notes-box">
   <div class="bubble">
+    <div class="add-note-form">
+      <div class="user">
+        <?php //var_dump(user(), UserSession::EncodePassword('jahdy')) ?>
+        <div class="thumb">
+          <img src="" />
+        </div>
+      </div>
+      <div class="form">
+        <textarea class="cs-note-field"></textarea>
+        <label>Tags: </label><input type="text" class="js-tags-input">
+        <button class="btn submit"><i class="fa fa-plus"></i> Add Note</button>
+      </div>
+    </div>
     <ul class="notes-list">
       <li class="note clearfix">
         <span class="author">Efran Jacobs</span>
@@ -26,6 +39,6 @@
         <div class="message">Customer doesn't seem to be responding. I'm going to need to escalate.</div>
       </li>
     </ul>
-    <a href="#" class="more">more messages <i class="fa fa-caret-down"></i></a>
+    <a href="<?php echo site_url('jobs/' . $this->job->id() . '/notes') ?>" class="more">more notes <i class="fa fa-caret-down"></i></a>
   </div>
 </div>

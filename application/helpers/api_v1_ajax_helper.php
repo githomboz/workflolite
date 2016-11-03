@@ -12,11 +12,11 @@ function mark_complete(){
 
   $task = Task::Get($data['taskId']);
   if($task){
-    $task->complete();
     if(!$task->isStarted()) {
       $task->start();
       $response['response']['startDate'] = date('m/d/y', $task->getValue('startDate')->sec);
     }
+    $task->complete();
     $response['response']['entityType'] = 'tasks';
     $response['response']['taskId'] = (string) $task->id();
     $response['response']['endDate'] = date('m/d/y', $task->getValue('completeDate')->sec);

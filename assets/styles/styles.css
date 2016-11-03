@@ -1310,8 +1310,12 @@ textarea {
   .sidepanel .job-meta {
     line-height: 1.4em;
     font-size: 13px; }
+    .sidepanel .job-meta.show-all .meta-pair.not-priority {
+      display: block; }
     .sidepanel .job-meta .meta-pair {
       margin-bottom: 1em; }
+      .sidepanel .job-meta .meta-pair.not-priority {
+        display: none; }
       .sidepanel .job-meta .meta-pair .meta-type-form {
         display: none; }
       .sidepanel .job-meta .meta-pair .array-group input[type=text] {
@@ -1637,6 +1641,10 @@ span.checkbox {
       color: #555;
       margin-left: 10px;
       line-height: 36px; }
+  .tasklist .task-body {
+    display: block; }
+    .tasklist .task-body.collapse {
+      display: none; }
   .tasklist .task-style {
     position: relative;
     height: 36px;
@@ -2269,7 +2277,8 @@ span.checkbox {
 
 .js-change-views {
   position: absolute;
-  right: 18px; }
+  right: 18px;
+  cursor: pointer; }
   .js-change-views.no-float {
     position: relative;
     text-align: right;
@@ -2319,8 +2328,6 @@ span.checkbox {
       padding: 0;
       min-width: 10px;
       border-right: 1px solid #d9d9d9; }
-      .jobs-list .job-entry .cs-job-tasks .cs-task:hover {
-        cursor: pointer; }
       .jobs-list .job-entry .cs-job-tasks .cs-task .job-inner {
         padding: 10px;
         position: relative; }
@@ -2405,22 +2412,20 @@ span.checkbox {
               bottom: 0px;
               left: 0px;
               color: #4992d0; }
-  .jobs-list .job-entry.view-glance {
-    overflow: hidden; }
-    .jobs-list .job-entry.view-glance .job-title {
-      text-overflow: ellipsis;
-      overflow: hidden;
-      height: 1em; }
-      .jobs-list .job-entry.view-glance .job-title .completion-count {
-        display: none; }
-      .jobs-list .job-entry.view-glance .job-title .estimated-hours {
-        display: none; }
-      .jobs-list .job-entry.view-glance .job-title h2 {
-        line-height: 1.5em;
-        padding-left: 10px;
-        font-size: 13px; }
-    .jobs-list .job-entry.view-glance .job-inner {
+  .jobs-list .job-entry.view-glance .job-title {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    height: 1em; }
+    .jobs-list .job-entry.view-glance .job-title .completion-count {
       display: none; }
+    .jobs-list .job-entry.view-glance .job-title .estimated-hours {
+      display: none; }
+    .jobs-list .job-entry.view-glance .job-title h2 {
+      line-height: 1.5em;
+      padding-left: 10px;
+      font-size: 13px; }
+  .jobs-list .job-entry.view-glance .job-inner {
+    display: none; }
   .jobs-list .job-entry.view-normal .completion-count {
     display: none; }
   .jobs-list .job-entry.view-normal .estimated-hours {
@@ -2449,12 +2454,43 @@ span.checkbox {
     font-size: 13px;
     font-style: italic; }
   .jobs-list .job-entry.view-full .job-title {
-    padding-top: 6px;
-    padding-left: 10px; }
+    padding: 6px 10px 0 10px; }
     .jobs-list .job-entry.view-full .job-title h2 {
       line-height: 1.3em;
       margin-bottom: 5px; }
   .jobs-list .job-entry.view-full .job-inner {
     min-height: 70px; }
+
+.jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .job-inner {
+  display: none;
+  position: absolute;
+  z-index: 10;
+  top: -130px;
+  left: -78px;
+  -webkit-transform: rotate(-90deg);
+      -ms-transform: rotate(-90deg);
+          transform: rotate(-90deg);
+  width: 200px;
+  font-size: 13px;
+  line-height: 1.3em;
+  padding-top: -6px;
+  opacity: .9; }
+  .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .job-inner .task-name {
+    position: relative;
+    top: -5px; }
+
+.jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .cs-task:hover .job-inner {
+  opacity: 1;
+  font-weight: bold; }
+
+.jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .content.task-name {
+  display: block; }
+
+.jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .cs-task {
+  position: relative;
+  overflow: visible; }
+
+.jobs-list .job-entry.cs-job.view-glance .cs-job-tasks.hover .job-inner, .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks:hover .job-inner {
+  display: block; }
 
 /*# sourceMappingURL=styles.css.map */

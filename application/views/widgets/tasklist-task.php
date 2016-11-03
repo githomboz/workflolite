@@ -5,6 +5,8 @@
  * Date: 10/3/16
  * Time: 1:39 PM
  */
+
+//var_dump($task->getValue('status'));
 ?>
 
 <div class="task-style task-<?php echo $task->id(); ?> <?php echo $task->isComplete() ? 'completed' : ''?> <?php echo $task->isStarted() ? 'started' : ''?>"

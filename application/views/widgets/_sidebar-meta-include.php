@@ -1,7 +1,17 @@
 <div class="panel">
   <h1><i class="fa fa-list"></i> Job Details</h1>
-  <div class="job-meta">
-    <?php foreach($this->job->getMeta() as $key => $meta){
+  <?php
+  $metaRecords = $this->job->getMeta();
+  $totalMeta = 0;
+  $hideMeta = 0;
+  foreach($metaRecords as $key => $meta){
+    $totalMeta ++;
+    if($meta['hide']) $hideMeta ++;
+  }
+  ?>
+  <div class="job-meta cs-job-meta <?php if(!$hideMeta) echo 'show-all';?>">
+    <?php
+    foreach($metaRecords as $key => $meta){
       $metaSettings = $this->workflow->getMetaSettings($key);
       ?>
       <div class="meta-pair meta-<?php echo $meta['slug'] ?> <?php if($meta['hide']) echo 'not-priority '; else echo 'priority '; $value = $meta['value']->get(); if(is_null($value) || ($meta['value'] instanceof MetaArray && empty($value))) echo 'edit-mode '?>">
@@ -24,13 +34,33 @@
         $multiLine = is_string($valueContent) ? ((strlen($key) + $valueLength + 2) > 33) : true;
 
         ?>
-        <span class="meta-value <?php if($multiLine) echo 'multi-line'?>"><?php echo $valueContent ?> <a href="#editMeta-<?php echo $meta['slug']?>" class="fa fa-pencil js-edit-mode"></a></span>
+        <span class="meta-value <?php if($multiLine) echo 'multi-line'?>"><?php echo $valueContent ?>&nbsp; <a href="#editMeta-<?php echo $meta['slug']?>" class="fa fa-pencil js-edit-mode"></a></span>
         <?php echo get_include(MetaObject::getFormHtmlPath($meta['type']), array('meta' => $meta), true);?>
       </div><!--/.meta-pair-->
     <?php } ?>
+    <a href="#toggleMetaShowAll" class="js-toggle-meta link-blue"><i class="fa fa-caret-down"></i> <span class="action">Show All</span> Meta (<span class="meta-data-count"><?php echo $totalMeta ?></span>) </a>
   </div><!--/.job-meta-->
 </div><!--/.panel-->
 <script type="text/javascript">
+  $(document).on('click', '.js-toggle-meta', function(){
+    var $this = $(this),
+      showAll = $this.find('.action').html() == 'Show All';
+
+    console.log(showAll);
+
+    if(showAll){
+      $(".cs-job-meta").addClass('show-all');
+      $this.find('.action').html('Hide');
+      $this.find('.fa').removeClass('fa-caret-down').addClass('fa-caret-up');
+    } else {
+      $(".cs-job-meta").removeClass('show-all');
+      $this.find('.action').html('Show All');
+      $this.find('.fa').removeClass('fa-caret-up').addClass('fa-caret-down');
+    }
+
+    return false;
+  });
+
   $(document).on('click', '.js-edit-mode', function(){
     var $this = $(this),
       $metaContainer = $this.parents('.meta-pair');

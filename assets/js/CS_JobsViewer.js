@@ -11,7 +11,10 @@ var CS_JobsViewer = (function($){
             method                  : 'GET',
             dataType                : 'jsonp',
             cache                   : true, // Whether to enable caching
-            preferCache             : true // If caching enabled, check cache first before running
+            preferCache             : true, // If caching enabled, check cache first before running
+            workflowClass           : '.cs-workflow',
+            jobClass                : '.cs-job',
+            taskClass               : '.cs-task'
         },
 
         /**
@@ -25,9 +28,6 @@ var CS_JobsViewer = (function($){
          * @type {{}}
          */
         options                     = {
-            workflowClass            : '.cs-workflow',
-            jobClass            : '.cs-job',
-            taskClass            : '.cs-task'
         },
 
         _dimensions                  = {},
@@ -52,9 +52,27 @@ var CS_JobsViewer = (function($){
 
     PubSub.subscribe('viewport.change', _calculateSizes);
 
+    CS_CSSOverride.addStyle('.jobs-list .job-entry .cs-job-tasks .cs-task:hover', 'cursor', 'pointer');
+    CS_CSSOverride.addStyle('.jobs-list .job-entry .cs-job-tasks .cs-task.selected:hover', 'cursor', 'auto');
+    CS_CSSOverride.addStyle('.jobs-list .job-entry.view-glance .cs-job-tasks .cs-task:hover', 'cursor', 'auto');
+
     function _init(opts){
         $.extend(options, defaultOptions, opts);
         _calculateSizes();
+    }
+
+    function activateSelectedTask(e){
+        var $el = $(this),
+            $job = $el.parents('.cs-job'),
+            $workflow = $job.parents('.cs-workflow'),
+            jobId = $job.data('job');
+        e.preventDefault();
+
+        $(".job-" + jobId).removeClass('task-selected');
+        $(".job-" + jobId + " .cs-task.selected").removeClass('selected');
+        $el.addClass('selected');
+        $job.addClass('task-selected');
+
     }
 
     function _listeners(){
@@ -63,18 +81,7 @@ var CS_JobsViewer = (function($){
             _calculateSizes();
         });
 
-        $(document).on('click', options.taskClass, function(e){
-            var $el = $(this),
-                $job = $el.parents('.cs-job'),
-                $workflow = $job.parents('.cs-workflow'),
-                jobId = $job.data('job');
-            e.preventDefault();
-
-            $(".job-" + jobId).removeClass('task-selected');
-            $(".job-" + jobId + " .cs-task.selected").removeClass('selected');
-            $el.addClass('selected');
-            $job.addClass('task-selected');
-        });
+        $(document).on('click', options.taskClass, activateSelectedTask);
 
         $(document).on('click', '.cs-task .status .content .fa-times', function(e){
             var $el = $(this),
@@ -84,7 +91,7 @@ var CS_JobsViewer = (function($){
 
             $job.find(".cs-task.selected").removeClass('selected');
             $job.removeClass('task-selected');
-            console.log('test is here', jobId, taskId);
+            //console.log('test is here', jobId, taskId);
             return false;
         });
 
@@ -92,9 +99,35 @@ var CS_JobsViewer = (function($){
            var $el = $(this), viewStyle = $el.data('view'), $jobs = $(".cs-job");
             $jobs.removeClass('view-glance view-normal view-full');
             $jobs.addClass('view-' + viewStyle);
-            console.log(viewStyle);
+            switch (viewStyle){
+                case 'glance':
+                    _activateGlanceFeatures();
+                    break;
+                default:
+                    _deactivateGlanceFeatures();
+                    break;
+            }
         });
 
+    }
+
+    function _activateGlanceFeatures(){
+        $('.cs-task').removeClass('selected');
+        $('.cs-job.job-entry').removeClass('task-selected');
+        $(document).off('click', options.taskClass, activateSelectedTask);
+        for(id in _dimensions.workflows){
+            CS_CSSOverride.addStyle('.cs-workflow.workflow-' + id + ' .job-entry.cs-job.view-glance .cs-job-tasks .job-inner', 'height', _dimensions.workflows[id].tasksAllClosedWidth + 'px');
+        }
+        _calculateSizes();
+    }
+
+    function _deactivateGlanceFeatures(){
+        $(document).on('click', options.taskClass, activateSelectedTask);
+        $(".cs-task.next-step").addClass('selected');
+        $(".cs-job").addClass('task-selected');
+        for(id in _dimensions.workflows){
+            CS_CSSOverride.removeStyle('.cs-workflow.workflow-' + id + ' .job-entry.cs-job.view-glance .cs-job-tasks .job-inner', 'height');
+        }
     }
 
     /**
@@ -114,41 +147,11 @@ var CS_JobsViewer = (function($){
             _dimensions.workflows[id].tasksAllClosedWidth = _dimensions.viewportWidth / _dimensions.workflows[id].taskCount;
             _dimensions.workflows[id].activeTaskWidth = _dimensions.defaultActiveTaskWidth;
             _dimensions.workflows[id].tasksOneOpenWidth = (_dimensions.viewportWidth - _dimensions.workflows[id].activeTaskWidth) / (_dimensions.workflows[id].taskCount - 1);
-            _addStyle('.cs-workflow.workflow-' + id + ' .cs-task', 'width', _dimensions.workflows[id].tasksAllClosedWidth + 'px');
-            _addStyle('.cs-workflow.workflow-' + id + ' .cs-job.task-selected .cs-task', 'width', _dimensions.workflows[id].tasksOneOpenWidth + 'px');
-            _addStyle('.cs-workflow.workflow-' + id + ' .cs-job.task-selected .cs-task.selected', 'width', _dimensions.workflows[id].activeTaskWidth + 'px');
+            CS_CSSOverride.addStyle('.cs-workflow.workflow-' + id + ' .cs-task', 'width', _dimensions.workflows[id].tasksAllClosedWidth + 'px');
+            CS_CSSOverride.addStyle('.cs-workflow.workflow-' + id + ' .cs-job.task-selected .cs-task', 'width', _dimensions.workflows[id].tasksOneOpenWidth + 'px');
+            CS_CSSOverride.addStyle('.cs-workflow.workflow-' + id + ' .cs-job.task-selected .cs-task.selected', 'width', _dimensions.workflows[id].activeTaskWidth + 'px');
+            CS_CSSOverride.addStyle('.cs-workflow.workflow-' + id + ' .job-entry.cs-job.view-glance .cs-job-tasks .job-inner', 'height', _dimensions.workflows[id].tasksAllClosedWidth + 'px');
         });
-
-        console.log(_dimensions);
-
-        // _addStyle('.jobs-list .job-entry .cs-job-tasks .cs-task .status', 'background', '#c00');
-        _applyStyles();
-        // Calculate heights for tasks
-        // Calculate tasks container width
-        // Calculate tasks all closed width
-        // Calculate tasks one open width
-        // Calculate open task width
-        // Calculate minimum task width threshold met
-    }
-
-    /**
-     * Render the view applying classes, and modifying html and css
-     * @private
-     */
-    function _render(){
-
-    }
-
-    /**
-     * Reset job to no a "no active task" view
-     * @private
-     */
-    function _clearSelection(){
-
-    }
-
-    function _activateTask(taskId){
-
     }
 
     function _workflowById(id, fromCache){
@@ -191,34 +194,6 @@ var CS_JobsViewer = (function($){
             _cache[className] = $el;
             return $el;
         }
-    }
-
-    function _addStyle(selector, cssProperty, value){
-        if(typeof _styles[selector] == 'undefined') _styles[selector] = {};
-        _styles[selector][cssProperty] = value;
-    }
-
-    function _getStyle(selector, cssProperty) {
-        if(typeof _styles[selector] == 'undefined') return null;
-        if(cssProperty){
-            if(typeof _styles[selector][cssProperty] == 'undefined') return null;
-            return _styles[selector][cssProperty];
-        } else {
-            return _styles[selector];
-        }
-    }
-
-    function _applyStyles(){
-        var css = '';
-        for(var selector in _styles){
-            css += selector + '{';
-            for(var cssProperty in _styles[selector]){
-                css += cssProperty + ':' + _styles[selector][cssProperty] + '; !important'
-            }
-            css += '}';
-        }
-        $(".js-job-view-styles").html(css);
-        console.log(css);
     }
 
     function _log(variable, context){

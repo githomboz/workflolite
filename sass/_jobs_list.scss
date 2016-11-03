@@ -1,6 +1,7 @@
 .js-change-views {
   position: absolute;
   right: $paddingLarge;
+  cursor: pointer;
 
   &.no-float {
     position: relative;
@@ -59,7 +60,7 @@
         border-right: 1px solid darken($sidepanel_bg, 10%);
 
         &:hover {
-          cursor: pointer;
+          //cursor: pointer;
         }
 
         .job-inner {
@@ -210,7 +211,6 @@
     }
 
     &.view-glance {
-      overflow: hidden;
 
       .job-title {
         text-overflow: ellipsis;
@@ -294,8 +294,7 @@
       }
 
       .job-title {
-        padding-top: 6px;
-        padding-left: $padding;
+        padding: 6px $padding 0 $padding;
 
         h2 {
           line-height: 1.3em;
@@ -307,6 +306,62 @@
         min-height: 70px;
       }
 
+    }
+
+  }
+
+}
+
+
+.jobs-list .job-entry.cs-job.view-glance {
+
+  .cs-job-tasks {
+
+    .job-inner {
+      display: none;
+      position: absolute;
+      z-index: 10;
+      top: -130px;
+      left: -78px;
+      transform: rotate(-90deg);
+      width: 200px;
+      font-size: $font-size-sm;
+      line-height: 1.3em;
+      padding-top: -6px;
+      opacity: .9;
+
+      .task-name {
+        position: relative;
+        top: -5px;
+      }
+    }
+
+    .cs-task {
+
+      &:hover {
+
+        .job-inner {
+          opacity: 1;
+          font-weight: bold;
+        }
+      }
+
+    }
+
+    .content.task-name {
+      display: block;
+    }
+
+    .cs-task {
+      position: relative;
+      overflow: visible;
+
+    }
+
+    &.hover, &:hover {
+      .job-inner {
+        display: block;
+      }
     }
 
   }

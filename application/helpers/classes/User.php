@@ -32,8 +32,8 @@ class User extends WorkflowFactory
   }
 
   public static function Authenticate($username, $password){
-    self::CI()->load->model('users_model');
-    $record = self::CI()->users_model->get_by_credentials($username, $password);
+    CI()->load->model('users_model');
+    $record = self::GetByCredentials($username, $password);
     return $record;
   }
 
@@ -53,6 +53,14 @@ class User extends WorkflowFactory
     $class = __CLASS__;
     return new $class($record);
   }
+
+  public static function GetByCredentials($username, $password, $status = null){
+    if(!$status) $status = 'active';
+    $record = CI()->mdb->where(array('username'=>$username, 'password'=>$password, 'status'=>$status))->get(self::CollectionName());
+    if(empty($record)) return false;
+    if(isset($record[0])) return new User($record[0]); else return false;
+  }
+
 
   public function login(){
     return UserSession::start($this->sessionData());
