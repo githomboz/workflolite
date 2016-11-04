@@ -1,0 +1,51 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: benezerlancelot
+ * Date: 11/4/16
+ * Time: 12:55 AM
+ */ ?>
+
+<div class="cs-notes-list">
+  <?php foreach($notes as $i => $note){  ?>
+    <div class="cs-note">
+      <div class="avatar">
+        <img src="#" />
+      </div>
+      <div class="top-bar">
+          <span class="author-narrative">
+            <span class="author"><?php echo $note['author'] ?></span>
+            <span class="verb"><?php echo $note['verb'] ?></span>
+            <a href="#" class="noun"><?php echo $note['noun'] ?></a>
+          </span>
+          <span class="datetime">
+            <span class="date"><?php echo date('m-d-Y', strtotime($note['datetime'])) ?></span>
+            <span class="time-text">
+              at <span class="time"><?php echo date('g:ia', strtotime($note['datetime'])) ?></span>
+            </span>
+          </span>
+      </div>
+      <div class="note-content">
+        <?php
+
+        $content = $note['content'];
+
+        $content = explode("\n", $content);
+
+        foreach($content as $paragraph){
+          if(trim($paragraph) != ''){
+            echo '<p>';
+            echo $paragraph;
+            echo '</p>';
+          }
+        }
+
+        ?>
+      </div>
+      <div class="tags">
+        <i class="fa fa-tags"></i> Tags: <a href="#">Legal Theories</a>, <a href="#">foreclosures</a>, <a href="#">bankruptcy</a>
+      </div>
+    </div>
+  <?php } ?>
+</div>
+

@@ -129,6 +129,77 @@
   border: 3px solid #fff;
 }
 
+.cs-notes-list {
+  border-left: 3px solid darken($sidepanel_bg, 10%);
+  margin-left: 40px;
+  padding-top: 50px;
+  position: relative;
+  top: -30px;
+  z-index: 10;
+
+  .avatar {
+    left: -28px;
+  }
+
+  .cs-note {
+    position: relative;
+    border-bottom: 1px solid darken($sidepanel_bg, 0);
+    margin-bottom: $paddingLarge;
+    padding-left: 40px;
+
+    .top-bar {
+      font-size: $font-size-cs;
+      position: relative;
+      line-height: 1.4em;
+      color: $gray;
+      margin-bottom: 10px;
+
+      .author-narrative {
+
+        .author {
+          font-weight: bold;
+          color: $sidepanel_color_dark;
+        }
+
+      }
+
+      .datetime {
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+
+      a {
+        color: $button_blue;
+      }
+    }
+
+    .note-content {
+      line-height: 1.5em;
+      font-size: $font-size-cs;
+      color: $sidepanel_color_light;
+
+      p {
+        margin-bottom: 1em;
+      }
+    }
+
+    .tags {
+      font-size: $font-size-cs;
+      margin-bottom: $padding * 3;
+
+      .fa-tags {
+        color: darken($sidepanel_bg, 10%);
+      }
+
+      a {
+        color: $button_blue;
+      }
+    }
+  }
+
+}
+
 .jobs-notes-page {
   
   .main-column {
@@ -138,77 +209,6 @@
 
   .cs-add-note-form {
     margin-bottom: $padding * 3;
-  }
-
-  .cs-notes-list {
-    border-left: 3px solid darken($sidepanel_bg, 10%);
-    margin-left: 40px;
-    padding-top: 50px;
-    position: relative;
-    top: -30px;
-    z-index: 10;
-
-    .avatar {
-      left: -28px;
-    }
-
-    .cs-note {
-      position: relative;
-      border-bottom: 1px solid darken($sidepanel_bg, 0);
-      margin-bottom: $paddingLarge;
-      padding-left: 40px;
-
-      .top-bar {
-        font-size: $font-size-cs;
-        position: relative;
-        line-height: 1.4em;
-        color: $gray;
-        margin-bottom: 10px;
-
-        .author-narrative {
-
-          .author {
-            font-weight: bold;
-            color: $sidepanel_color_dark;
-          }
-
-        }
-
-        .datetime {
-          position: absolute;
-          top: 0;
-          right: 0;
-        }
-
-        a {
-          color: $button_blue;
-        }
-      }
-
-      .note-content {
-        line-height: 1.5em;
-        font-size: $font-size-cs;
-        color: $sidepanel_color_light;
-
-        p {
-          margin-bottom: 1em;
-        }
-      }
-
-      .tags {
-        font-size: $font-size-cs;
-        margin-bottom: $padding * 3;
-
-        .fa-tags {
-          color: darken($sidepanel_bg, 10%);
-        }
-
-        a {
-          color: $button_blue;
-        }
-      }
-    }
-
   }
 
 }
@@ -224,14 +224,21 @@
 
   .search-form {
     margin-bottom: $padding;
+    position: relative;
 
     .cs-search-notes {
-      margin-right: $padding;
+      width: 80%;
+      float: left;
+
+      input {
+        width: 100%;
+      }
     }
 
     .js-search-notes {
       line-height: 20px;
       padding: 1px 8px;
+      float: right;
     }
 
   }
@@ -247,3 +254,97 @@
   }
 
 }
+
+.cs-notes-box {
+
+  .cs-add-note-form {
+    background: none;
+    box-shadow: none;
+    overflow: hidden;
+    box-shadow: 0px 2px 3px 0px rgba(0,0,0,.04);
+    border-bottom: 1px solid darken($sidepanel_bg, 10%);
+
+    .inner-note {
+      padding: $padding;
+      box-shadow: 0 0 3px 3px rgb(255, 255, 255);
+
+    }
+
+    .toggle-no-tags {
+      left: $padding;
+    }
+
+    .tags-field.title {
+      line-height: 2.2em;
+    }
+
+    .avatar {
+      display: none;
+      flex: 0;
+    }
+  }
+
+  .cs-notes-list {
+
+    $cs_notes_bg : lighten($sidepanel_bg, 2%);
+
+    margin-left: 0px;
+    border-left-width: 1px;
+    top: 0px;
+    padding-top: 0px;
+    padding-left: 20px;
+    background: $cs_notes_bg;
+    border: none;
+    border-bottom: 1px solid darken($sidepanel_bg, 10%);
+    overflow-y: scroll;
+    overflow-x: hidden;
+    max-height: 152px;
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      left: -17px;
+      top: 10px;
+      border-color: $cs_notes_bg;
+    }
+
+    .top-bar {
+      font-size: $font-size-sm;
+      margin-bottom: 4px;
+
+      .author-narrative {
+
+        .author {
+          font-weight: normal;
+        }
+
+      }
+
+      .time-text {
+        display: none;
+      }
+    }
+
+    .cs-note {
+      padding-left: 20px;
+      padding: 10px 10px 0 20px;
+      border-left: 1px solid darken($sidepanel_bg, 10%);
+      margin-bottom: 0px;
+      width: 100%;
+
+      .note-content {
+        font-size: $font-size-sm;
+        //@include multiline-ellipsis($rows:3,$line-height:1.2em,$bg-color:white,$ie9_url:'../img/gradient-0-white.svg', $spacer:5px);
+        @include multiLineEllipsis($lineHeight: 1.4em, $lineCount: 2, $bgColor: white);
+        margin-right: 0em;
+        margin-bottom: 8px;
+      }
+
+    }
+    
+    .tags {
+      display: none;
+    }
+  }
+}
+
