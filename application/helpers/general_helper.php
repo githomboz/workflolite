@@ -23,6 +23,11 @@ function user(){
   return null;
 }
 
+function page_file_name($__FILE__){
+  $segs = explode('/', $__FILE__);
+  return str_replace('.php', '', $segs[(count($segs)-1)]);
+}
+
 function _get_inner_nav($selectedPage, $seg1 = null, $seg2 = null){
   $navItems = array(
     'jobsInner' => array(

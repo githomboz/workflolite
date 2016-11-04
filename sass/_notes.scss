@@ -1,0 +1,249 @@
+.cs-add-note-form {
+  background: #fff;
+  box-shadow: 0 0 3px 3px rgb(255, 255, 255);
+  z-index: 15;
+  position: relative;
+
+  .inner-note {
+    position: relative;
+    padding-left: 82px;
+  }
+
+  .avatar {
+    left: 16px;
+  }
+
+  .note-field {
+    border: 1px solid darken($sidepanel_bg, 10%);
+    border-radius: 3px;
+    margin-bottom: 10px;
+    padding: 16px;
+    box-shadow: 0 0 3px 2px rgba(0, 0, 0, .06);
+  }
+
+  .cs-note-tags {
+    margin: 10px 0;
+
+    .cs-note-tag {
+      padding: 4px 6px;
+      font-size: $font-size-sm;
+      background: $sidepanel_bg;
+      color: $sidepanel_color_dark;
+      border-radius: 3px;
+      margin-right: $padding;
+      float: left;
+
+      &:hover {
+        background: darken($sidepanel_bg, 5%);
+      }
+
+      .fa-times-circle {
+        color: lighten($sidepanel_color_light, 15%);
+        cursor: pointer;
+      }
+    }
+  }
+
+  &.show-tags {
+    
+    .toggle-no-tags {
+      display: none;
+    }
+
+    .tags-submit {
+      display: flex;
+      line-height: 20px;
+
+      .title {
+        flex: 1 80px;
+        line-height: 1.5em;
+        text-align: center;
+      }
+
+      .field {
+        margin-right: 20px;
+        flex: 12;
+        padding: 4px;
+      }
+
+      button {
+        flex: 2 80px;
+      }
+
+    }
+  }
+
+  &.no-tags {
+
+    .toggle-no-tags {
+      position: absolute;
+      top: 62px;
+      left: 82px;
+      color: $button_blue;
+      cursor: pointer;
+      font-size: $font-size-cs;
+    }
+
+    .inner-note {
+      display: flex;
+
+      .note-field {
+        flex: 8;
+        margin-right: 20px;
+      }
+
+      .tags-submit {
+        flex: 2;
+
+        button {
+          width: 100%;
+          height: 50px;
+        }
+      }
+    }
+
+    .tags-field {
+      display: none;
+    }
+
+    .tags-submit {
+
+      button {
+      }
+    }
+
+  }
+
+}
+
+.avatar {
+  position: absolute;
+  top: 0;
+  width: 50px;
+  height: 50px;
+  background: darken($sidepanel_bg, 10%);
+  border-radius: 25px;
+  text-align: center;
+  line-height: 50px;
+  overflow: hidden;
+  border: 3px solid #fff;
+}
+
+.jobs-notes-page {
+  
+  .main-column {
+    float: left;
+    max-width: 72%;
+  }
+
+  .cs-add-note-form {
+    margin-bottom: $padding * 3;
+  }
+
+  .cs-notes-list {
+    border-left: 3px solid darken($sidepanel_bg, 10%);
+    margin-left: 40px;
+    padding-top: 50px;
+    position: relative;
+    top: -30px;
+    z-index: 10;
+
+    .avatar {
+      left: -28px;
+    }
+
+    .cs-note {
+      position: relative;
+      border-bottom: 1px solid darken($sidepanel_bg, 0);
+      margin-bottom: $paddingLarge;
+      padding-left: 40px;
+
+      .top-bar {
+        font-size: $font-size-cs;
+        position: relative;
+        line-height: 1.4em;
+        color: $gray;
+        margin-bottom: 10px;
+
+        .author-narrative {
+
+          .author {
+            font-weight: bold;
+            color: $sidepanel_color_dark;
+          }
+
+        }
+
+        .datetime {
+          position: absolute;
+          top: 0;
+          right: 0;
+        }
+
+        a {
+          color: $button_blue;
+        }
+      }
+
+      .note-content {
+        line-height: 1.5em;
+        font-size: $font-size-cs;
+        color: $sidepanel_color_light;
+
+        p {
+          margin-bottom: 1em;
+        }
+      }
+
+      .tags {
+        font-size: $font-size-cs;
+        margin-bottom: $padding * 3;
+
+        .fa-tags {
+          color: darken($sidepanel_bg, 10%);
+        }
+
+        a {
+          color: $button_blue;
+        }
+      }
+    }
+
+  }
+
+}
+
+.inset-widgets {
+  width: 25%;
+  float: right;
+
+  h2 {
+    line-height: 1.3em;
+    margin-bottom: .5em;
+  }
+
+  .search-form {
+    margin-bottom: $padding;
+
+    .cs-search-notes {
+      margin-right: $padding;
+    }
+
+    .js-search-notes {
+      line-height: 20px;
+      padding: 1px 8px;
+    }
+
+  }
+
+  .used-tags-list {
+    line-height: 1.8em;
+    padding-left: $padding * 2;
+    font-size: $font-size-cs;
+
+    a {
+      color: $button_blue;
+    }
+  }
+
+}

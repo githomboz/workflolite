@@ -33,7 +33,7 @@
 
       $(document).on('click', function(event) {
         if (!$(event.target).closest('.cs-notes-box').length) {
-          $(".cs-notes-box").hide();
+          $(".cs-notes-box").removeClass('show');
         }
       });
       $(document).on('click', function(event) {

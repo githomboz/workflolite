@@ -14,6 +14,14 @@
   font-weight: $font-weight-light;
   padding: 0 2px;
 
+  &:hover {
+    background: darken($sidepanel_bg, 10%);
+  }
+
+  &:active {
+    background: darken($sidepanel_bg, 15%);
+  }
+
   .fa {
     color: $button_blue;
   }
@@ -22,11 +30,20 @@
     color: #fff;
     background: $button_blue;
 
+    &:hover {
+      background: darken($button_blue, 10%);
+    }
+
+    &:active {
+      background: darken($button_blue, 15%);
+    }
+
     .fa {
       color: inherit;
     }
 
   }
+
 }
 
 .btn {
@@ -42,6 +59,14 @@
   padding: 0 $padding;
   display: inline-block;
 
+  &:hover {
+    background: darken($sidepanel_bg, 10%);
+  }
+
+  &:active {
+    background: darken($sidepanel_bg, 15%);
+  }
+
   .fa {
     color: $button_blue;
   }
@@ -49,6 +74,14 @@
   &.submit {
     color: #fff;
     background: $button_blue;
+
+    &:hover {
+      background: darken($button_blue, 10%);
+    }
+
+    &:active {
+      background: darken($button_blue, 15%);
+    }
 
     .fa {
       color: inherit;

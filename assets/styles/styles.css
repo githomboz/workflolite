@@ -1405,7 +1405,8 @@ textarea {
         bottom: -2px;
         border-bottom: 2px solid #d9d9d9; }
         .main-content .inner-nav li a:hover {
-          color: #595959; }
+          color: #595959;
+          border-bottom-color: #b2b2b2; }
       .main-content .inner-nav li.active a {
         color: #050804;
         border-bottom-color: #59a250;
@@ -1452,7 +1453,7 @@ span.checkbox {
   -webkit-border-radius: 6px;
           border-radius: 6px;
   position: absolute;
-  z-index: 10;
+  z-index: 90;
   top: 100px;
   display: none; }
   .send-message h2 {
@@ -1575,12 +1576,14 @@ span.checkbox {
 
 .notes-box {
   position: absolute;
-  z-index: 10;
+  z-index: 100;
   top: 48px;
   left: 40px;
   font-size: 13px;
   width: 370px;
   display: none; }
+  .notes-box.show {
+    display: block; }
   .notes-box .notes-list {
     padding: 10px 10px 0 10px; }
   .notes-box .note {
@@ -2096,11 +2099,19 @@ span.checkbox {
   font-size: 16px;
   font-weight: 300;
   padding: 0 2px; }
+  .btn-style:hover {
+    background: #d9d9d9; }
+  .btn-style:active {
+    background: #cccccc; }
   .btn-style .fa {
     color: #4992d0; }
   .btn-style.submit {
     color: #fff;
     background: #4992d0; }
+    .btn-style.submit:hover {
+      background: #2f79b7; }
+    .btn-style.submit:active {
+      background: #2a6ba3; }
     .btn-style.submit .fa {
       color: inherit; }
 
@@ -2118,11 +2129,19 @@ span.checkbox {
   font-weight: 300;
   padding: 0 10px;
   display: inline-block; }
+  .btn:hover {
+    background: #d9d9d9; }
+  .btn:active {
+    background: #cccccc; }
   .btn .fa {
     color: #4992d0; }
   .btn.submit {
     color: #fff;
     background: #4992d0; }
+    .btn.submit:hover {
+      background: #2f79b7; }
+    .btn.submit:active {
+      background: #2a6ba3; }
     .btn.submit .fa {
       color: inherit; }
   .btn.disabled {
@@ -2366,7 +2385,7 @@ span.checkbox {
         .jobs-list .job-entry .cs-job-tasks .cs-task .status.new {
           background: #bfbfbf; }
         .jobs-list .job-entry .cs-job-tasks .cs-task .status.active {
-          background: #00b300;
+          background: #60bc61;
           color: #f2f2f2; }
         .jobs-list .job-entry .cs-job-tasks .cs-task .status.skipped {
           background: #a6a6a6; }
@@ -2415,15 +2434,18 @@ span.checkbox {
   .jobs-list .job-entry.view-glance .job-title {
     text-overflow: ellipsis;
     overflow: hidden;
-    height: 1em; }
+    height: 20px; }
     .jobs-list .job-entry.view-glance .job-title .completion-count {
       display: none; }
     .jobs-list .job-entry.view-glance .job-title .estimated-hours {
       display: none; }
     .jobs-list .job-entry.view-glance .job-title h2 {
-      line-height: 1.5em;
+      line-height: 20px;
       padding-left: 10px;
-      font-size: 13px; }
+      font-size: 13px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap; }
   .jobs-list .job-entry.view-glance .job-inner {
     display: none; }
   .jobs-list .job-entry.view-normal .completion-count {
@@ -2461,36 +2483,216 @@ span.checkbox {
   .jobs-list .job-entry.view-full .job-inner {
     min-height: 70px; }
 
-.jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .job-inner {
-  display: none;
-  position: absolute;
-  z-index: 10;
-  top: -130px;
-  left: -78px;
-  -webkit-transform: rotate(-90deg);
-      -ms-transform: rotate(-90deg);
-          transform: rotate(-90deg);
-  width: 200px;
-  font-size: 13px;
-  line-height: 1.3em;
-  padding-top: -6px;
-  opacity: .9; }
-  .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .job-inner .task-name {
+.jobs-list .job-entry.cs-job.view-glance {
+  margin-bottom: 0; }
+  .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .job-inner {
+    display: none;
+    position: absolute;
+    z-index: 10;
+    top: -125px;
+    left: -78px;
+    -webkit-transform: rotate(-90deg);
+        -ms-transform: rotate(-90deg);
+            transform: rotate(-90deg);
+    width: 200px;
+    font-size: 13px;
+    line-height: 1.3em;
+    padding-top: -6px;
+    opacity: .9; }
+    .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .job-inner .task-name {
+      position: relative;
+      top: -5px; }
+  .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .cs-task.next-step .status {
+    background: wheat; }
+  .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .cs-task:hover .job-inner {
+    opacity: 1;
+    font-weight: bold; }
+  .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .content.task-name {
+    display: block; }
+  .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .cs-task {
     position: relative;
-    top: -5px; }
+    overflow: visible; }
+  .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks.hover .job-inner, .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks:hover .job-inner {
+    display: block; }
+  .jobs-list .job-entry.cs-job.view-glance.hover .job-title, .jobs-list .job-entry.cs-job.view-glance:hover .job-title {
+    display: block;
+    background: white;
+    text-overflow: ellipsis; }
+    .jobs-list .job-entry.cs-job.view-glance.hover .job-title h2 a, .jobs-list .job-entry.cs-job.view-glance:hover .job-title h2 a {
+      color: #2f79b7; }
 
-.jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .cs-task:hover .job-inner {
-  opacity: 1;
-  font-weight: bold; }
+.cs-add-note-form {
+  background: #fff;
+  -webkit-box-shadow: 0 0 3px 3px white;
+          box-shadow: 0 0 3px 3px white;
+  z-index: 15;
+  position: relative; }
+  .cs-add-note-form .inner-note {
+    position: relative;
+    padding-left: 82px; }
+  .cs-add-note-form .avatar {
+    left: 16px; }
+  .cs-add-note-form .note-field {
+    border: 1px solid #d9d9d9;
+    -webkit-border-radius: 3px;
+            border-radius: 3px;
+    margin-bottom: 10px;
+    padding: 16px;
+    -webkit-box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.06); }
+  .cs-add-note-form .cs-note-tags {
+    margin: 10px 0; }
+    .cs-add-note-form .cs-note-tags .cs-note-tag {
+      padding: 4px 6px;
+      font-size: 13px;
+      background: #f2f2f2;
+      color: #555;
+      -webkit-border-radius: 3px;
+              border-radius: 3px;
+      margin-right: 10px;
+      float: left; }
+      .cs-add-note-form .cs-note-tags .cs-note-tag:hover {
+        background: #e5e5e5; }
+      .cs-add-note-form .cs-note-tags .cs-note-tag .fa-times-circle {
+        color: #a5a5a5;
+        cursor: pointer; }
+  .cs-add-note-form.show-tags .toggle-no-tags {
+    display: none; }
+  .cs-add-note-form.show-tags .tags-submit {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    line-height: 20px; }
+    .cs-add-note-form.show-tags .tags-submit .title {
+      -webkit-box-flex: 1;
+      -webkit-flex: 1 80px;
+          -ms-flex: 1 80px;
+              flex: 1 80px;
+      line-height: 1.5em;
+      text-align: center; }
+    .cs-add-note-form.show-tags .tags-submit .field {
+      margin-right: 20px;
+      -webkit-box-flex: 12;
+      -webkit-flex: 12;
+          -ms-flex: 12;
+              flex: 12;
+      padding: 4px; }
+    .cs-add-note-form.show-tags .tags-submit button {
+      -webkit-box-flex: 2;
+      -webkit-flex: 2 80px;
+          -ms-flex: 2 80px;
+              flex: 2 80px; }
+  .cs-add-note-form.no-tags .toggle-no-tags {
+    position: absolute;
+    top: 62px;
+    left: 82px;
+    color: #4992d0;
+    cursor: pointer;
+    font-size: 14px; }
+  .cs-add-note-form.no-tags .inner-note {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex; }
+    .cs-add-note-form.no-tags .inner-note .note-field {
+      -webkit-box-flex: 8;
+      -webkit-flex: 8;
+          -ms-flex: 8;
+              flex: 8;
+      margin-right: 20px; }
+    .cs-add-note-form.no-tags .inner-note .tags-submit {
+      -webkit-box-flex: 2;
+      -webkit-flex: 2;
+          -ms-flex: 2;
+              flex: 2; }
+      .cs-add-note-form.no-tags .inner-note .tags-submit button {
+        width: 100%;
+        height: 50px; }
+  .cs-add-note-form.no-tags .tags-field {
+    display: none; }
 
-.jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .content.task-name {
-  display: block; }
+.avatar {
+  position: absolute;
+  top: 0;
+  width: 50px;
+  height: 50px;
+  background: #d9d9d9;
+  -webkit-border-radius: 25px;
+          border-radius: 25px;
+  text-align: center;
+  line-height: 50px;
+  overflow: hidden;
+  border: 3px solid #fff; }
 
-.jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .cs-task {
+.jobs-notes-page .main-column {
+  float: left;
+  max-width: 72%; }
+
+.jobs-notes-page .cs-add-note-form {
+  margin-bottom: 30px; }
+
+.jobs-notes-page .cs-notes-list {
+  border-left: 3px solid #d9d9d9;
+  margin-left: 40px;
+  padding-top: 50px;
   position: relative;
-  overflow: visible; }
+  top: -30px;
+  z-index: 10; }
+  .jobs-notes-page .cs-notes-list .avatar {
+    left: -28px; }
+  .jobs-notes-page .cs-notes-list .cs-note {
+    position: relative;
+    border-bottom: 1px solid #f2f2f2;
+    margin-bottom: 18px;
+    padding-left: 40px; }
+    .jobs-notes-page .cs-notes-list .cs-note .top-bar {
+      font-size: 14px;
+      position: relative;
+      line-height: 1.4em;
+      color: #c9c9c9;
+      margin-bottom: 10px; }
+      .jobs-notes-page .cs-notes-list .cs-note .top-bar .author-narrative .author {
+        font-weight: bold;
+        color: #555; }
+      .jobs-notes-page .cs-notes-list .cs-note .top-bar .datetime {
+        position: absolute;
+        top: 0;
+        right: 0; }
+      .jobs-notes-page .cs-notes-list .cs-note .top-bar a {
+        color: #4992d0; }
+    .jobs-notes-page .cs-notes-list .cs-note .note-content {
+      line-height: 1.5em;
+      font-size: 14px;
+      color: #7f7f7f; }
+      .jobs-notes-page .cs-notes-list .cs-note .note-content p {
+        margin-bottom: 1em; }
+    .jobs-notes-page .cs-notes-list .cs-note .tags {
+      font-size: 14px;
+      margin-bottom: 30px; }
+      .jobs-notes-page .cs-notes-list .cs-note .tags .fa-tags {
+        color: #d9d9d9; }
+      .jobs-notes-page .cs-notes-list .cs-note .tags a {
+        color: #4992d0; }
 
-.jobs-list .job-entry.cs-job.view-glance .cs-job-tasks.hover .job-inner, .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks:hover .job-inner {
-  display: block; }
+.inset-widgets {
+  width: 25%;
+  float: right; }
+  .inset-widgets h2 {
+    line-height: 1.3em;
+    margin-bottom: .5em; }
+  .inset-widgets .search-form {
+    margin-bottom: 10px; }
+    .inset-widgets .search-form .cs-search-notes {
+      margin-right: 10px; }
+    .inset-widgets .search-form .js-search-notes {
+      line-height: 20px;
+      padding: 1px 8px; }
+  .inset-widgets .used-tags-list {
+    line-height: 1.8em;
+    padding-left: 20px;
+    font-size: 14px; }
+    .inset-widgets .used-tags-list a {
+      color: #4992d0; }
 
 /*# sourceMappingURL=styles.css.map */

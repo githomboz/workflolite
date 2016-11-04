@@ -388,6 +388,7 @@ textarea {
 
         &:hover {
           color: darken($sidepanel_color_light, 15%);
+          border-bottom-color: darken($sidepanel_bg, 25%);
         }
       }
 
@@ -447,7 +448,7 @@ $sendmessage_width: 730px;
   width: $sendmessage_width - $paddingLarge*2;
   border-radius: 6px;
   position: absolute;
-  z-index: 10;
+  z-index: 90;
   top: 100px;
   display: none;
 
@@ -617,12 +618,16 @@ $sendmessage_width: 730px;
 
 .notes-box {
   position: absolute;
-  z-index: 10;
+  z-index: 100;
   top: 48px;
   left: 40px;
   font-size: $font-size-sm;
   width: 370px;
   display: none;
+  
+  &.show {
+    display: block;
+  }
 
   .notes-list {
     padding: $padding $padding 0 $padding;

@@ -129,7 +129,7 @@
           }
 
           &.active {
-            background: lighten(#008000, 10%);
+            background: lighten(#368037, 20%);
             color: darken($sidepanel_bg, 0);
           }
 
@@ -215,7 +215,7 @@
       .job-title {
         text-overflow: ellipsis;
         overflow: hidden;
-        height: 1em;
+        height: 20px;
 
         .completion-count {
           display: none;
@@ -226,9 +226,12 @@
         }
 
         h2 {
-          line-height: 1.5em;
+          line-height: 20px;
           padding-left: $padding;
           font-size: $font-size-sm;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
         }
       }
 
@@ -314,6 +317,7 @@
 
 
 .jobs-list .job-entry.cs-job.view-glance {
+  margin-bottom: 0;
 
   .cs-job-tasks {
 
@@ -321,7 +325,7 @@
       display: none;
       position: absolute;
       z-index: 10;
-      top: -130px;
+      top: -125px;
       left: -78px;
       transform: rotate(-90deg);
       width: 200px;
@@ -337,6 +341,14 @@
     }
 
     .cs-task {
+
+      &.next-step {
+
+        .status {
+          background: wheat;
+        }
+
+      }
 
       &:hover {
 
@@ -364,6 +376,21 @@
       }
     }
 
+  }
+
+  &.hover, &:hover {
+    .job-title {
+      display: block;
+      background: lighten($sidepanel_bg, 10%);
+      text-overflow: ellipsis;
+
+      h2 {
+
+        a {
+          color: darken($button_blue, 10%);
+        }
+      }
+    }
   }
 
 }
