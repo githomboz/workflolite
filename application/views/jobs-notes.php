@@ -32,8 +32,11 @@
       </script>
 
 
-<?php
-      include 'widgets/_notes-list.php';
+      <?php
+      if(UserSession::loggedIn()){
+        $current_author_id = user()->id();
+        include 'widgets/_notes-list.php';
+      }
       ?>
 
     </div><!--/.main-content-->
@@ -55,5 +58,90 @@
 <script type="application/javascript">
 
   CS_EditableContentDivs.init();
+
+  function _handleDeleteNoteClicked(e){
+    e.preventDefault();
+    var $el = $(this),
+      json =  $el.parents('.cs-note').data('payload'),
+      post = {
+        jobId : _CS_Get_Job_ID(),
+        noteId : $el.data('id'),
+        tags : typeof json.tags != 'undefined' ? json.tags : []
+      };
+    console.log(post);
+    alertify.confirm('Are you sure you want to delete this note?',
+      function(){
+        CS_API.call(
+          '/ajax/delete_note',
+          function(){
+            // before
+          },
+          function(data){
+            if(data.errors == false) {
+              // Get tags
+
+              PubSub.publish('jobNote.deleted', post);
+
+              for(var i in post.tags) PubSub.publish('jobChange.tagDeleted', post.tags[i]);
+
+              alertify.success('Note deleted');
+            } else {
+              alertify.error('An error has occurred while attempting to delete this note');
+            }
+          },
+          function(){
+            // error
+            alertify.error('An error has occurred while attempting to delete this note');
+          },
+          post
+          ,
+          {
+            method: 'POST',
+            preferCache : false
+          }
+        );
+      },
+      function () {
+
+      }
+    )
+  }
+
+  var handleTagDeleted = function(topic, tag){
+    // Increment tag count
+    var
+      $tag = $(".tag.tag-" + md5(tag)),
+      $tagCount = $(".count.tag-count-" + md5(tag)),
+      count;
+
+    function closeTag(tag){
+      var $tag = $(".tag.tag-" + md5(tag));
+      $tag.parent().fadeOut();
+    }
+
+    if($tag.length){
+      count = $tagCount.text();
+      if(count >= 2){
+        count--;
+        $tagCount.text(count);
+      } else {
+        closeTag(tag);
+      }
+    } else {
+      closeTag(tag);
+    }
+
+  };
+
+
+  var _handleNoteDeleted = function(topic, data){
+    $(".jobs-notes-page .note-" + data.noteId).fadeOut();
+  };
+
+  PubSub.subscribe('jobNote.deleted', _handleNoteDeleted);
+
+  $(document).on('click', '.js-delete-note', _handleDeleteNoteClicked);
+
+  PubSub.subscribe('jobChange.tagDeleted', handleTagDeleted);
 
 </script>

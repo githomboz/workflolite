@@ -321,7 +321,10 @@ function post_note(){
   $job = Job::Get($data['jobId']);
   if($job){
 
+    $current_author = UserSession::Get_User();
     $user = User::Get($data['author']['id']);
+
+    $current_author_id = $current_author->id();
 
     $note = array(
       'datetime' => date('c'),
@@ -345,13 +348,17 @@ function post_note(){
       }
 
     }
+
+    $note['id'] = $job->addNote($note);
+
+    $response['response']['success'] = (bool) $note['id'];
+
     $response['response']['payload'] = $note;
 
-    $response['response']['noteHTML'] = get_include(APPPATH.'/views/widgets/_notes-list.php', array('notes'=> array($note)), true);
+    $response['response']['noteHTML'] = get_include(APPPATH.'/views/widgets/_notes-list.php', array('notes'=> array($note), 'current_author_id'=>$current_author_id), true);
 
     $response['response']['noteHTML'] = str_replace(array(), '', $response['response']['noteHTML']);
 
-    $response['response']['success'] = $job->addNote($note);
 
   } else {
     $response['errors'][] = 'Invalid job id provided';
@@ -369,6 +376,36 @@ function post_note_args_map(){
 // Field names of fields required
 function post_note_required_fields(){
   return array('jobId','author','note');
+}
+
+function delete_note(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $response['response']['success'] = false;
+  $job = Job::Get($data['jobId']);
+  if($job){
+
+    $response['response']['success'] = $job->deleteNote($data['noteId']);
+
+  } else {
+    $response['errors'][] = 'Invalid job id provided';
+  }
+
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function delete_note_args_map(){
+  return array('jobId','noteId');
+}
+
+// Field names of fields required
+function delete_note_required_fields(){
+  return array('jobId','noteId');
 }
 
 

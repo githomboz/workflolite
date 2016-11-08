@@ -2094,7 +2094,7 @@ span.checkbox {
   width: 38%; }
 
 .create-job-form {
-  max-width: 400px;
+  max-width: 480px;
   background: #f2f2f2;
   margin: 0 auto 18px; }
   .create-job-form label {
@@ -2512,19 +2512,22 @@ span.checkbox {
     display: none;
     position: absolute;
     z-index: 10;
-    top: -125px;
-    left: -78px;
+    top: -8px;
+    left: 0px;
     -webkit-transform: rotate(-90deg);
         -ms-transform: rotate(-90deg);
             transform: rotate(-90deg);
+    -webkit-transform-origin: 0 0;
+        -ms-transform-origin: 0 0;
+            transform-origin: 0 0;
     width: 200px;
     font-size: 13px;
-    line-height: 1.3em;
+    line-height: 1.1em;
     padding-top: -6px;
     opacity: .9; }
     .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .job-inner .task-name {
       position: relative;
-      top: -5px; }
+      top: -7px; }
   .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .cs-task.next-step .status {
     background: wheat; }
   .jobs-list .job-entry.cs-job.view-glance .cs-job-tasks .cs-task:hover .job-inner {
@@ -2693,6 +2696,28 @@ span.checkbox {
       .cs-notes-list .cs-note .tags a {
         color: #4992d0; }
 
+.cs-note .lower {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex; }
+  .cs-note .lower .tags {
+    -webkit-box-flex: 8;
+    -webkit-flex: 8;
+        -ms-flex: 8;
+            flex: 8; }
+  .cs-note .lower .author-links {
+    display: none;
+    -webkit-box-flex: 2;
+    -webkit-flex: 2;
+        -ms-flex: 2;
+            flex: 2;
+    font-size: 13px; }
+    .cs-note .lower .author-links a {
+      color: #4992d0;
+      position: relative;
+      right: -40px; }
+
 .jobs-notes-page .notes-search-results-message {
   margin-bottom: 18px;
   font-style: italic; }
@@ -2704,6 +2729,9 @@ span.checkbox {
 
 .jobs-notes-page .cs-add-note-form {
   margin-bottom: 30px; }
+
+.jobs-notes-page .cs-note.author-me:hover .author-links {
+  display: block; }
 
 .inset-widgets {
   width: 25%;

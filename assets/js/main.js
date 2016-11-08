@@ -29,3 +29,10 @@ function _CS_Get_User_ID(){
     return _CS.UserId;
 }
 
+var isNotesPage = false;
+function _isNotePage(){
+    if(!isNotesPage){
+        isNotesPage = $(".job-notes-page").length >= 1;
+    }
+    return isNotesPage;
+}

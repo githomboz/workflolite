@@ -16,8 +16,6 @@ class Job extends WorkflowFactory
 
   private $sortOrder = array();
 
-  private $notesSorted = false;
-
   /**
    * Meta class
    * @var null Meta
@@ -54,20 +52,38 @@ class Job extends WorkflowFactory
     $success = false;
     $notes = $this->getNotes();
     $duplicate = false;
+    $ids = array();
     if(!empty($notes)){
       $notesJSON = array();
       foreach($notes as $i => $note) {
-        unset($note['dateAdded']);
+        unset($note['datetime']);
+        if(!isset($note['id'])) {
+          do {
+            // generate id
+            $id = _generate_id(6);
+          } while(in_array($id, $ids)); // Check if unique
+
+          // set id
+          $notes[$i]['id'] = $id;
+        }
         ksort($note);
-        foreach($note as $field => $value) $notesJSON[] = json_encode($note);
+        unset($note['id']);
+        $notesJSON[] = json_encode($note);
+        $ids[] = $notes[$i]['id'];
       }
 
       $testData = $noteData;
-      unset($testData['dateAdded']);
+      do {
+        // generate id
+        $noteData['id'] = _generate_id(6);
+      } while(in_array($noteData['id'], $ids)); // Check if unique
+
+      unset($testData['datetime']);
       ksort($testData);
       $testData = json_encode($testData);
 
       foreach($notesJSON as $i => $noteJSON) {
+        //var_dump('$testData: ' . $testData, '$noteJSON: '. $noteJSON);
         if($noteJSON == $testData) $duplicate = true;
       }
 
@@ -75,20 +91,29 @@ class Job extends WorkflowFactory
 
     if(!$duplicate){
       $notes[] = $noteData;
-      $success = $this->setValue('notes', $notes)->save('notes');
+      $success = $this->setNotesArray($notes);
     }
 
-    return (bool) $success;
+    return $noteData['id'];
+  }
+
+  public function deleteNote($noteId){
+    $notes = $this->getNotes();
+    foreach($notes as $i => $note) {
+      if($note['id'] == $noteId) {
+        unset($notes[$i]);
+      }
+    }
+    return $this->setNotesArray($notes);
   }
 
   public function getNotes(){
-    if(!$this->notesSorted){
-      $notes = (array) $this->getValue('notes');
-      sortBy('datetime', $notes, 'desc');
-      $this->setValue('notes', $notes)->save('notes');
-      $this->notesSorted = true;
-    }
     return $this->getValue('notes');
+  }
+
+  public function setNotesArray($notes){
+    sortBy('datetime', $notes, 'desc');
+    return $this->setValue('notes', $notes)->save('notes');
   }
 
   public function searchNotes($term){

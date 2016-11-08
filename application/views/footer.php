@@ -9,7 +9,34 @@
   </footer>
 </body>
   <script type="text/javascript">
-      $(document).ready(function(){
+
+    var DC_Clicks = {};
+    $(document).on('click', ".double-click", function(e){
+      var $this = $(this), key = md5(this.innerHTML);
+      if(typeof DC_Clicks[key] == 'undefined') {DC_Clicks[key] = {}; DC_Clicks[key].count = 1;} else DC_Clicks[key].count++;
+      console.log($this, $this.attr('href'));
+      DC_Clicks[key].href = $this.attr('href');
+      DC_Clicks[key].timeoutId = window.setTimeout(clickAction, 400, key);
+      return false;
+    });
+
+    function clickAction(key){
+      if(!key) return;
+      if(DC_Clicks[key].count > 1){ // doubleclick
+        window.location = DC_Clicks[key].href;
+      } else { // singleclick
+        var $notesBox = $(".notes-box.show");
+        if($notesBox.length){
+          $notesBox.removeClass('show');
+        } else {
+          $(".notes-box").addClass('show');
+        }
+      }
+      DC_Clicks[key].count = 0;
+      clearTimeout(DC_Clicks[key].timeoutId);
+    }
+
+    $(document).ready(function(){
         $(".sidepanel .js-send-message").click(function(e){
           $(".send-message").toggle();
           return false;
