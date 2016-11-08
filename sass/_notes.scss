@@ -16,13 +16,14 @@
   .note-field {
     border: 1px solid darken($sidepanel_bg, 10%);
     border-radius: 3px;
-    margin-bottom: 10px;
-    padding: 16px;
+    margin-bottom: $padding;
+    padding: 10px 16px 10px;
     box-shadow: 0 0 3px 2px rgba(0, 0, 0, .06);
+    line-height: 1.5em;
   }
 
   .cs-note-tags {
-    margin: 10px 0;
+    margin: $padding 0 0;
 
     .cs-note-tag {
       padding: 4px 6px;
@@ -32,6 +33,7 @@
       border-radius: 3px;
       margin-right: $padding;
       float: left;
+      margin-bottom: $padding;
 
       &:hover {
         background: darken($sidepanel_bg, 5%);
@@ -77,7 +79,7 @@
 
     .toggle-no-tags {
       position: absolute;
-      top: 62px;
+      bottom: -14px;
       left: 82px;
       color: $button_blue;
       cursor: pointer;
@@ -97,7 +99,7 @@
 
         button {
           width: 100%;
-          height: 50px;
+          height: 46px;
         }
       }
     }
@@ -201,10 +203,16 @@
 }
 
 .jobs-notes-page {
+
+  .notes-search-results-message {
+    margin-bottom: $paddingLarge;
+    font-style: italic;
+  }
   
   .main-column {
     float: left;
     max-width: 72%;
+    width: 100%;
   }
 
   .cs-add-note-form {
@@ -267,6 +275,9 @@
     .inner-note {
       padding: $padding;
       box-shadow: 0 0 3px 3px rgb(255, 255, 255);
+
+      .note-field {
+      }
 
     }
 

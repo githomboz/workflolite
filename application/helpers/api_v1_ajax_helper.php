@@ -311,5 +311,65 @@ function save_meta_required_fields(){
   return array('metaObject','record','collection','field','value');
 }
 
+function post_note(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $response['response']['success'] = false;
+  $job = Job::Get($data['jobId']);
+  if($job){
+
+    $user = User::Get($data['author']['id']);
+
+    $note = array(
+      'datetime' => date('c'),
+      'author' => array(
+        'id' => $data['author']['id'],
+        'type' =>  $data['author']['type'],
+        'shortName' => $user->getValue('firstName') . ' ' . substr($user->getValue('lastName'), 0, 1) . '.'
+      ),
+      'content' => $data['note'],
+      'verb' => '',
+      'noun' => '',
+      'currentTaskId' => $job->getNextTask()->id(),
+      'tags' => array(),
+      'reference' => null
+    );
+
+
+    if(is_array($data['tags'])){
+      foreach($data['tags'] as $tagData){
+        $note['tags'][] = $tagData['value'];
+      }
+
+    }
+    $response['response']['payload'] = $note;
+
+    $response['response']['noteHTML'] = get_include(APPPATH.'/views/widgets/_notes-list.php', array('notes'=> array($note)), true);
+
+    $response['response']['noteHTML'] = str_replace(array(), '', $response['response']['noteHTML']);
+
+    $response['response']['success'] = $job->addNote($note);
+
+  } else {
+    $response['errors'][] = 'Invalid job id provided';
+  }
+
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function post_note_args_map(){
+  return array('jobId','author','note','tags','reference');
+}
+
+// Field names of fields required
+function post_note_required_fields(){
+  return array('jobId','author','note');
+}
+
 
 

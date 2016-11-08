@@ -28,6 +28,23 @@ function page_file_name($__FILE__){
   return str_replace('.php', '', $segs[(count($segs)-1)]);
 }
 
+function sortBy($field, &$array, $direction = 'asc')
+{
+  usort($array, create_function('$a, $b', '
+		$a = $a["' . $field . '"];
+		$b = $b["' . $field . '"];
+
+		if ($a == $b)
+		{
+			return 0;
+		}
+
+		return ($a ' . ($direction == 'desc' ? '>' : '<') .' $b) ? -1 : 1;
+	'));
+
+  return true;
+}
+
 function _get_inner_nav($selectedPage, $seg1 = null, $seg2 = null){
   $navItems = array(
     'jobsInner' => array(

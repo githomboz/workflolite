@@ -1,7 +1,8 @@
 var _CS = {
     OrganizationId : null,
     WorkflowId : null,
-    JobId : null
+    JobId : null,
+    UserId : null
 };
 
 function _CS_Get_Organization_ID(){
@@ -20,5 +21,11 @@ function _CS_Get_Job_ID(){
     if(_CS.JobId) return _CS.JobId;
     _CS.JobId = $("body").data('job');
     return _CS.JobId;
+}
+
+function _CS_Get_User_ID(){
+    if(_CS.UserId) return _CS.UserId;
+    _CS.UserId = $("body").data('user');
+    return _CS.UserId;
 }
 

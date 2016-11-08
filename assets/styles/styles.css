@@ -2560,11 +2560,12 @@ span.checkbox {
     -webkit-border-radius: 3px;
             border-radius: 3px;
     margin-bottom: 10px;
-    padding: 16px;
+    padding: 10px 16px 10px;
     -webkit-box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.06);
-            box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.06); }
+            box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.06);
+    line-height: 1.5em; }
   .cs-add-note-form .cs-note-tags {
-    margin: 10px 0; }
+    margin: 10px 0 0; }
     .cs-add-note-form .cs-note-tags .cs-note-tag {
       padding: 4px 6px;
       font-size: 13px;
@@ -2573,7 +2574,8 @@ span.checkbox {
       -webkit-border-radius: 3px;
               border-radius: 3px;
       margin-right: 10px;
-      float: left; }
+      float: left;
+      margin-bottom: 10px; }
       .cs-add-note-form .cs-note-tags .cs-note-tag:hover {
         background: #e5e5e5; }
       .cs-add-note-form .cs-note-tags .cs-note-tag .fa-times-circle {
@@ -2608,7 +2610,7 @@ span.checkbox {
               flex: 2 80px; }
   .cs-add-note-form.no-tags .toggle-no-tags {
     position: absolute;
-    top: 62px;
+    bottom: -14px;
     left: 82px;
     color: #4992d0;
     cursor: pointer;
@@ -2631,7 +2633,7 @@ span.checkbox {
               flex: 2; }
       .cs-add-note-form.no-tags .inner-note .tags-submit button {
         width: 100%;
-        height: 50px; }
+        height: 46px; }
   .cs-add-note-form.no-tags .tags-field {
     display: none; }
 
@@ -2691,9 +2693,14 @@ span.checkbox {
       .cs-notes-list .cs-note .tags a {
         color: #4992d0; }
 
+.jobs-notes-page .notes-search-results-message {
+  margin-bottom: 18px;
+  font-style: italic; }
+
 .jobs-notes-page .main-column {
   float: left;
-  max-width: 72%; }
+  max-width: 72%;
+  width: 100%; }
 
 .jobs-notes-page .cs-add-note-form {
   margin-bottom: 30px; }

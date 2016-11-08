@@ -193,9 +193,13 @@ $config['mongo_schema'] = array(
     'blocking', // Whether to continue to next in trigger in sequence if this one hasn't completed
     'triggerServer', // The server that processed the trigger
     'payload',
-    'status',
-    'processed',
+    'status', // [queued, working, failure, success]
+    'processed', // Whether or not this trigger has been processed
+    'acknowledged', // Whether or not the job is aware of completion of this trigger
     'organizationId',
+    'returnPayload', // Data to be returned to by trigger
+    'webhook', // Url to post trigger response to
+    'topic', // String used to associate with with task or step that queue item was registered from
   ),
   'triggers' => array(
     'name',

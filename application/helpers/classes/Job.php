@@ -16,6 +16,8 @@ class Job extends WorkflowFactory
 
   private $sortOrder = array();
 
+  private $notesSorted = false;
+
   /**
    * Meta class
    * @var null Meta
@@ -46,6 +48,78 @@ class Job extends WorkflowFactory
     } else {
       throw new Exception('Tasks can not be added without an _id');
     }
+  }
+
+  public function addNote($noteData){
+    $success = false;
+    $notes = $this->getNotes();
+    $duplicate = false;
+    if(!empty($notes)){
+      $notesJSON = array();
+      foreach($notes as $i => $note) {
+        unset($note['dateAdded']);
+        ksort($note);
+        foreach($note as $field => $value) $notesJSON[] = json_encode($note);
+      }
+
+      $testData = $noteData;
+      unset($testData['dateAdded']);
+      ksort($testData);
+      $testData = json_encode($testData);
+
+      foreach($notesJSON as $i => $noteJSON) {
+        if($noteJSON == $testData) $duplicate = true;
+      }
+
+    }
+
+    if(!$duplicate){
+      $notes[] = $noteData;
+      $success = $this->setValue('notes', $notes)->save('notes');
+    }
+
+    return (bool) $success;
+  }
+
+  public function getNotes(){
+    if(!$this->notesSorted){
+      $notes = (array) $this->getValue('notes');
+      sortBy('datetime', $notes, 'desc');
+      $this->setValue('notes', $notes)->save('notes');
+      $this->notesSorted = true;
+    }
+    return $this->getValue('notes');
+  }
+
+  public function searchNotes($term){
+    $results = array();
+    $inResults = array();
+    foreach($this->getNotes() as $i => $note){
+      if(strpos(strtolower($note['content']), strtolower($term)) !== false) {
+        $results[] = $note;
+        $inResults[] = json_encode($note);
+      }
+      if(!empty($note['tags'])){
+        foreach($note['tags'] as $t => $tag){
+          if(strpos(strtolower($tag), strtolower($term)) !== false && !in_array(json_encode($note), $inResults)) $results[] = $note;
+        }
+      }
+    }
+    return $results;
+  }
+
+  public function getNoteTags(){
+    $results = array();
+    foreach($this->getNotes() as $i => $note){
+      if(!empty($note['tags'])){
+        foreach($note['tags'] as $t => $tag){
+          if(!isset($results[$tag])) $results[$tag] = 0;
+          $results[$tag] ++;
+        }
+      }
+    }
+    arsort($results);
+    return $results;
   }
 
   public function displayDetails(){
