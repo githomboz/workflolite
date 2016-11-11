@@ -61,6 +61,11 @@ class User extends WorkflowFactory
     if(isset($record[0])) return new User($record[0]); else return false;
   }
 
+  public static function Create($data){
+    $filtered = di_allowed_only($data, mongo_get_allowed(static::CollectionName()));
+    $filtered['email'] = strtolower($filtered['email']);
+    return self::CI()->mdb->insert(static::CollectionName(), $filtered);
+  }
 
   public function login(){
     return UserSession::start($this->sessionData());

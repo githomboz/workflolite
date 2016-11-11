@@ -57,7 +57,7 @@ class Job extends WorkflowFactory
       $notesJSON = array();
       foreach($notes as $i => $note) {
         unset($note['datetime']);
-        if(!isset($note['id'])) {
+        if(!empty($note) && !isset($note['id'])) {
           do {
             // generate id
             $id = _generate_id(6);
@@ -108,7 +108,23 @@ class Job extends WorkflowFactory
   }
 
   public function getNotes(){
-    return $this->getValue('notes');
+    // Check if id is set
+    $changed = false;
+    $notes = $this->getValue('notes');
+    $ids = array();
+    if(!empty($notes)){
+      foreach($notes as $i => $note) {
+        if(!empty($note) && !isset($note['id'])){
+          do {
+            // generate id
+            $notes[$i]['id'] = _generate_id(6);
+          } while(in_array($notes[$i]['id'], $ids)); // Check if unique
+          $changed = true;
+        }
+      }
+    }
+    if($changed) $this->setNotesArray($notes);
+    return $notes;
   }
 
   public function setNotesArray($notes){

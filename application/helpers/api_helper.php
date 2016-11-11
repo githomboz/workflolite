@@ -7,7 +7,7 @@ function process_login(){
   if(isset($input['email']) || isset($input['password'])){
     $CI->load->model('auth_model');
     //$response = $CI->auth_model->authenticate_user($input['email'], $input['password']);
-    $user = User::Authenticate($input['email'], UserSession::EncodePassword($input['password']));
+    $user = User::Authenticate(strtolower($input['email']), UserSession::EncodePassword($input['password']));
     //var_dump($response);
     if(!empty($user)){
       // Log user in

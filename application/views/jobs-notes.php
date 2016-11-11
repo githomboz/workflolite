@@ -68,7 +68,7 @@
         noteId : $el.data('id'),
         tags : typeof json.tags != 'undefined' ? json.tags : []
       };
-    console.log(post);
+    //console.log(post);
     alertify.confirm('Are you sure you want to delete this note?',
       function(){
         CS_API.call(
