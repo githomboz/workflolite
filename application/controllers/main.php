@@ -16,8 +16,9 @@ class Main extends Front_Controller {
       );
       $tests = array('unprocessed' => is_null($result), 'success' => $result === true, 'failure' => $result === false);
       $data = array('redirect_url' => current_url());
+      show_sidebar(false);
       switch(true){
-        case $tests['unprocessed']:
+        case $tests['unprocessed']: // Form hasn't been submitted
           break;
         case $tests['success']:
           if($redirect_override){
@@ -27,6 +28,8 @@ class Main extends Front_Controller {
           }
           break;
         case $tests['failure']:
+          $this->message['text'] = 'Login Unsuccessful';
+          $this->message['classes'] = 'error failure';
           break;
       }
       $this->view('login', $data);

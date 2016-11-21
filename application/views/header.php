@@ -101,6 +101,8 @@
 
 <div id="main-wrap" class="clearfix <?php if(isset($this->page_class)) { if(is_array($this->page_class)) echo join(' ', $this->page_class); else if(is_string($this->page_class)) echo $this->page_class; } ?>">
 
+  <?php if(show_sidebar()) { ?>
+
 <section class="sidepanel js-sidepanel <?php $collapse = isset($this->preCollapseSidePanel) && $this->preCollapseSidePanel == true; if($collapse) echo 'collapse'; ?>">
   <i class="js-toggle js-toggle-sidebar fa fa-chevron-<?php if($collapse) echo 'right'; else echo 'left'; ?>"></i>
   <?php if(UserSession::loggedIn() && isset($this->job)) :
@@ -117,6 +119,7 @@
   </div><!--/.panel-->
   <?php endif; ?>
 </section>
+  <?php } // end show_sidebar() ?>
 <section class="main-content">
   <?php
   if(UserSession::loggedIn()) $object = in_array($this->navSelected, array('jobs', 'jobsInner')) ? 'job' : 'organization';

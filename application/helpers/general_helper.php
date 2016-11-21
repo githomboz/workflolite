@@ -14,6 +14,12 @@ function organization(){
   return null;
 }
 
+function show_sidebar($set_true = null){
+  $CI = CI();
+  if(isset($set_true)) $CI->show_sidebar = (bool) $set_true;
+  return !isset($CI->show_sidebar) || (isset($CI->show_sidebar) && $CI->show_sidebar);
+}
+
 function user(){
   $CI =& CI();
   if(!isset($CI->me) && UserSession::loggedIn()) {
