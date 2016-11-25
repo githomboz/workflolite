@@ -1685,11 +1685,15 @@ span.checkbox {
       color: #cc0000; }
     .tasklist .task-style.completed .col-title:hover a.fa-pencil {
       display: none; }
+    .tasklist .task-style .task-settings {
+      color: #c9c9c9;
+      position: relative;
+      left: 10px; }
     .tasklist .task-style .col-title {
       position: absolute;
       top: 0;
       left: 50px;
-      min-width: 345px; }
+      min-width: 290px; }
       .tasklist .task-style .col-title a.fa-pencil {
         margin-left: 4px; }
       .tasklist .task-style .col-title:hover a.fa-pencil {
@@ -2230,21 +2234,10 @@ span.checkbox {
   margin-bottom: 5px;
   position: relative; }
 
-.c-alert--danger {
-  background: rgba(196, 71, 65, 0.5);
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-box-shadow: -1000px 0 0 0 rgba(196, 71, 65, 0.5), 1000px 0 0 0 rgba(196, 71, 65, 0.5);
-          box-shadow: -1000px 0 0 0 rgba(196, 71, 65, 0.5), 1000px 0 0 0 rgba(196, 71, 65, 0.5); }
-  @media (max-width: 1140px) {
-    .c-alert--danger {
-      -webkit-box-shadow: -200px 0 0 0 rgba(196, 71, 65, 0.5), 200px 0 0 0 rgba(196, 71, 65, 0.5);
-              box-shadow: -200px 0 0 0 rgba(196, 71, 65, 0.5), 200px 0 0 0 rgba(196, 71, 65, 0.5); } }
-
 .c-alert--success {
   background: rgba(0, 151, 71, 0.5);
   color: rgba(0, 0, 0, 0.5);
-  -webkit-box-shadow: -1000px 0 0 0 rgba(0, 151, 71, 0.5), 1000px 0 0 0 rgba(0, 151, 71, 0.5);
-          box-shadow: -1000px 0 0 0 rgba(0, 151, 71, 0.5), 1000px 0 0 0 rgba(0, 151, 71, 0.5); }
+  border: none; }
   @media (max-width: 1140px) {
     .c-alert--success {
       -webkit-box-shadow: -200px 0 0 0 rgba(0, 151, 71, 0.5), 200px 0 0 0 rgba(0, 151, 71, 0.5);
@@ -2253,8 +2246,7 @@ span.checkbox {
 .c-alert--warning {
   background: rgba(232, 213, 64, 0.5);
   color: rgba(0, 0, 0, 0.5);
-  -webkit-box-shadow: -1000px 0 0 0 rgba(232, 213, 64, 0.5), 1000px 0 0 0 rgba(232, 213, 64, 0.5);
-          box-shadow: -1000px 0 0 0 rgba(232, 213, 64, 0.5), 1000px 0 0 0 rgba(232, 213, 64, 0.5); }
+  border: none; }
   @media (max-width: 1140px) {
     .c-alert--warning {
       -webkit-box-shadow: -200px 0 0 0 rgba(232, 213, 64, 0.5), 200px 0 0 0 rgba(232, 213, 64, 0.5);
@@ -2263,8 +2255,7 @@ span.checkbox {
 .c-alert--info {
   background: rgba(0, 134, 203, 0.5);
   color: rgba(0, 0, 0, 0.5);
-  -webkit-box-shadow: -1000px 0 0 0 rgba(0, 134, 203, 0.5), 1000px 0 0 0 rgba(0, 134, 203, 0.5);
-          box-shadow: -1000px 0 0 0 rgba(0, 134, 203, 0.5), 1000px 0 0 0 rgba(0, 134, 203, 0.5); }
+  border: none; }
   @media (max-width: 1140px) {
     .c-alert--info {
       -webkit-box-shadow: -200px 0 0 0 rgba(0, 134, 203, 0.5), 200px 0 0 0 rgba(0, 134, 203, 0.5);
@@ -2275,6 +2266,42 @@ span.checkbox {
 
 .c-alert__close {
   float: right; }
+
+.alert {
+  color: #282828;
+  position: relative; }
+  .alert.danger {
+    background: rgba(196, 71, 65, 0.5);
+    color: rgba(0, 0, 0, 0.5);
+    border: none; }
+    @media (max-width: 1140px) {
+      .alert.danger {
+        -webkit-box-shadow: -200px 0 0 0 rgba(196, 71, 65, 0.5), 200px 0 0 0 rgba(196, 71, 65, 0.5);
+                box-shadow: -200px 0 0 0 rgba(196, 71, 65, 0.5), 200px 0 0 0 rgba(196, 71, 65, 0.5); } }
+  .alert.success {
+    background: rgba(0, 151, 71, 0.5);
+    color: rgba(0, 0, 0, 0.5);
+    border: none; }
+    @media (max-width: 1140px) {
+      .alert.success {
+        -webkit-box-shadow: -200px 0 0 0 rgba(0, 151, 71, 0.5), 200px 0 0 0 rgba(0, 151, 71, 0.5);
+                box-shadow: -200px 0 0 0 rgba(0, 151, 71, 0.5), 200px 0 0 0 rgba(0, 151, 71, 0.5); } }
+  .alert.warning {
+    background: rgba(232, 213, 64, 0.5);
+    color: rgba(0, 0, 0, 0.5);
+    border: none; }
+    @media (max-width: 1140px) {
+      .alert.warning {
+        -webkit-box-shadow: -200px 0 0 0 rgba(232, 213, 64, 0.5), 200px 0 0 0 rgba(232, 213, 64, 0.5);
+                box-shadow: -200px 0 0 0 rgba(232, 213, 64, 0.5), 200px 0 0 0 rgba(232, 213, 64, 0.5); } }
+  .alert.info {
+    background: rgba(0, 134, 203, 0.5);
+    color: rgba(0, 0, 0, 0.5);
+    border: none; }
+    @media (max-width: 1140px) {
+      .alert.info {
+        -webkit-box-shadow: -200px 0 0 0 rgba(0, 134, 203, 0.5), 200px 0 0 0 rgba(0, 134, 203, 0.5);
+                box-shadow: -200px 0 0 0 rgba(0, 134, 203, 0.5), 200px 0 0 0 rgba(0, 134, 203, 0.5); } }
 
 .c-form:after {
   content: '';

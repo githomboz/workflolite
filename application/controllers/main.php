@@ -29,7 +29,7 @@ class Main extends Front_Controller {
           break;
         case $tests['failure']:
           $this->message['text'] = 'Login Unsuccessful';
-          $this->message['classes'] = 'error failure';
+          $this->message['classes'] = 'alert danger boxed';
           break;
       }
       $this->view('login', $data);
@@ -86,14 +86,14 @@ class Main extends Front_Controller {
     redirect('admin');
   }
 
-
   public function index(){
     redirect('dashboard');
   }
 
   public function progress($jobId){
-    $this->job = Job::Get($jobId);
-    if($this->job){
+    $job = Job::Get($jobId);
+    if($job){
+      $this->job = $job;
       $this->organization = Organization::Get($this->job->getValue('organizationId'));
       $this->load->view('client-view');
     } else {

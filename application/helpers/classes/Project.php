@@ -373,13 +373,13 @@ class Job extends WorkflowFactory
   public function addContactById($contact_or_user_id, $role, $isClient = false, $isContact = true){
     $contactsField = 'partiesInvolved';
     $contacts = $this->getValue($contactsField);
+    $contacts = array_values($contacts);
     $userType = $isContact ? 'contactId' : 'userId';
     $contacts[] = array(
       $userType => _id($contact_or_user_id),
       'role' => $role,
       'isClient' => (bool) $isClient,
     );
-    $contacts = array_values($contacts);
     $this->setValue($contactsField, $contacts)->save($contactsField);
     return $this;
   }
@@ -406,7 +406,6 @@ class Job extends WorkflowFactory
       if($contact['contactId'] == _id($contactId)) {
         $save = true;
         unset($contacts[$i]);
-        $contacts = array_values($contacts);
       }
     }
     if($save){
@@ -423,7 +422,6 @@ class Job extends WorkflowFactory
       if($contact['contactId'] == _id($contactId)) {
         $save = true;
         $contacts[$i]['role'] = $role;
-        $contacts = array_values($contacts);
       }
     }
     if($save){

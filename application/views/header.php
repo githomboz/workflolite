@@ -91,8 +91,7 @@
       </div>
       <?php } else { // What to do if user is not logged in?>
       <div class="page-title">
-        <h1>Workflo Lite</h1>
-        <h3>Workflow Management Software for the Modern Business</h3>
+        <h1>JNBPA Office Management</h1>
       </div>
       <?php } ?>
     </div><!--/main-head-->

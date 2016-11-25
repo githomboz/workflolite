@@ -12,6 +12,16 @@
 <div class="task-style task-<?php echo $task->id(); ?> <?php echo $task->isComplete() ? 'completed' : ''?> <?php echo $task->isStarted() ? 'started' : ''?>"
      data-task_id="<?php echo $task->id(); ?>"
 >
+  <a href="#" class="fa fa-cog task-settings"></a>
+  <div class="task-settings-popup">
+    <?php
+    // Estimated Time
+    // Deadline
+    // Assign
+    // Delete //@todo unset templateId or update template
+    // Skip
+    ?>
+  </div>
   <div class="col-title">
     <a href="#" class="checkbox <?php echo $task->isComplete() ? 'checked' : 'clickable'?>">
       <i class="fa fa-check"></i>

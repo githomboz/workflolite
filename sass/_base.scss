@@ -767,13 +767,17 @@ $tasklist_height : 36px;
       }
     }
 
-
+    .task-settings {
+      color: $gray;
+      position: relative;
+      left: 10px;
+    }
 
     .col-title {
       position: absolute;
       top: 0;
       left: 50px;
-      min-width: 345px;
+      min-width: 290px;
 
       a.fa-pencil {
         margin-left: 4px;
