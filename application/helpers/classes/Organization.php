@@ -43,6 +43,41 @@ class Organization extends WorkflowFactory
     }
   }
 
+  public function addTemplate(Template $template){
+    if($this->hasId()){
+      $template->setValues(array('templateId' => $this->id()))->save();
+      return $this;
+    } else {
+      throw new Exception('Templates can not be added without an _id');
+    }
+  }
+
+  public function getTemplates(){
+    if($this->hasId()){
+      if(!empty($this->templates)) return $this->templates;
+      else {
+        $templates = self::CI()->mdb->where('organizationId', $this->id())->get(Template::CollectionName());
+        foreach($templates as $template) $this->templates[] = new Template($template);
+        return $this->templates;
+      }
+    } else {
+      throw new Exception('Templates can not be pulled without an _id');
+    }
+  }
+
+  public function getProjects(){
+    if($this->hasId()){
+      if(!empty($this->templates)) return $this->templates;
+      else {
+        $templates = self::CI()->mdb->where('organizationId', $this->id())->get(Project::CollectionName());
+        foreach($templates as $template) $this->templates[] = new Project($template);
+        return $this->templates;
+      }
+    } else {
+      throw new Exception('Projects can not be pulled without an _id');
+    }
+  }
+
   public function searchContactsByName($string, $limit = 10, $field = 'name'){
 //    $query = array(
 //      'organizationId' => $this->getValue('organizationId'),

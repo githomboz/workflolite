@@ -1,8 +1,10 @@
 <?php
 
+require_once 'Task2.php';
+require_once 'TaskTemplate2.php';
 require_once 'WorkflowFactory.php';
 
-class Templates extends WorkflowFactory
+class Template extends WorkflowFactory
 {
 
   /**
@@ -11,18 +13,31 @@ class Templates extends WorkflowFactory
    */
   protected static $_collection = 'templates';
 
+  private static $taskTemplatesCache = array();
+
   public function __construct(array $data)
   {
     parent::__construct();
     $this->_initialize($data);
     $this->sortMetaSettings();
+    //$this->_temp_importTaskTemplates();
   }
 
   public function _temp_importTaskTemplates(){
-    $entities = self::CI()->mdb->whereIn('_id', $this->getValue('taskTemplates'))->get(TaskTemplate::CollectionName());
-    foreach($entities as $i => $entity){
-      $entities[$i]['id'] = (string) $entity['_id'];
-      unset($entities[$i]['_id']);
+    $requires_update = false;
+    $taskTemplates = $this->getValue('taskTemplates');
+    if(isset($taskTemplates[0]) && $taskTemplates[0] instanceof MongoId) $requires_update = true;
+    if($requires_update){
+      $entities = self::CI()->mdb->whereIn('_id', $this->getValue('taskTemplates'))->get(TaskTemplate::CollectionName());
+      foreach($entities as $i => $entity){
+        $entities[$i]['id'] = (string) $entity['_id'];
+        unset($entities[$i]['_id']);
+        unset($entities[$i]['organizationId']);
+      }
+      $entities = array_values($entities);
+      $this->setValue('taskTemplates', $entities);
+      $this->save('taskTemplates');
+      var_dump($this);
     }
   }
 
@@ -36,23 +51,22 @@ class Templates extends WorkflowFactory
   }
 
   public function projectCount(){
-    return self::CI()->mdb->where(array('workflowId' => $this->id()))->count(Job::CollectionName());
+    return self::CI()->mdb->where(array('templateId' => $this->id()))->count(Job::CollectionName());
   }
 
   public function taskCount(){
-    //@todo: rewrite based on projects
-    // //return count($this->getValue('taskTemplates'));
+    return count($this->getValue('taskTemplates'));
   }
 
   public function getProjects(){
-    $jobs = self::CI()->mdb->where('workflowId', $this->id())->get(Job::CollectionName());
-    foreach($jobs as $i => $job) $jobs[$i] = new Job($job);
-    return $jobs;
+    $projects = self::CI()->mdb->where('templateId', $this->id())->get(Project::CollectionName());
+    foreach($projects as $i => $project) $projects[$i] = new Project($project);
+    return $projects;
   }
 
   public function getTemplates(){
-    $entities = self::CI()->mdb->whereIn('_id', $this->getValue('taskTemplates'))->get(TaskTemplate::CollectionName());
-    foreach($entities as $i => $entity) $entities[$i] = new TaskTemplate($entity);
+    $entities = array();
+    foreach($this->getValue('taskTemplates') as $i => $entity) $entities[] = new TaskTemplate2($entity);
     return $entities;
   }
 
@@ -62,20 +76,43 @@ class Templates extends WorkflowFactory
     return new $class($record);
   }
 
+  public static function cacheFlush($templateId = null){
+    if($templateId){
+      $templateId = (string) $templateId;
+      if(isset(self::$taskTemplatesCache[$templateId])) unset(self::$taskTemplatesCache[$templateId]);
+    } else {
+      self::$taskTemplatesCache = array();
+    }
+  }
+
+  public static function cacheGet($templateId, $flush = false){
+    $templateId = (string) $templateId;
+    if($flush) self::cacheFlush($templateId);
+    if(isset(self::$taskTemplatesCache[$templateId])) return self::$taskTemplatesCache[$templateId];
+    $template = Template::Get($templateId);
+    if($template) self::cacheSet($templateId, $template);
+    return $template;
+  }
+
+  public static function cacheSet($templateId, $data){
+    $templateId = (string) $templateId;
+    self::$taskTemplatesCache[$templateId] = $data;
+  }
+
   public function getUrl(){
-    return site_url('workflows/' . $this->id());
+    return site_url('templates/' . $this->id());
   }
 
-  public function getJobsUrl(){
-    return $this->getUrl() . '/jobs';
+  public function getProjectsUrl(){
+    return $this->getUrl() . '/projects';
   }
 
-  public function createJobUrl(){
-    return self::GetCreateJobUrl($this->id());
+  public function createProjectUrl(){
+    return self::GetCreateProjectUrl($this->id());
   }
 
-  public static function GetCreateJobUrl($workflowId = null){
-    return site_url('jobs/create') . ($workflowId ? '?workflow=' . $workflowId : '');
+  public static function GetCreateProjectUrl($templateId = null){
+    return site_url('projects/create') . ($templateId ? '?template=' . $templateId : '');
   }
 
   public function sortMetaSettings(){
@@ -214,7 +251,7 @@ class Templates extends WorkflowFactory
 
   public static function GetAll(){
     $records = self::CI()->mdb->where('organizationId', UserSession::Get_Organization()->id())->get(self::CollectionName());
-    foreach($records as $i => $record) $records[$i] = new Workflow($record);
+    foreach($records as $i => $record) $records[$i] = new Template($record);
     return $records;
   }
 

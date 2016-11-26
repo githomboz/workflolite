@@ -1,7 +1,8 @@
 <div class="panel">
-  <h1><i class="fa fa-list"></i> Job Details</h1>
+  <h1><i class="fa fa-list"></i> <?php echo project() ? 'Project' : 'Job' ?> Details</h1>
   <?php
-  $metaRecords = $this->job->getMeta();
+  $entity = entity();
+  $metaRecords = $entity->getMeta();
   $totalMeta = 0;
   $hideMeta = 0;
   foreach($metaRecords as $key => $meta){
@@ -12,7 +13,7 @@
   <div class="job-meta cs-job-meta <?php if(!$hideMeta) echo 'show-all';?>">
     <?php
     foreach($metaRecords as $key => $meta){
-      $metaSettings = $this->workflow->getMetaSettings($key);
+      $metaSettings = template()->getMetaSettings($key);
       ?>
       <div class="meta-pair meta-<?php echo $meta['slug'] ?> <?php if($meta['hide']) echo 'not-priority '; else echo 'priority '; $value = $meta['value']->get(); if(is_null($value) || ($meta['value'] instanceof MetaArray && empty($value))) echo 'edit-mode '?>">
         <span class="meta-title"><?php echo $metaSettings['field'] ?>: </span>

@@ -128,6 +128,21 @@ $config['mongo_schema'] = array(
     'accessibility', // Who has access to use this template
     'metaFields', // Fields that are needed for job completion
   ),
+  'templates' => array(
+    'dateAdded',
+    'organizationId',
+    'name',
+    'categoryId',
+    'description',
+    'roles',
+    'group',
+    'status',
+    'noun', // the object instance type. ie "title file" or "twitter order"
+    'taskTemplates', // ordered list of taskTemplates
+    'availStatuses', // statuses available to all project tasks
+    'accessibility', // Who has access to use this template
+    'metaFields', // Fields that are needed for job completion
+  ),
   'jobs' => array(
     'organizationId',
     'workflowId',
@@ -139,6 +154,23 @@ $config['mongo_schema'] = array(
     'partiesInvolved', // associative array of party members and their roles
     'viewableContacts', // the contacts that are able to view this job
     'sortOrder', // Array with the orders of tasks for the job
+    'meta',
+    'settings',
+  ),
+  'projects' => array(
+    'organizationId',
+    'templateId',
+    'dateAdded',
+    'name',
+    'dueDate', // a date set by user to track when workflow should be completed
+    'approxEndDate', // approx end date based upon delays in task completion
+    'nativeToken',
+    'partiesInvolved', // associative array of party members and their roles
+    'viewableContacts', // the contacts that are able to view this job
+    'sortOrder', // Array with the orders of tasks for the job
+    'taskTemplates', // Array of tasks if is custom project
+    'taskMeta', // Tasks specific data such as start time, end time, and status
+    'availStatuses', // Statuses available for this particular project
     'meta',
     'settings',
   ),

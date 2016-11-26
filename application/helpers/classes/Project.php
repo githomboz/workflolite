@@ -1,16 +1,17 @@
 <?php
 
 require_once 'Meta.php';
+require_once 'Task2.php';
 require_once 'WorkflowFactory.php';
 
-class Job extends WorkflowFactory
+class Project extends WorkflowFactory
 {
 
   /**
    * The collection that this record belongs to
    * @var string
    */
-  protected static $_collection = 'jobs';
+  protected static $_collection = 'projects';
 
   private $tasks = array();
 
@@ -206,19 +207,82 @@ class Job extends WorkflowFactory
     }
   }
 
-  public function getAllTasks($grouped = false){
-    if($this->hasId()){
-      if(!empty($this->tasks)) return $this->tasks;
-      else {
-        $tasks = self::CI()->mdb->where('jobId', $this->id())->get(Task::CollectionName());
-        foreach($tasks as $i => $task) $this->acknowledgeTask(new Task($task));
-        $this->saveSortOrder();
-        $this->sort();
-        return $this->tasks;
-      }
+  public function getAllTasks(){
+    // Check if custom or template
+    $taskTemplates = null;
+    if($this->isCustom()){
+      // If custom, return local taskTemplates
+      $taskTemplates = $this->getValue('taskTemplates');
     } else {
-      throw new Exception('Tasks can not be pulled without an _id');
+      // If template, get template taskTemplates
+      $templateId = $this->getValue('templateId');
+      $template = Template::cacheGet($templateId);
+      if($template){
+        $taskTemplates = $template->getValue('taskTemplates');
+      }
     }
+    // Merge in appropriate taskMeta
+    $taskMeta = $this->getValue('taskMeta');
+    $tasks = array();
+    foreach($taskTemplates as $i => $taskTemplate){
+      if(isset($taskMeta[$taskTemplate['id']])) {
+        $task = array_merge($taskTemplate, $taskMeta[$taskTemplate['id']]);
+        // Convert to new Task() objects
+        $tasks[] = new Task2($task);
+      } else {
+        $tasks[] = new Task2($taskTemplate);
+      }
+    }
+    // Return tasks array
+    $this->tasks = $tasks;
+    return $tasks;
+  }
+
+  /**
+   * Whether or not this is a custom project or based upon a template
+   * @return bool
+   */
+  public function isCustom(){
+    $templateId = $this->getValue('templateId');
+    return empty($templateId);
+  }
+
+  public function getStatuses(){
+    $statuses = $this->get('availStatuses');
+    if(empty($statuses)){
+      return array(
+        array(
+          'status' => 'new',
+          'displayName' => 'New',
+          'description' => 'Task has not yet been started'
+        ),
+        array(
+          'status' => 'active',
+          'displayName' => 'Active',
+          'description' => 'Task has been started'
+        ),
+        array(
+          'status' => 'skipped',
+          'displayName' => 'Skipped (N/A)',
+          'description' => 'Task has been deemed inapplicable based upon configured dependancies'
+        ),
+        array(
+          'status' => 'force_skipped',
+          'displayName' => 'Skipped',
+          'description' => 'Task has been explicitly skipped by user'
+        ),
+        array(
+          'status' => 'completed',
+          'displayName' => 'Complete',
+          'description' => 'Task is complete'
+        ),
+        array(
+          'status' => 'deleted',
+          'displayName' => 'Deleted',
+          'description' => 'Task has been removed'
+        ),
+      );
+    } else return $statuses;
   }
 
   /**
@@ -431,7 +495,7 @@ class Job extends WorkflowFactory
   }
 
   public function getUrl(){
-    return site_url('jobs/' . $this->id() . '/tasks');
+    return site_url('projects/' . $this->id() . '/tasks');
   }
 
   public static function Get($id){
@@ -472,8 +536,13 @@ class Job extends WorkflowFactory
   }
 
   public static function Create($data){
+
+    // Check if template is set
+    // If template is set, set template id
+
+
     // Create Job
-    $jobData = array(
+    $projectData = array(
       'dateAdded' => new MongoDate(),
       'name' => $data['name'],
       'dueDate' => null,
@@ -483,35 +552,20 @@ class Job extends WorkflowFactory
       'organizationId' => isset($data['organizationId']) ? $data['organizationId'] : UserSession::Get_Organization()->id(),
       'viewableContacts' => array(),
       'meta' => array(),
+      'taskTemplates' => array(),
+      'taskMeta' => array(),
       'notes' => array(),
-      'workflowId' => _id($data['workflowId']),
+      'templateId' => null,
       'sortOrder' => array()
     );
-    $jobId = parent::Create($jobData);
 
-    // Get Tasks Templates
-    $workflow = Workflow::Get($data['workflowId']);
-    $templates = $workflow->getTemplates();
-
-    foreach($templates as $taskTemplate){
-      $taskData = array(
-        'dateAdded' => new MongoDate(),
-        'taskTemplateId' => $taskTemplate->id(),
-        'organizationId' => $jobData['organizationId'],
-        'jobId' => $jobId,
-        'workflowId' => $data['workflowId'],
-        'activeUsers' => array(),
-        'assigneeId' => array(),
-        'triggers' => array(),
-        'status' => 'new',
-        'comments' => ''
-      );
-      Task::Create($taskData);
+    if(isset($data['templateId']) && !empty($data['templateId'])) {
+      $projectData['templateId'] = _id($data['templateId']);
     }
 
+    $projectId = parent::Create($projectData);
 
-    // Create Tasks
-    return $jobId;
+    return $projectId;
   }
 
   public function meta(){

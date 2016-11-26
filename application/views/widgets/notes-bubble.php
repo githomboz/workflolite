@@ -4,11 +4,11 @@
     $show_tags = true;
     include '_notes-form.php'; ?>
     <?php
-    $notes = job()->getNotes();
+    $notes = entity()->getNotes();
     $notes_limit = 5;
     ?>
     <?php include '_notes-list.php'; ?>
-    <a href="<?php echo site_url('jobs/' . $this->job->id() . '/notes') ?>" class="more">more notes <i class="fa fa-caret-down"></i></a>
+    <a href="<?php echo site_url((entity() instanceof Project ? 'projects' : 'jobs'). '/' . entity()->id() . '/notes') ?>" class="more">more notes <i class="fa fa-caret-down"></i></a>
   </div>
 </div>
 <script type="application/javascript">
