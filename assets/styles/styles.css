@@ -1683,16 +1683,25 @@ span.checkbox {
     .tasklist .task-style a.fa-pencil {
       color: #7f7f7f;
       display: none; }
+    .tasklist .task-style .task-option-links {
+      display: none; }
+    .tasklist .task-style:hover .task-option-links {
+      display: inline; }
     .tasklist .task-style .checkbox {
       margin-right: 8px; }
     .tasklist .task-style.overdue .col-title {
       color: #cc0000; }
     .tasklist .task-style.completed .col-title:hover a.fa-pencil {
       display: none; }
-    .tasklist .task-style .task-settings {
+    .tasklist .task-style .task-settings,
+    .tasklist .task-style .task-drag {
       color: #c9c9c9;
       position: relative;
-      left: 10px; }
+      left: 10px;
+      font-size: 13px; }
+      .tasklist .task-style .task-settings.fa-cog,
+      .tasklist .task-style .task-drag.fa-cog {
+        padding-left: 5px; }
     .tasklist .task-style .col-title {
       position: absolute;
       top: 0;

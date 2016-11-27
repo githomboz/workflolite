@@ -1,7 +1,9 @@
 <nav class="clearfix">
   <ul>
     <?php
-    $navItems = array('dashboard','workflows','jobs','templates','projects','contacts','users','search');
+    $navItems = array('dashboard',
+      //'workflows','jobs',
+    'templates','projects','contacts','users','search');
     foreach($navItems as $navItem){
       $active = $this->navSelected == $navItem;
       if(!$active) {

@@ -51,7 +51,7 @@ class Template extends WorkflowFactory
   }
 
   public function projectCount(){
-    return self::CI()->mdb->where(array('templateId' => $this->id()))->count(Job::CollectionName());
+    return self::CI()->mdb->where(array('templateId' => $this->id()))->count(Project::CollectionName());
   }
 
   public function taskCount(){

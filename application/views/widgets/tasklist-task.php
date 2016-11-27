@@ -12,7 +12,10 @@
 <div class="task-style task-<?php echo $task->id(); ?> <?php echo $task->isComplete() ? 'completed' : ''?> <?php echo $task->isStarted() ? 'started' : ''?>"
      data-task_id="<?php echo $task->id(); ?>"
 >
-  <a href="#" class="fa fa-cog task-settings"></a>
+  <span class="task-option-links">
+    <a href="#" class="fa fa-reorder task-drag"></a>
+    <a href="#" class="fa fa-cog task-settings"></a>
+  </span>
   <div class="task-settings-popup">
     <?php
     // Estimated Time

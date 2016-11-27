@@ -357,7 +357,7 @@ function post_note(){
         'type' =>  $data['author']['type'],
         'shortName' => $user->getValue('firstName') . ' ' . substr($user->getValue('lastName'), 0, 1) . '.'
       ),
-      'content' => $data['note'],
+      'content' => nl2br($data['note']),
       'verb' => '',
       'noun' => '',
       'currentTaskId' => $entity->getNextTask()->id(),
@@ -372,6 +372,10 @@ function post_note(){
       }
 
     }
+
+    $response['response']['test'] = array(
+      $data['note'], strlen($data['note']), nl2br($data['note']), strlen(nl2br($data['note']))
+    );
 
     $note['id'] = $entity->addNote($note);
 

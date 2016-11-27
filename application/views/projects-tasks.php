@@ -6,6 +6,10 @@
         <h1><i class="fa fa-tasks"></i> Tasks</h1>
         <h4>A comprehensive list of the tasks required to complete this project.</h4>
 
+        <div class="inner-nav-btns">
+            <a href="#" class="btn js-add-task"><i class="fa fa-plus"></i> Add a Task</a>
+        </div>
+
         <?php
             $showableTasksGrouped = $this->project->getShowableTasks(true);
             $showableTasks = array();

@@ -741,11 +741,21 @@ $tasklist_height : 36px;
     &:last-child {
       border-bottom: none;
     }
-    
+
     a.fa-pencil {
       color: $sidepanel_color_light;
       display: none;
 
+    }
+
+    .task-option-links {
+      display: none;
+    }
+
+    &:hover {
+      .task-option-links {
+        display: inline;
+      }
     }
 
     .checkbox {
@@ -770,13 +780,20 @@ $tasklist_height : 36px;
         &:hover a.fa-pencil {
           //display: none !important;
         }
+
       }
     }
 
-    .task-settings {
+    .task-settings,
+    .task-drag {
       color: $gray;
       position: relative;
       left: 10px;
+      font-size: $font-size-sm;
+
+      &.fa-cog {
+        padding-left: 5px;
+      }
     }
 
     .col-title {
