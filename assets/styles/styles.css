@@ -1661,14 +1661,16 @@ span.checkbox {
     font-weight: 600;
     color: #555;
     -webkit-border-radius: 6px;
-            border-radius: 6px; }
+            border-radius: 6px;
+    margin-bottom: 10px; }
     .tasklist .task-head .expander {
       font-size: 20px;
       color: #555;
       margin-left: 10px;
       line-height: 36px; }
   .tasklist .task-body {
-    display: block; }
+    display: block;
+    margin-bottom: 18px; }
     .tasklist .task-body.collapse {
       display: none; }
   .tasklist .task-style {
@@ -1676,6 +1678,8 @@ span.checkbox {
     height: 36px;
     font-size: 13px;
     border-bottom: 1px solid #f2f2f2; }
+    .tasklist .task-style:last-child {
+      border-bottom: none; }
     .tasklist .task-style a.fa-pencil {
       color: #7f7f7f;
       display: none; }
@@ -2745,19 +2749,23 @@ span.checkbox {
       position: relative;
       right: -40px; }
 
-.jobs-notes-page .notes-search-results-message {
+.jobs-notes-page .notes-search-results-message,
+.projects-notes-page .notes-search-results-message {
   margin-bottom: 18px;
   font-style: italic; }
 
-.jobs-notes-page .main-column {
+.jobs-notes-page .main-column,
+.projects-notes-page .main-column {
   float: left;
   max-width: 72%;
   width: 100%; }
 
-.jobs-notes-page .cs-add-note-form {
+.jobs-notes-page .cs-add-note-form,
+.projects-notes-page .cs-add-note-form {
   margin-bottom: 30px; }
 
-.jobs-notes-page .cs-note.author-me:hover .author-links {
+.jobs-notes-page .cs-note.author-me:hover .author-links,
+.projects-notes-page .cs-note.author-me:hover .author-links {
   display: block; }
 
 .inset-widgets {

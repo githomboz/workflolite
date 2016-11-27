@@ -4,6 +4,8 @@
     <h1><i class="fa fa-sticky-note-o"></i>Notes & Messages</h1>
     <h4>Keep track of important notes related to this job.</h4>
 
+    <?php //var_dump(project()->saveTasks()) ?>
+
     <div class="main-column">
       <?php
       if($searchTerm = $this->input->get('s')){
@@ -64,7 +66,8 @@
     var $el = $(this),
       json =  $el.parents('.cs-note').data('payload'),
       post = {
-        jobId : _CS_Get_Job_ID(),
+        entityId : _CS_Get_Entity_ID(),
+        type : _CS_Get_Entity(),
         noteId : $el.data('id'),
         tags : typeof json.tags != 'undefined' ? json.tags : []
       };
@@ -135,7 +138,7 @@
 
 
   var _handleNoteDeleted = function(topic, data){
-    $(".jobs-notes-page .note-" + data.noteId).fadeOut();
+    $("."+(_CS_Get_Entity() == 'Project' ? 'projects' : 'jobs')+"-notes-page .note-" + data.noteId).fadeOut();
   };
 
   PubSub.subscribe('jobNote.deleted', _handleNoteDeleted);

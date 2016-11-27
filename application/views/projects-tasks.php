@@ -88,11 +88,15 @@
     $(document).on('click', ".checkbox", function(){
         var $checkbox = $(this), $task = $checkbox.parents('.task-style');
         if($checkbox.is('.clickable') && _validateMarkTaskCompleteData()){
-            if(confirm('Are you sure you want to mark task "' + $task.find('.task-name').text() + '" complete?')){
-                _ajaxMarkTaskComplete({
-                    'taskId' : $task.data('task_id'),
-                });
-            }
+            if(alertify.confirm('Confirm Request', 'Are you sure you want to mark task "' + $task.find('.task-name').text() + '" complete?', function(){
+                  _ajaxMarkTaskComplete({
+                      taskId : $task.data('task_id'),
+                      entityId : _CS_Get_Entity_ID(),
+                      type : _CS_Get_Entity()
+                  });
+              }, function(){
+
+              }));
         }
         return false;
     });
@@ -100,11 +104,15 @@
     $(document).on('click', ".js-mark-complete", function(){
         var $this = $(this), $task = $this.parents('.task-style');
         if(_validateMarkTaskCompleteData()){
-            if(confirm('Are you sure you want to mark task "' + $task.find('.task-name').text() + '" complete?')){
-                _ajaxMarkTaskComplete({
-                    'taskId' : $task.data('task_id'),
-                });
-            }
+            if(alertify.confirm('Confirm Request', 'Are you sure you want to mark task "' + $task.find('.task-name').text() + '" complete?', function(){
+                  _ajaxMarkTaskComplete({
+                      taskId : $task.data('task_id'),
+                      entityId : _CS_Get_Entity_ID(),
+                      type : _CS_Get_Entity()
+                  });
+              }, function(){
+
+              }));
         }
         return false;
     });
@@ -112,7 +120,9 @@
     $(document).on('click', '.task-style .start-task', function () {
         var $this = $(this), taskId = $this.attr('href').split('-')[1];
         _ajaxStartTask({
-            taskId : taskId
+            taskId : taskId,
+            entityId : _CS_Get_Entity_ID(),
+            type : _CS_Get_Entity()
         });
     });
 
@@ -120,7 +130,9 @@
         var $this = $(this), taskId = $this.attr('href').split('-')[1];
         var $task = _getTaskRow_JobTasks(taskId);
         var data = {
-            task : $task
+            task : $task,
+            entityId : _CS_Get_Entity_ID(),
+            type : _CS_Get_Entity()
         };
         _htmlUpdateShowCommentForm(data);
     });
@@ -138,10 +150,12 @@
         if(val.trim() != ''){
             _ajaxSaveTaskComment({
                 taskId : taskId,
-                comments : val
+                comments : val,
+                entityId : _CS_Get_Entity_ID(),
+                type : _CS_Get_Entity()
             });
         } else {
-            alert('You must enter a comment to save');
+            alertify.alert('You must enter a comment to save')
         }
     });
 
@@ -154,7 +168,12 @@
     }
 
     function _ajaxSaveTaskComment(data){
-        var $task = _getTaskRow_JobTasks(data.taskId), $btn = $task.find('.js-save-comment');
+        var $task = _getTaskRow_JobTasks(data.taskId),
+          $btn = $task.find('.js-save-comment');
+
+          data.entityId = _CS_Get_Entity_ID();
+          data.type = _CS_Get_Entity();
+
         CS_API.call('ajax/save_comment',
           function(){ // beforeSend
               $btn.addClass('sidepanel-bg');
@@ -179,6 +198,8 @@
     }
 
     function _ajaxStartTask(taskData){
+        taskData.entityId = _CS_Get_Entity_ID();
+        taskData.type = _CS_Get_Entity();
         CS_API.call('ajax/start_task',
           function(){ // beforeSend
           },
@@ -186,6 +207,8 @@
               // success
               if(data.errors == false){
                   PubSub.publish('taskChange.taskStarted', data.response);
+              } else {
+
               }
           },
           function(){ // error
@@ -201,6 +224,8 @@
     function _ajaxMarkTaskComplete(taskData){
         var $task = _getTaskRow_JobTasks(taskData.taskId);
         var $checkbox = $task.find('.checkbox');
+        taskData.entityId = _CS_Get_Entity_ID();
+        taskData.type = _CS_Get_Entity();
 
         CS_API.call('ajax/mark_complete',
           function(){

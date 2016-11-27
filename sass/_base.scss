@@ -713,6 +713,7 @@ $tasklist_height : 36px;
     font-weight: $font-weight-semi-bold;
     color: $sidepanel_color_dark;
     border-radius: 6px;
+    margin-bottom: $padding;
 
     .expander {
       font-size: 20px;
@@ -724,7 +725,8 @@ $tasklist_height : 36px;
   
   .task-body {
     display: block;
-    
+    margin-bottom: $paddingLarge;
+
     &.collapse {
       display: none;
     }
@@ -736,6 +738,10 @@ $tasklist_height : 36px;
     font-size: $font-size-sm;
     border-bottom: 1px solid $sidepanel_bg;
 
+    &:last-child {
+      border-bottom: none;
+    }
+    
     a.fa-pencil {
       color: $sidepanel_color_light;
       display: none;

@@ -78,6 +78,7 @@
       $metaContainer = $btn.parents('.meta-type-form'),
       metaType = $metaContainer.data('type'),
       post = {
+        type : _CS_Get_Entity(),
         record : $metaContainer.data('record'),
         collection : $metaContainer.data('collection'),
         field : $metaContainer.data('slug'),

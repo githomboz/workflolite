@@ -40,6 +40,7 @@
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_RenderBuddy.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/setTimeout.polyfill.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/main.js"></script>
   <link rel="shortcut icon" href="<?php echo base_url()?>favicon.png" type="image/x-icon">
   <link rel="icon" href="<?php echo base_url()?>favicon.png" type="image/x-icon">
   <title><?php echo config_item('site_name'); if(isset($this->page_header['header'])) echo '| '. $this->page_header['header'] ?></title>
@@ -48,9 +49,9 @@
   <?php if(UserSession::loggedIn()){ ?>
   data-organization="<?php echo UserSession::Get_Organization()->id()?>"
   data-workflow="<?php if(workflow()) echo workflow()->id()?>"
-  data-template="<?php echo template()->id()?>"
-  data-entity_type="<?php echo entity() instanceof Project ? 'project' : 'other'?>"
-  data-entity="<?php echo entity()->id()?>"
+  data-template="<?php if(template()) echo template()->id()?>"
+  data-entity_type="<?php echo entity() ? (entity() instanceof Project ? 'Project' : 'Job') : null?>"
+  data-entity="<?php if(entity()) echo entity()->id()?>"
   data-job="<?php if(job()) echo job()->id()?>"
   data-user="<?php echo UserSession::Get_User()->id()?>"
   <?php } ?>

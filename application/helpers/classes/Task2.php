@@ -24,10 +24,13 @@ class Task2
    */
   protected $steps = array();
 
-  public function __construct(array $data){
+  protected $project = null;
+
+  public function __construct(array $data, Project $project){
     // Needs to run before _initialize
     if(isset($data['id'])) $data['taskId'] = $data['id'];
     $this->_initialize($data);
+    $this->project = $project;
     //var_dump($this->_current);
   }
 
@@ -117,21 +120,21 @@ class Task2
   public function start(){
     $update = array(
       'startDate' => new MongoDate(),
-      'status' => Task::$statusActive
+      'status' => Task2::$statusActive
     );
     $this->_current = array_merge($this->_current, $update);
-    return self::Update($this->id(), $update);
+    return $this->update();
   }
 
   public function complete(){
     $update = array(
       'completeDate' => new MongoDate(),
-      'status' => Task::$statusComplete
+      'status' => Task2::$statusComplete
     );
     $this->_current = array_merge($this->_current, $update);
     $this->runPostRoutines();
     $this->queueTriggers();
-    return self::Update($this->id(), $update);
+    return $this->update();
   }
 
   public function clearStart(){
@@ -139,7 +142,7 @@ class Task2
       'startDate' => null,
     );
     $this->_current = array_merge($this->_current, $update);
-    return self::Update($this->id(), $update);
+    return $this->update();
   }
 
   public function clearComplete(){
@@ -147,7 +150,20 @@ class Task2
       'completeDate' => null,
     );
     $this->_current = array_merge($this->_current, $update);
-    return self::Update($this->id(), $update);
+    return $this->update();
+  }
+
+  public function setComments($comments){
+    $this->_current['comments'] = trim($comments);
+    $this->update();
+  }
+
+  public function update(){
+    return $this->project->setTask($this->id(), $this->_current);
+  }
+
+  public function getCurrent(){
+    return $this->_current;
   }
 
   /**
@@ -218,7 +234,7 @@ class Task2
     return self::GetStatusText($this->getValue('status'));
   }
 
-  private function _mergeTemplateToTask(TaskTemplate $template){
+  private function _mergeTemplateToTask(TaskTemplate2 $template){
     $template = $template->getCurrent();
 
     // Merge triggers

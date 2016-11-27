@@ -2,7 +2,7 @@
     <div class="main-mid-section-inner clearfix">
 
         <h1><i class="fa fa-users"></i>Interested Parties</h1>
-        <h4>Manage this projects's contacts and communication options.</h4>
+        <h4>Manage this projects's contacts and their individual communication options.</h4>
         <div class="inner-nav-btns">
             <a href="#" class="btn-sync-contacts btn"><i class="fa fa-refresh"></i> Sync Contacts</a>
         </div>
@@ -61,7 +61,8 @@
           $form = $button.parents('.people-form'),
           contact = {
               organizationId : _CS_Get_Organization_ID(),
-              jobId : _CS_Get_Job_ID(),
+              entityId : _CS_Get_Entity_ID(),
+              type : _CS_Get_Entity(),
               contactId : $form.find('[name=contactId]').val(),
               name : $form.find('[name=name]').val(),
               role : $form.find('[name=role]').val(),
@@ -100,7 +101,8 @@
     $(document).on("click", ".people.entry .fa-times", function(e){
         var $this = $(this), post = {
             contactId: $this.attr('href').split('-')[1],
-            jobId: _CS_Get_Job_ID()
+            entityId : _CS_Get_Entity_ID(),
+            type : _CS_Get_Entity()
         };
         alertify.confirm('Confirm', 'Are you sure you want to remove this contact the job?', function(){
             CS_API.call(
@@ -113,7 +115,7 @@
                       PubSub.publish('contactsChange.contactRemoved', post);
                       alertify.success('Contact Removed');
                   } else {
-                      alertify.error('An error has occurred while attempting to remove your contact')
+                      alertify.error('An error has occurred while attempting to remove your contact');
                   }
               },
               function(){
@@ -133,6 +135,7 @@
     });
 
     function _validateAddContactData(data, action){
+        console.log(data);
         var fieldsNotSet = [],
           action = action || 'add';
         for(var field in data){
