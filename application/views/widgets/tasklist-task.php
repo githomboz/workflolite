@@ -23,7 +23,7 @@
             <?php
             if(!isset($users)) $users = array();
             foreach((array)$users as $user){
-              echo '<option value="'. (string) $user->id() .'">' . $user->getName() . '</option>';
+              echo '<option value="'. (string) $user->id() .'">' . $user->getName() . '</option>'; 
             }
             ?>
           </select>
