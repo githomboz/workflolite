@@ -17,6 +17,10 @@ class User extends WorkflowFactory
     $this->_initialize($data, $fullLoad);
   }
 
+  public function getName(){
+    return $this->getValue('firstName') . ' ' . $this->getValue('lastName');
+  }
+
   /**
    * Return the data that is put into session variable
    */

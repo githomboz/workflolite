@@ -78,6 +78,19 @@ class Organization extends WorkflowFactory
     }
   }
 
+  public function getUsers(){
+    if($this->hasId()){
+      if(!empty($this->users)) return $this->users;
+      else {
+        $users = self::CI()->mdb->where('organizationId', $this->id())->get(User::CollectionName());
+        foreach($users as $user) $this->users[] = new User($user);
+        return $this->users;
+      }
+    } else {
+      throw new Exception('Projects can not be pulled without an _id');
+    }
+  }
+
   public function searchContactsByName($string, $limit = 10, $field = 'name'){
 //    $query = array(
 //      'organizationId' => $this->getValue('organizationId'),

@@ -425,6 +425,11 @@ span.checkbox {
   text-align: center;
   line-height: 22px;
   font-size: 14px;
+  cursor: default;
+
+  &.clickable {
+    cursor: pointer;
+  }
 
   &.clickable:hover {
     background: darken($sidepanel_bg, 10%);
@@ -436,6 +441,7 @@ span.checkbox {
     background: lighten($mainhead_bgcolor, 55%);
     border: 1px solid darken($mainhead_bgcolor, 1%);
     color: darken($mainhead_bgcolor, 1%) !important;
+    cursor: default;
   }
 }
 
@@ -738,6 +744,53 @@ $tasklist_height : 36px;
     font-size: $font-size-sm;
     border-bottom: 1px solid $sidepanel_bg;
 
+    .task-settings-widget {
+      min-width: 315px;
+      background: #fff;
+      position: absolute;
+      top: 34px;
+      left: 9px;
+      display: none;
+      z-index: 20;
+
+      form {
+        padding: $padding;
+
+        .field {
+          margin-bottom: $padding;
+          position: relative;
+
+          &.select {
+            margin-bottom: 0;
+          }
+
+          &.links {
+            text-align: right;
+            margin-bottom: 0;
+          }
+
+          .form-field {
+            position: absolute;
+            top: 0;
+            right: 0;
+          }
+        }
+        label {
+          width: 50%;
+          display: inline-block;
+        }
+      }
+
+      &.active {
+        display: block;
+      }
+
+      &:after {
+        left: 13px;
+        top: -7px;
+      }
+    }
+
     &:last-child {
       border-bottom: none;
     }
@@ -750,11 +803,30 @@ $tasklist_height : 36px;
 
     .task-option-links {
       display: none;
+
+      &.clicked {
+        display: block;
+
+        .fa-cog.active {
+          display: inline;
+          color: darken($sidepanel_color_dark,0);
+
+          &:hover {
+            color: darken($sidepanel_color_dark,0);
+          }
+
+        }
+
+      }
     }
 
     &:hover {
       .task-option-links {
         display: inline;
+
+        .fa-cog:hover {
+          color: lighten($sidepanel_color_dark,25%);
+        }
       }
     }
 

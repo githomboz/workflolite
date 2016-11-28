@@ -1455,7 +1455,11 @@ span.checkbox {
   color: #d9d9d9;
   text-align: center;
   line-height: 22px;
-  font-size: 14px; }
+  font-size: 14px;
+  cursor: default; }
+  a.checkbox.clickable,
+  span.checkbox.clickable {
+    cursor: pointer; }
   a.checkbox.clickable:hover,
   span.checkbox.clickable:hover {
     background: #d9d9d9;
@@ -1465,7 +1469,8 @@ span.checkbox {
   span.checkbox.checked {
     background: #e7f2e5;
     border: 1px solid #447d3d;
-    color: #447d3d !important; }
+    color: #447d3d !important;
+    cursor: default; }
 
 .send-message {
   padding: 18px;
@@ -1678,6 +1683,36 @@ span.checkbox {
     height: 36px;
     font-size: 13px;
     border-bottom: 1px solid #f2f2f2; }
+    .tasklist .task-style .task-settings-widget {
+      min-width: 315px;
+      background: #fff;
+      position: absolute;
+      top: 34px;
+      left: 9px;
+      display: none;
+      z-index: 20; }
+      .tasklist .task-style .task-settings-widget form {
+        padding: 10px; }
+        .tasklist .task-style .task-settings-widget form .field {
+          margin-bottom: 10px;
+          position: relative; }
+          .tasklist .task-style .task-settings-widget form .field.select {
+            margin-bottom: 0; }
+          .tasklist .task-style .task-settings-widget form .field.links {
+            text-align: right;
+            margin-bottom: 0; }
+          .tasklist .task-style .task-settings-widget form .field .form-field {
+            position: absolute;
+            top: 0;
+            right: 0; }
+        .tasklist .task-style .task-settings-widget form label {
+          width: 50%;
+          display: inline-block; }
+      .tasklist .task-style .task-settings-widget.active {
+        display: block; }
+      .tasklist .task-style .task-settings-widget:after {
+        left: 13px;
+        top: -7px; }
     .tasklist .task-style:last-child {
       border-bottom: none; }
     .tasklist .task-style a.fa-pencil {
@@ -1685,8 +1720,17 @@ span.checkbox {
       display: none; }
     .tasklist .task-style .task-option-links {
       display: none; }
+      .tasklist .task-style .task-option-links.clicked {
+        display: block; }
+        .tasklist .task-style .task-option-links.clicked .fa-cog.active {
+          display: inline;
+          color: #555555; }
+          .tasklist .task-style .task-option-links.clicked .fa-cog.active:hover {
+            color: #555555; }
     .tasklist .task-style:hover .task-option-links {
       display: inline; }
+      .tasklist .task-style:hover .task-option-links .fa-cog:hover {
+        color: #959595; }
     .tasklist .task-style .checkbox {
       margin-right: 8px; }
     .tasklist .task-style.overdue .col-title {

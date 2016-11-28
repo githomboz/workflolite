@@ -57,6 +57,8 @@
                 </div>
                 <div class="task-body group-<?php echo md5($taskGroup) ?>">
                     <?php
+                    $users = organization()->getUsers();
+                    //var_dump($users);
                     foreach($tasks as $i => $task){
                         include 'widgets/tasklist-task.php';
                     } ?>
@@ -71,6 +73,32 @@
 <script type="text/javascript">
 
     var TASK_CACHE = {};
+
+    $(document).on('click', ".task-option-links .task-settings", function(e){
+        var $btn = $(this),
+          $task = $btn.parents('.task-style'),
+          $widget = $task.find('.task-settings-widget'),
+          $linksContainer = $task.find('.task-option-links');
+        e.preventDefault();
+
+
+        if($btn.is('.active')){
+            // Unclick
+            $btn.removeClass('active');
+            $widget.removeClass('active');
+            $linksContainer.removeClass('clicked');
+        } else {
+            // Close all others
+            $('.task-option-links .task-settings').removeClass('active');
+            $('.task-settings-widget').removeClass('active');
+            $('.task-option-links').removeClass('clicked');
+            // Click
+            $btn.addClass('active');
+            $widget.addClass('active');
+            $linksContainer.addClass('clicked');
+        }
+
+    });
 
     $(document).on('click', ".cs-group-expander", function(){
         var
@@ -312,7 +340,6 @@
         $commentContent.removeClass('no-comment');
         $commentContent.find('.comment').html(taskData.comments);
     }
-
 
     PubSub.subscribe('taskChange.taskStarted', _htmlUpdateStartTask);
     PubSub.subscribe('taskChange.taskComplete', _htmlUpdateMarkComplete);
