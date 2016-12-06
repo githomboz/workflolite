@@ -1183,6 +1183,9 @@ body, html {
   color: #555;
   height: 100%; }
 
+em {
+  font-weight: 600; }
+
 .clearfix:after {
   content: '';
   display: block;
@@ -2056,7 +2059,14 @@ span.checkbox {
 .widget > h2 {
   font-weight: 600;
   line-height: 2em;
-  margin-bottom: .5em; }
+  margin-bottom: .5em;
+  position: relative; }
+  .widget > h2 .js-add-task-template-btn {
+    font-weight: 300;
+    color: #4992d0;
+    position: absolute;
+    top: 0;
+    right: 0; }
 
 .templates-list {
   width: 60%;
@@ -2064,6 +2074,9 @@ span.checkbox {
   .templates-list.selected .template.entry .entry.preview {
     opacity: .4;
     cursor: auto; }
+  .templates-list .template.entry.new {
+    background: #ebf3fa;
+    border-color: #9ac3e5 !important; }
   .templates-list .template.entry .entry {
     position: relative; }
     .templates-list .template.entry .entry.form {
@@ -2166,6 +2179,68 @@ span.checkbox {
   .create-job-form [name=name] {
     margin-bottom: 18px;
     width: 60%; }
+
+.modal-container {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 8;
+  display: none; }
+  .modal-container.active {
+    display: block; }
+
+.js-job-change-dialog {
+  background: #fff;
+  width: 500px;
+  margin: 100px auto 0;
+  z-index: 10;
+  border: 1px solid #737373; }
+  .js-job-change-dialog .form {
+    margin-top: 8px;
+    display: none; }
+    .js-job-change-dialog .form button {
+      padding: 4px 4px 5px;
+      font-size: 13px;
+      position: relative;
+      top: -2px; }
+  .js-job-change-dialog .current-template {
+    display: block;
+    padding-bottom: 8px;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2); }
+  .js-job-change-dialog .option {
+    border-bottom: 1px dashed #bfbfbf;
+    padding-bottom: 10px;
+    opacity: .4; }
+    .js-job-change-dialog .option:last-child {
+      border-bottom: none; }
+    .js-job-change-dialog .option.active {
+      opacity: 1; }
+      .js-job-change-dialog .option.active .form {
+        display: block; }
+  .js-job-change-dialog.options-not-active .option {
+    opacity: 1; }
+  .js-job-change-dialog h1 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3em;
+    margin-bottom: 0; }
+  .js-job-change-dialog p {
+    font-size: 13px;
+    line-height: 1.4em; }
+    .js-job-change-dialog p .js-job-change-action {
+      color: #4992d0; }
+      .js-job-change-dialog p .js-job-change-action:hover {
+        color: #2a6ba3; }
+  .js-job-change-dialog label {
+    font-size: 13px;
+    line-height: 1em;
+    position: relative;
+    top: -2px;
+    margin-right: 10px; }
 
 .inner-nav-btns {
   position: absolute;

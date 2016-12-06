@@ -122,17 +122,6 @@ class WorkflowFactory extends WorkflowInterface
   }
 
   /**
-   * Load workflow for this element
-   * @return $this
-   */
-  public function loadTemplate(){
-    if(isset($this->_current['templateId']) && !isset($this->template)){
-      $this->template = new Template(self::LoadRecord($this->_current['templateId'], Template::CollectionName()));
-    }
-    return $this;
-  }
-
-  /**
    * Load task for this element
    * @return $this
    */
@@ -147,6 +136,15 @@ class WorkflowFactory extends WorkflowInterface
     return $this->_current;
   }
 
+  public function getFields(array $fields = null){
+    $fields = !empty($fields) ? $fields : array();
+    $data = array();
+    foreach($this->_current as $field => $value){
+      if(in_array($field, $fields)) $data[$field] = $value;
+    }
+    return $data;
+  }
+  
   /**
    * Update data within this entity
    * @param array $data

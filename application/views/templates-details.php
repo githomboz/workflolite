@@ -5,66 +5,15 @@
     <h4><?php echo $this->template->getValue('description') ?></h4>
 
     <div class="inner-nav-btns">
-      <a href="#" class="btn"><i class="fa fa-plus"></i> Create a Template</a>
+      <a href="#" class="btn"><i class="fa fa-plus"></i> Create a Project</a>
     </div>
     <div class="templates-list widget">
-      <h2>Task Templates: </h2>
-
-    <?php $templates = $this->template->getTemplates(); //var_dump($templates);
-    foreach($templates as $template){?>
-      <div class="template entry template-<?php echo $template->id() ?>" >
-        <a href="#tasktemplate-<?php echo $template->id() ?>" class="dark sidepanel-bg boxed preview entry clearfix">
-          <h2><i class="fa fa-chevron-right"></i> <?php $group = (string) $template->getValue('taskGroup'); echo (trim($group) == '' ? '' : $group . ': ') . $template->getValue('name') ?></h2>
-        </a>
-        <div class="sidepanel-bg boxed form entry clearfix">
-          <h2><i class="fa fa-chevron-down"></i>  <?php $group = (string) $template->getValue('taskGroup'); echo (trim($group) == '' ? '' : $group . ': ') .$template->getValue('name') ?></h2>
-          <div class="link-group">
-            <a href="#" class="js-delete-task"><i class="fa fa-trash"></i> Delete</a>
-            <a href="#" class="js-cancel-edit"><i class="fa fa-times"></i> Cancel</a>
-          </div>
-          <form method="post">
-            <div class="aside">
-              <div class="form-input"><input type="checkbox" name="milestone" id="milestoneField-<?php echo $template->id() ?>" /> <label for="milestoneField-<?php echo $template->id() ?>">Is this a milestone?</label></div>
-              <div class="form-input"><input type="checkbox" name="clientView" id="clientViewField-<?php echo $template->id() ?>"/> <label for="clientViewField-<?php echo $template->id() ?>">Display in client portal?</label></div>
-              <button type="submit" class="btn submit"><i class="fa fa-save"></i> Update</button>
-            </div>
-            <div class="form-group">
-              <label>Group Label: </label>
-              <input type="text" placeholder="Enter a group name to categorize this task" value="<?php echo $template->getValue('taskGroup') ?>" />
-            </div>
-            <div class="form-group">
-              <label>Task Name: </label>
-              <input type="text" placeholder="Enter a task name" value="<?php echo $template->getValue('name') ?>" />
-            </div>
-            <div class="form-group">
-              <label>Description: </label>
-              <textarea placeholder="Explain what this task is in layman's terms"><?php echo $template->getValue('description') ?></textarea>
-            </div>
-            <div class="form-group">
-              <label>Instructions: </label>
-              <textarea placeholder="Chart out what needs to be done"><?php echo $template->getValue('instructions') ?></textarea>
-            </div>
-            <div class="form-group">
-              <label>Est. Time (hrs): </label>
-              <input type="text" placeholder="Number of hours this task should take" value="<?php echo $template->getValue('estimatedTime') ?>" />
-            </div>
-            <div class="form-group">
-              <label>Sort Order: </label>
-              <select name="sortPosition">
-                <option value="after">After</option>
-                <option value="before">Before</option>
-              </select>
-              <select name="sortTask">
-                <?php foreach($templates as $i => $template){?>
-                  <option value="<?php echo $template->id() ?>" <?php if($i == (count($templates)-1)) echo 'selected="selected"'?>><?php echo $template->getValue('name') ?></option>
-                <?php } ?>
-              </select>
-
-            </div>
-          </form>
-        </div>
+      <h2>Task Templates: <a href="#" class="js-add-task-template-btn">+ Add Task</a> </h2>
+      <div class="task-single"></div>
+      <div class="task-list">
+        <?php $templates = template()->getTemplates(); //var_dump($templates);
+        foreach($templates as $template) include 'widgets/_task-template-details.php'; ?>
       </div>
-    <?php } ?>
     </div><!--/.templates-list-->
 
     <div class="roles-list entities-list widget">
@@ -74,7 +23,7 @@
           <label for="roleField">New Role</label> <input type="text" id="roleField" name="role" placeholder="Enter a Role" />
         </div>
         <button class="btn submit"><i class="fa fa-plus"></i> Add Role</button>
-        <?php $roles = (array) $this->template->getValue('roles'); ?>
+        <?php $roles = (array) template()->getValue('roles'); ?>
         <?php if(!empty($roles)){?>
         <div class="roles entities dynamic-list">
           <?php foreach($roles as $i => $role) {?>
@@ -163,7 +112,7 @@
           </form>
         </div>
         <button class="btn submit"><i class="fa fa-plus"></i> Add Meta Field</button>
-        <?php $metaFields = (array) $this->template->getValue('metaFields'); ?>
+        <?php $metaFields = (array) template()->getValue('metaFields'); ?>
         <?php if(!empty($metaFields)){  ?>
           <div class="meta-fields entities dynamic-list">
             <?php foreach($metaFields as $i => $metaField) { ?>
@@ -184,15 +133,17 @@
 
 <script type="text/javascript">
 
-  var $templateList = $('.templates-list');
+  var $templateList = $('.templates-list'),
+    newTaskFormVisible = false;
 
-  $(".template .entry.preview").click(function(){
+  $(document).on('click', ".template .entry.preview", function(){
     var $link = $(this),
       templateId = $link.attr('href').split('-')[1],
       $template = $(".template-" + templateId);
       selectTemplate($template, 300);
   });
-  $(".form .js-cancel-edit").click(function(){
+
+  $(document).on('click', ".form .js-cancel-edit", function(){
     var $this = $(this), $templateList = $this.parents('.templates-list');
     if($templateList.is(".selected")){
       $this.parents('.template').toggleClass('form-mode');
@@ -213,8 +164,6 @@
       $template.toggleClass('form-mode');
       $templateList.addClass('selected');
     }
-
-    console.log(templateId);
   }
 
   var selectedTemplate = window.location.hash.substr(1);
@@ -237,4 +186,44 @@
     $this.parents('form').find('.set-default').show();
     return false;
   });
+
+  function addNewTask(callback){
+    var $taskSingle = $(".templates-list .task-single");
+
+    CS_API.call(
+      '/ajax/task_template_form',
+      function(){
+        $taskSingle.html('<i class="fa fa-spinner fa-spin"></i>');
+        $(".template.entry").removeClass('form-mode');
+        newTaskFormVisible = true;
+      },
+      function(data){
+        if(data.errors == false){
+          $taskSingle.html(data.response);
+          if(typeof callback == 'function'){
+            callback();
+          }
+        }
+      },
+      function(){
+        alertify.error('An error has occured while attempting to add a new task');
+        newTaskFormVisible = false;
+      },
+      null,
+      {
+        method: 'GET',
+        preferCache : false
+      }
+    );
+  }
+
+  $(".js-add-task-template-btn").on('click', function(e){
+    e.preventDefault();
+    if(!newTaskFormVisible){
+      addNewTask(function(){
+        $(".templates-list.widget").addClass('selected');
+      });
+    }
+  });
+
 </script>

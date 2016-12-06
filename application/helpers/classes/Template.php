@@ -13,14 +13,42 @@ class Template extends WorkflowFactory
    */
   protected static $_collection = 'templates';
 
+  protected $_version = null;
+
   private static $taskTemplatesCache = array();
 
-  public function __construct(array $data)
+  public function __construct(array $data, $version = null)
   {
     parent::__construct();
+
+    $this->_version = is_numeric($version) ? (int) $version : (int) $data['version'];
+
     $this->_initialize($data);
+
+
     $this->sortMetaSettings();
     //$this->_temp_importTaskTemplates();
+  }
+
+  protected function _initialize(array $data){
+    $this->_current = $data;
+    if(isset($data['_id'])) $this->_id = $data['_id'];
+
+    // Bring in valid template data based upon versionData
+    if($this->_version != $data['version']){
+      if(isset($data['versionData']['v' . $this->_version])){
+        $versionData = $data['versionData']['v' . $this->_version];
+        $taskTemplates = isset($versionData['taskTemplateChanges']) ? $versionData['taskTemplateChanges'] : array();
+        unset($versionData['taskTemplateChanges']);
+        $this->_current = array_merge($this->_current, $versionData);
+
+        if(!empty($taskTemplates)){
+          // Process taskTemplate merge in
+        }
+      }
+
+    }
+
   }
 
   public function _temp_importTaskTemplates(){
@@ -41,6 +69,9 @@ class Template extends WorkflowFactory
     }
   }
 
+  public function name(){
+    return $this->getValue('name') . ($this->version() > 1 ? ' (v' . $this->version() . ')' : '');
+  }
 
   public function displayDetails(){
     $data = array(
@@ -70,33 +101,38 @@ class Template extends WorkflowFactory
     return $entities;
   }
 
-  public static function Get($id){
-    $record = static::LoadId($id, static::$_collection);
-    $class = __CLASS__;
-    return new $class($record);
+  public function version(){
+    return $this->_version;
   }
 
-  public static function cacheFlush($templateId = null){
+  public static function Get($id, $version = null){
+    $record = static::LoadId($id, static::$_collection);
+    $class = __CLASS__;
+    $version = (is_numeric($version) ? $version : $record['version']);
+    return new $class($record, $version);
+  }
+
+  public static function cacheFlush($templateId = null, $version = null){
     if($templateId){
       $templateId = (string) $templateId;
-      if(isset(self::$taskTemplatesCache[$templateId])) unset(self::$taskTemplatesCache[$templateId]);
+      if(isset(self::$taskTemplatesCache[$templateId.(is_numeric($version) ? '_v'.$version : '')])) unset(self::$taskTemplatesCache[$templateId]);
     } else {
       self::$taskTemplatesCache = array();
     }
   }
 
-  public static function cacheGet($templateId, $flush = false){
+  public static function cacheGet($templateId, $version = null, $flush = false){
     $templateId = (string) $templateId;
-    if($flush) self::cacheFlush($templateId);
-    if(isset(self::$taskTemplatesCache[$templateId])) return self::$taskTemplatesCache[$templateId];
-    $template = Template::Get($templateId);
-    if($template) self::cacheSet($templateId, $template);
+    if($flush) self::cacheFlush($templateId, $version);
+    if(isset(self::$taskTemplatesCache[$templateId.(is_numeric($version) ? '_v'.$version : '')])) return self::$taskTemplatesCache[$templateId.(is_numeric($version) ? '_v'.$version : '')];
+    $template = Template::Get($templateId, $version);
+    if($template) self::cacheSet($templateId, $version, $template);
     return $template;
   }
 
-  public static function cacheSet($templateId, $data){
+  public static function cacheSet($templateId, $version = null, $data){
     $templateId = (string) $templateId;
-    self::$taskTemplatesCache[$templateId] = $data;
+    self::$taskTemplatesCache[$templateId.(is_numeric($version) ? '_v'.$version : '')] = $data;
   }
 
   public function getUrl(){

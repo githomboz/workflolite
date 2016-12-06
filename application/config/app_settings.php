@@ -142,6 +142,8 @@ $config['mongo_schema'] = array(
     'availStatuses', // statuses available to all project tasks
     'accessibility', // Who has access to use this template
     'metaFields', // Fields that are needed for job completion
+    'versionData', // updated fields and their values mapped to a version number
+    'version' // the current version of this template
   ),
   'jobs' => array(
     'organizationId',
@@ -160,6 +162,7 @@ $config['mongo_schema'] = array(
   'projects' => array(
     'organizationId',
     'templateId',
+    'templateVersion', // The version of the template being used
     'dateAdded',
     'name',
     'dueDate', // a date set by user to track when workflow should be completed

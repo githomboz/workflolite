@@ -140,4 +140,16 @@ class Organization extends WorkflowFactory
     $class = __CLASS__;
     return new $class($record);
   }
+
+  public function getSettings($field = null){
+    $settings = $this->getValue('settings');
+    if(!isset($field)) return $settings;
+    return isset($settings[ (string) $field]) ? $settings[ (string) $field] : null;
+  }
+
+  public function setSettings($key, $value){
+    $settings = $this->getValue('settings');
+    $settings[$key] = $value;
+    $this->setValue('settings', $settings)->save('settings');
+  }
 }

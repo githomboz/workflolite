@@ -14,6 +14,26 @@ class TaskTemplate2
     return isset($this->_current['id']) ? $this->_current['id'] : null;
   }
 
+  public function getCurrent(){
+    return $this->_current;
+  }
+
+  public function getFields(array $fields = null){
+    $fields = !empty($fields) ? $fields : array();
+    $data = array();
+    foreach($this->_current as $field => $value){
+      if(in_array($field, $fields)) $data[$field] = $value;
+    }
+    return $data;
+  }
+
+  public function getSettingsData(){
+    $fields = array('id','taskGroup','name','estimatedTime','instructions','clientView','milestone','description');
+    $data = $this->getFields($fields);
+    ksort($data);
+    return $data;
+  }
+
   /**
    * Prepare data and class for processing
    * @param array $data

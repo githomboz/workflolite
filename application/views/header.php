@@ -78,7 +78,7 @@
       <div class="page-title">
           <?php if(project() || job()){ ?>
         <h1><?php echo entity()->getValue('name')?></h1>
-        <h3><?php echo project() ? project()->getValue('template')->getValue('name') : $this->job->getValue('workflow')->getValue('name') ; ?></h3>
+        <h3><?php echo project() ? project()->getValue('template')->name('name') : $this->job->getValue('workflow')->getValue('name') ; ?></h3>
         <?php } else {
             if(isset($this->pageTitle)){ ?>
         <h1 class="<?php if(!isset($this->pageDescription)) echo 'solo '?>"><?php echo $this->pageTitle; ?></h1>

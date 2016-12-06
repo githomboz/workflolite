@@ -18,6 +18,7 @@
     <div class="jobs-list cs-workflow workflow-<?php //echo $workflow->id() ?>"
          data-workflow="<?php //echo $workflow->id() ?>"
          data-display_details='<?php // echo json_encode($workflow->displayDetails()); ?>'
+         data-default_view="<?php echo orgSetting('projectMilestonesView', null, 'full') ?>"
     >
 
       <h2 class="workflow-name"><?php //echo $workflow->getValue('name'); ?></h2>

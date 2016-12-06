@@ -4,10 +4,19 @@
     <div class="main-mid-section-inner clearfix">
 
         <h1><i class="fa fa-tasks"></i> Tasks</h1>
-        <h4>A comprehensive list of the tasks required to complete this project.</h4>
+        <?php if(template())  echo '<h4>'.template()->getValue('description') . '</h4>'; else {
+            echo '<h4>A comprehensive list of the tasks required to complete this project.</h4>';
+        }
+
+        include_once 'widgets/_task-change-dialog.php';
+
+        ;?>
+
+
+
 
         <div class="inner-nav-btns">
-            <a href="#" class="btn js-add-task"><i class="fa fa-plus"></i> Add a Task</a>
+            <a href="#" class="btn js-main-add-task-btn"><i class="fa fa-plus"></i> Add a Task</a>
         </div>
 
         <?php
@@ -89,15 +98,27 @@
             $linksContainer.removeClass('clicked');
         } else {
             // Close all others
-            $('.task-option-links .task-settings').removeClass('active');
-            $('.task-settings-widget').removeClass('active');
-            $('.task-option-links').removeClass('clicked');
+            closeAllTaskSettingWidgets();
             // Click
             $btn.addClass('active');
             $widget.addClass('active');
             $linksContainer.addClass('clicked');
         }
+    });
 
+    function closeAllTaskSettingWidgets(){
+        $('.task-option-links .task-settings').removeClass('active');
+        $('.task-settings-widget').removeClass('active');
+        $('.task-option-links').removeClass('clicked');
+    }
+
+    $(document).on('click', function(event) {
+        if (!$(event.target).closest('.task-settings-widget').length) {
+//            $('.task-option-links .task-settings').removeClass('active');
+//            $('.task-settings-widget').removeClass('active');
+//            $('.task-option-links').removeClass('clicked');
+        } else {
+        }
     });
 
     $(document).on('click', ".cs-group-expander", function(){
@@ -344,5 +365,12 @@
     PubSub.subscribe('taskChange.taskStarted', _htmlUpdateStartTask);
     PubSub.subscribe('taskChange.taskComplete', _htmlUpdateMarkComplete);
     PubSub.subscribe('taskChange.commentSaved', _htmlUpdateCommentSaved);
+
+    $(".js-main-add-task-btn").on('click', function(e){
+        e.preventDefault();
+        var $modalContainer = $(".js-job-change-modal.modal-container");
+        $modalContainer.addClass('active');
+        $modalContainer.find('.dialog').addClass('options-not-active');
+    });
 
 </script>

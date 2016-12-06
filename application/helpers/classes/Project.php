@@ -283,7 +283,7 @@ class Project extends WorkflowFactory
     switch ($storageScheme) {
       case 'CONVERT_TO_CUSTOM_PROJECT': // Remove templateId and save taskTemplates locally in project
         break;
-      case 'CREATE_NEW_TEMPLATE': // Create a new template based upon changes
+      case 'CREATE_STORE_TEMPLATE': // Create a new template based upon changes
         break;
       case 'UPDATE_ORIGINAL_TEMPLATE': // This probably shouldn't be done as it renders projects instantiated prior to change
         // incompatible with future instances. @todo: solve this
@@ -317,7 +317,7 @@ class Project extends WorkflowFactory
     } else {
       // If template, get template taskTemplates
       $templateId = $this->getValue('templateId');
-      $this->currentTemplate = Template::cacheGet($templateId);
+      $this->currentTemplate = Template::cacheGet($templateId, $this->getValue('templateVersion'));
       if($this->currentTemplate){
         $this->taskTemplates = $this->currentTemplate->getValue('taskTemplates');
       }
@@ -672,6 +672,19 @@ class Project extends WorkflowFactory
   public function meta(){
     return $this->meta;
   }
+
+  /**
+   * Load workflow for this element
+   * @return $this
+   */
+  public function loadTemplate(){
+    if(isset($this->_current['templateId']) && !isset($this->template)){
+      $this->template = new Template(self::LoadRecord($this->_current['templateId'], Template::CollectionName()), $this->getValue('templateVersion'));
+    }
+    return $this;
+  }
+
+
 
 
 }

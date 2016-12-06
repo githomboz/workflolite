@@ -1,12 +1,49 @@
 <?php
 // Functions specific to this site/app
 
+class NullValue {
+  function __toString()
+  { return '';}
+}
+
 function CI(){
   return get_instance();
 }
 
 function salt(){
   return config_item('PAK');
+}
+
+function isNullValue($value){
+  return $value instanceof NullValue;
+}
+
+function orgSetting($key, $value = null, $default = null){
+  if(isset($value) || $value instanceof NullValue){
+    // Set
+    if($value instanceof NullValue) $value = null;
+    organization()->setSettings($key, $value);
+    return isset($value) ? $value : $default;
+  } else {
+    // Get
+    $value = organization()->getSettings($key);
+    if(!isset($value)) return $default;
+    return $value;
+  }
+}
+
+function userSetting($key, $value = null, $default = null){
+  if(isset($value) || $value instanceof NullValue){
+    // Set
+    if($value instanceof NullValue) $value = null;
+    user()->setSettings($key, $value);
+    return isset($value) ? $value : $default;
+  } else {
+    // Get
+    $value = user()->getSettings($key);
+    if(!isset($value)) return $default;
+    return $value;
+  }
 }
 
 function organization(){

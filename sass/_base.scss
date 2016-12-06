@@ -23,6 +23,10 @@ body, html {
   height: 100%;
 }
 
+em {
+  font-weight: $font-weight-semi-bold;
+}
+
 .clearfix {
   @include clearfix();
 }
@@ -1346,6 +1350,15 @@ $tasklist_height : 36px;
   font-weight: $font-weight-semi-bold;
   line-height: 2em;
   margin-bottom: .5em;
+  position: relative;
+
+  .js-add-task-template-btn {
+    font-weight: $font-weight-light;
+    color: $button_blue;
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
 }
 
 .templates-list {
@@ -1362,8 +1375,14 @@ $tasklist_height : 36px;
 
   .template.entry {
 
+    &.new {
+      background: lighten($button_blue, 40%);
+      border-color: lighten($button_blue, 20%) !important;
+    }
+
     .entry {
       position: relative;
+
 
       &.form {
         display: none;
@@ -1424,6 +1443,7 @@ $tasklist_height : 36px;
       display: block;
       position: relative;
       cursor: pointer;
+
     }
 
 
@@ -1522,5 +1542,101 @@ $tasklist_height : 36px;
   [name=name] {
     margin-bottom: $paddingLarge;
     width: 60%;
+  }
+}
+
+.modal-container {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, .4);
+  z-index: 8;
+  display: none;
+
+  &.active {
+    display: block;
+  }
+}
+
+.js-job-change-dialog {
+  background: #fff;
+  width: 500px;
+  margin: 100px auto 0;
+  z-index: 10;
+  border: 1px solid darken($sidepanel_bg, 50%);
+
+  .form {
+    margin-top: 8px;
+    display: none;
+
+    button {
+      padding: 4px 4px 5px;
+      font-size: $font-size-sm;
+      position: relative;
+      top: -2px;
+    }
+  }
+
+  .current-template {
+    display: block;
+    padding-bottom: 8px;
+    font-size: $font-size-sm;
+    border-bottom: 1px solid rgba(0,0,0,.2);
+  }
+
+  .option {
+    border-bottom: 1px dashed darken($sidepanel_bg, 20%);
+    padding-bottom: $padding;
+    opacity: .4;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &.active {
+      opacity: 1;
+
+      .form {
+        display: block;
+      }
+    }
+  }
+
+  &.options-not-active {
+    .option {
+      opacity: 1;
+    }
+
+  }
+
+
+  h1 {
+    font-size: $font-size-md;
+    font-weight: $font-weight-semi-bold;
+    line-height: 1.3em;
+    margin-bottom: 0;
+  }
+
+  p {
+    font-size: $font-size-sm;
+    line-height: 1.4em;
+
+    .js-job-change-action  {
+      color: $button_blue;
+
+      &:hover {
+        color: darken($button_blue, 15%);
+      }
+    }
+  }
+
+  label {
+    font-size: $font-size-sm;
+    line-height: 1em;
+    position: relative;
+    top: -2px;
+    margin-right: $padding;
   }
 }

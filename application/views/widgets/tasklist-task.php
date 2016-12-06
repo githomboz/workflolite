@@ -15,7 +15,7 @@
   <div class="task-settings-widget bubble">
     <form method="post" class="clearfix">
       <div class="field"><label>Est. Completion (hrs): </label> <span class="form-field"><input type="text" placeholder="Ex. 2.5" /></span></div>
-      <div class="field"><label>Due Date: </label> <span class="form-field"><input type="text" /></span></div>
+      <div class="field"><label>Due Date: </label> <span class="form-field"><input type="text" placeholder="Ex. <?php echo date('m/d/Y') ?>" /></span></div>
       <div class="field select"><label>Assigned To: </label>
         <span class="form-field">
           <select>
@@ -23,7 +23,7 @@
             <?php
             if(!isset($users)) $users = array();
             foreach((array)$users as $user){
-              echo '<option value="'. (string) $user->id() .'">' . $user->getName() . '</option>'; 
+              echo '<option value="'. (string) $user->id() .'">' . $user->getName() . '</option>';
             }
             ?>
           </select>
