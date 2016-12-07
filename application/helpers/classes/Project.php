@@ -23,7 +23,7 @@ class Project extends WorkflowFactory
 
   private $tasks = array();
 
-  private $sortOrder = array();
+  //private $sortOrder = array();
 
   /**
    * Meta class
@@ -45,7 +45,7 @@ class Project extends WorkflowFactory
   public function _initialize(array $data)
   {
     parent::_initialize($data); // TODO: Change the auto-generated stub
-    $this->sortOrder = $this->getValue('sortOrder');
+    //$this->sortOrder = $this->getValue('sortOrder');
     $this->getAllTasks();
     $this->cacheTasksBeforeUpdates();
   }
@@ -67,7 +67,7 @@ class Project extends WorkflowFactory
     if($this->hasId()){
       $task->setValues(array('jobId' => $this->id()))->save();
       $this->tasks[] = $task;
-      $this->sort();
+      //$this->sort();
       return $this;
     } else {
       throw new Exception('Tasks can not be added without an _id');
@@ -196,42 +196,42 @@ class Project extends WorkflowFactory
     return $data;
   }
 
-  public function acknowledgeTask(Task $task){
-    $this->tasks[] = $task;
-    if(!in_array((string) $task->id(), $this->sortOrder)){
-      $this->sortOrder[] = $task->id();
-    }
-  }
-
-  public function sort(){
-    $reorderedTasks = array();
-    foreach((array) $this->sortOrder as $order => $id){
-      foreach($this->tasks as $i => $task){
-        if((string) $task->id() == (string) $id) $reorderedTasks[] = $task;
-      }
-    }
-    $this->tasks = $reorderedTasks;
-    return $this;
-  }
-
-  /**
-   * Insert given task after the provided task
-   * @param $taskId ID of the task being added
-   * @param $afterTaskId The id of the task that will precede the given task
-   */
-  public function insertTaskAfter($taskId, $afterTaskId){
-    $position = array_search((string) $afterTaskId, $this->sortOrder);
-    array_splice($this->sortOrder, ($position+1), 0, array( _id($taskId)));
-  }
-
-  public function saveSortOrder(){
-    if(json_encode($this->sortOrder) != json_encode($this->getValue('sortOrder'))){
-      self::Update($this->id(), array(
-        'sortOrder' => $this->sortOrder
-      ));
-    }
-  }
-
+//  public function acknowledgeTask(Task $task){
+//    $this->tasks[] = $task;
+//    if(!in_array((string) $task->id(), $this->sortOrder)){
+//      $this->sortOrder[] = $task->id();
+//    }
+//  }
+//
+//  public function sort(){
+//    $reorderedTasks = array();
+//    foreach((array) $this->sortOrder as $order => $id){
+//      foreach($this->tasks as $i => $task){
+//        if((string) $task->id() == (string) $id) $reorderedTasks[] = $task;
+//      }
+//    }
+//    $this->tasks = $reorderedTasks;
+//    return $this;
+//  }
+//
+//  /**
+//   * Insert given task after the provided task
+//   * @param $taskId ID of the task being added
+//   * @param $afterTaskId The id of the task that will precede the given task
+//   */
+//  public function insertTaskAfter($taskId, $afterTaskId){
+//    $position = array_search((string) $afterTaskId, $this->sortOrder);
+//    array_splice($this->sortOrder, ($position+1), 0, array( _id($taskId)));
+//  }
+//
+//  public function saveSortOrder(){
+//    if(json_encode($this->sortOrder) != json_encode($this->getValue('sortOrder'))){
+//      self::Update($this->id(), array(
+//        'sortOrder' => $this->sortOrder
+//      ));
+//    }
+//  }
+//
   public function setTask($taskId, $data, $storageScheme = 'STORE_TASK_META_ONLY'){
     $response = array(
       'response' => null,

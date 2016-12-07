@@ -19,7 +19,7 @@
         <h3><?php echo $workflow->getValue('description'); ?></h3>
       </div>
       <div class="actions">
-        <span class="job-count">Projects: <?php echo $workflow->projectCount(); ?>  | <a href="<?php echo $workflow->getProjectsUrl() ?>">Browse</a> </span>
+        <span class="job-count">Projects: <?php echo $workflow->projectCount(null); ?>  | <a href="<?php echo $workflow->getProjectsUrl() ?>">Browse</a> </span>
         <a href="<?php echo $workflow->createProjectUrl() ?>" class="btn icon submit"><i class="fa fa-plus"></i> New Project</a>
       </div>
     </div>

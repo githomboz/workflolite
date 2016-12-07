@@ -81,8 +81,26 @@ class Template extends WorkflowFactory
     return $data;
   }
 
-  public function projectCount(){
-    return self::CI()->mdb->where(array('templateId' => $this->id()))->count(Project::CollectionName());
+  /**
+   * Return the number of projects with the current template id and version
+   * @param $version int option version number
+   * @return int
+   */
+  public function projectCount($version = null){
+    $version = is_numeric($version) ? (int) $version : $this->version();
+    return (int) self::GetProjectCount($this->id(), $version);
+  }
+
+  /**
+   * Return number of projects found with a specific version of a template
+   * @param $templateId
+   * @param $version
+   */
+  public static function GetProjectCount($templateId, $version = null){
+    if(is_numeric($version)){
+      return CI()->mdb->where(array('templateId' => _id($templateId), 'templateVersion' => (int) $version))->count(Project::CollectionName());
+    }
+    return CI()->mdb->where(array('templateId' => _id($templateId)))->count(Project::CollectionName());
   }
 
   public function taskCount(){

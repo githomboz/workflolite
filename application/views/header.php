@@ -95,7 +95,8 @@
       </div>
       <?php } else { // What to do if user is not logged in?>
       <div class="page-title">
-        <h1>JNBPA Office Management</h1>
+        <h1>WorkfloLite.com</h1>
+        <h2>Project Management & Automation Framework</h2>
       </div>
       <?php } ?>
     </div><!--/main-head-->

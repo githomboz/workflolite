@@ -7,6 +7,8 @@
     <div class="inner-nav-btns">
       <a href="#" class="btn"><i class="fa fa-plus"></i> Create a Project</a>
     </div>
+
+    <?php var_dump(json_decode($this->input->post('formData'))); ?>
     <div class="templates-list widget">
       <h2>Task Templates: <a href="#" class="js-add-task-template-btn">+ Add Task</a> </h2>
       <div class="task-single"></div>
@@ -193,7 +195,7 @@
     CS_API.call(
       '/ajax/task_template_form',
       function(){
-        $taskSingle.html('<i class="fa fa-spinner fa-spin"></i>');
+        $taskSingle.html('<i class="fa fa-spinner fa-spin" style="margin-bottom: 18px;"></i>');
         $(".template.entry").removeClass('form-mode');
         newTaskFormVisible = true;
       },
@@ -224,6 +226,25 @@
         $(".templates-list.widget").addClass('selected');
       });
     }
+  });
+
+  $(document).on('click','.js-update-task-template-btn', function(e){
+    e.preventDefault();
+    var $this = $(this),
+      $template = $this.parents('.template.entry');
+      post = {
+        id : $template.find('.id-field').val(),
+        name : $template.find('input[id^=field-name-]').val(),
+        taskGroup : $template.find('input[id^=field-taskGroup-]').val(),
+        description: $template.find('textarea[id^=field-description-]').val(),
+        instructions: $template.find('textarea[id^=field-instructions-]').val(),
+        milestone : null,
+        clientView : null,
+        estimatedTime : $template.find('input[id^=field-estimatedTime-]').val()
+      };
+    console.log(post);
+    $template.find('[name=formData]').val(JSON.stringify(post));
+    //$template.find('form').submit();
   });
 
 </script>
