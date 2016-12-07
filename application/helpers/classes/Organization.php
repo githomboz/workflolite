@@ -43,6 +43,54 @@ class Organization extends WorkflowFactory
     }
   }
 
+  public function addTemplate(Template $template){
+    if($this->hasId()){
+      $template->setValues(array('templateId' => $this->id()))->save();
+      return $this;
+    } else {
+      throw new Exception('Templates can not be added without an _id');
+    }
+  }
+
+  public function getTemplates(){
+    if($this->hasId()){
+      if(!empty($this->templates)) return $this->templates;
+      else {
+        $templates = self::CI()->mdb->where('organizationId', $this->id())->get(Template::CollectionName());
+        foreach($templates as $template) $this->templates[] = new Template($template);
+        return $this->templates;
+      }
+    } else {
+      throw new Exception('Templates can not be pulled without an _id');
+    }
+  }
+
+  public function getProjects(){
+    if($this->hasId()){
+      if(!empty($this->templates)) return $this->templates;
+      else {
+        $templates = self::CI()->mdb->where('organizationId', $this->id())->get(Project::CollectionName());
+        foreach($templates as $template) $this->templates[] = new Project($template);
+        return $this->templates;
+      }
+    } else {
+      throw new Exception('Projects can not be pulled without an _id');
+    }
+  }
+
+  public function getUsers(){
+    if($this->hasId()){
+      if(!empty($this->users)) return $this->users;
+      else {
+        $users = self::CI()->mdb->where('organizationId', $this->id())->get(User::CollectionName());
+        foreach($users as $user) $this->users[] = new User($user);
+        return $this->users;
+      }
+    } else {
+      throw new Exception('Projects can not be pulled without an _id');
+    }
+  }
+
   public function searchContactsByName($string, $limit = 10, $field = 'name'){
 //    $query = array(
 //      'organizationId' => $this->getValue('organizationId'),
@@ -91,5 +139,17 @@ class Organization extends WorkflowFactory
     $record = static::LoadId($id, static::$_collection);
     $class = __CLASS__;
     return new $class($record);
+  }
+
+  public function getSettings($field = null){
+    $settings = $this->getValue('settings');
+    if(!isset($field)) return $settings;
+    return isset($settings[ (string) $field]) ? $settings[ (string) $field] : null;
+  }
+
+  public function setSettings($key, $value){
+    $settings = $this->getValue('settings');
+    $settings[$key] = $value;
+    $this->setValue('settings', $settings)->save('settings');
   }
 }

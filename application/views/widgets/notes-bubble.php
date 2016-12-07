@@ -4,14 +4,18 @@
     $show_tags = true;
     include '_notes-form.php'; ?>
     <?php
-    $notes = job()->getNotes();
+    $notes = entity()->getNotes();
     $notes_limit = 5;
     ?>
-    <?php include '_notes-list.php'; ?>
-    <a href="<?php echo site_url('jobs/' . $this->job->id() . '/notes') ?>" class="more">more notes <i class="fa fa-caret-down"></i></a>
+    <?php include '_notes-list.php';
+    $types = (entity() instanceof Project ? 'projects' : 'jobs');
+    ?>
+    <a href="<?php echo site_url($types. '/' . entity()->id() . '/notes') ?>" class="more">more notes <i class="fa fa-caret-down"></i></a>
   </div>
 </div>
 <script type="application/javascript">
+
+  var entityTypes = '<?php echo $types ?>';
   $tag_adder = CS_RenderBuddyInstances.newInstance({
     inputSelector                   : '.cs-notes-box .tags-field.field',
     itemsContainerSelector          : '.cs-notes-box .cs-note-tags',
@@ -24,10 +28,10 @@
   });
 
   $jobs_page_tag_adder = CS_RenderBuddyInstances.newInstance({
-    inputSelector                   : '.jobs-notes-page .tags-field.field',
-    itemsContainerSelector          : '.jobs-notes-page .cs-note-tags',
-    closeSelector                   : '.jobs-notes-page .fa-times-circle',
-    itemSelector                    : '.jobs-notes-page .cs-note-tag',
+    inputSelector                   : '.'+entityTypes+'-notes-page .tags-field.field',
+    itemsContainerSelector          : '.'+entityTypes+'-notes-page .cs-note-tags',
+    closeSelector                   : '.'+entityTypes+'-notes-page .fa-times-circle',
+    itemSelector                    : '.'+entityTypes+'-notes-page .cs-note-tag',
     itemClass                       : 'cs-note-tag',
     itemTypePlural                  : 'tags',
     itemType                        : 'tag',
@@ -46,7 +50,8 @@
       val = $inputField.text(),
       itemsJSON = $tagsContainer.attr('data-items'),
       POST = {
-        jobId             : _CS_Get_Job_ID(),
+        entityId             : _CS_Get_Entity_ID(),
+        type             : _CS_Get_Entity(),
         author            : {
           id              : _CS_Get_User_ID(),
           type            : 'user'
@@ -147,7 +152,7 @@
   };
 
   $(document).on('click', '.cs-notes-box .js-add-note-btn', processNoteSubmit);
-  $(document).on('click', '.jobs-notes-page .js-add-note-btn', processNoteSubmit);
+  $(document).on('click', '.'+entityTypes+'-notes-page .js-add-note-btn', processNoteSubmit);
 
   PubSub.subscribe('jobChange.noteAdded', handleTagAdded);
 

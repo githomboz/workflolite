@@ -4,14 +4,14 @@
       <img src="<?php echo base_url() . $this->organization->getValue("image"); ?>" />
     </a>
   <span class="ref-id">
-    Reference ID: <?php echo $this->job->id(); ?>
+    Reference ID: <?php $entity = project() ? project() : job(); echo $entity->id(); ?>
   </span>
   </header>
   <section class="cv-main-body">
     <div class="title">File Progress</div>
     <div class="progress-bar">
       <?php
-      $showableTasksGrouped = $this->job->getClientViewableTasks(true);
+      $showableTasksGrouped = $entity->getClientViewableTasks(true);
       $showableTasks = array();
       foreach($showableTasksGrouped as $taskGroup => $tasks){ foreach($tasks as $task){ $showableTasks[] = $task; }}
       $completionPercentage = Job::CompletionPercentage($showableTasks); ?>
@@ -21,11 +21,11 @@
     $lastTaskId = $showableTasks[(count($showableTasks)-1)]->id();
     ?>
 
-    <?php if($this->job->meta()->clientMeta()){ ?>
+    <?php if($entity->meta()->clientMeta()){ ?>
 
       <div class="job-meta">
         <h2>Job Details</h2>
-        <?php foreach($this->job->meta()->getAll() as $slug => $meta){ if(isset($meta['clientView']) && $meta['clientView'] === true) { ?>
+        <?php foreach($entity->meta()->getAll() as $slug => $meta){ if(isset($meta['clientView']) && $meta['clientView'] === true) { ?>
           <div class="meta-group">
             <span class="meta-title"><?php echo $meta['field'] ?>: </span>
             <span class="meta-value"><?php echo strip_tags($meta['value']->display()) ?></span>

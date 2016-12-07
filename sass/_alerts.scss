@@ -1,7 +1,7 @@
 @mixin alert-styles($color){
   background: $color;
   color: darken($color, 70%);
-  box-shadow: -1000px 0 0 0 $color, 1000px 0 0 0 $color;
+  border: none;
 
   @media( max-width: $breakpoint-xl ){
     box-shadow: -200px 0 0 0 $color, 200px 0 0 0 $color;
@@ -16,8 +16,6 @@
 }
 
 .c-alert--danger{
-  $color: rgba($danger, 0.5);
-  @include alert-styles($color);
 }
 .c-alert--success{
   $color: rgba($success, 0.5);
@@ -38,4 +36,30 @@
 
 .c-alert__close{
   float: right;
+}
+
+.alert {
+  color: $gray-darkest;
+  position: relative;
+
+  &.danger {
+    $color: rgba($danger, 0.5);
+    @include alert-styles($color);
+  }
+
+  &.success{
+    $color: rgba($success, 0.5);
+    @include alert-styles($color);
+  }
+
+  &.warning{
+    $color: rgba($warning, 0.5);
+    @include alert-styles($color);
+  }
+
+  &.info{
+    $color: rgba($info, 0.5);
+    @include alert-styles($color);
+  }
+
 }

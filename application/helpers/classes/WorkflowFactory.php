@@ -83,7 +83,7 @@ class WorkflowFactory extends WorkflowInterface
    */
   public function loadOrganization(){
     if(isset($this->_current['organizationId']) && !isset($this->organization)){
-      $this->organization = new Organization(self::LoadRecord($this->_current['organizationId'], 'organizations'));
+      $this->organization = new Organization(self::LoadRecord($this->_current['organizationId'], Organization::CollectionName()));
     }
     return $this;
   }
@@ -94,7 +94,7 @@ class WorkflowFactory extends WorkflowInterface
    */
   public function loadJob(){
     if(isset($this->_current['jobId']) && !isset($this->job)){
-      $this->job = new Job(self::LoadRecord($this->_current['jobId'], 'jobs'));
+      $this->job = new Job(self::LoadRecord($this->_current['jobId'], Job::CollectionName()));
     }
     return $this;
   }
@@ -105,7 +105,18 @@ class WorkflowFactory extends WorkflowInterface
    */
   public function loadWorkflow(){
     if(isset($this->_current['workflowId']) && !isset($this->workflow)){
-      $this->workflow = new Workflow(self::LoadRecord($this->_current['workflowId'], 'workflows'));
+      $this->workflow = new Workflow(self::LoadRecord($this->_current['workflowId'], Workflow::CollectionName()));
+    }
+    return $this;
+  }
+
+  /**
+   * Load job for this element
+   * @return $this
+   */
+  public function loadProject(){
+    if(isset($this->_current['projectId']) && !isset($this->project)){
+      $this->project = new Job(self::LoadRecord($this->_current['projectId'], Project::CollectionName()));
     }
     return $this;
   }
@@ -125,6 +136,15 @@ class WorkflowFactory extends WorkflowInterface
     return $this->_current;
   }
 
+  public function getFields(array $fields = null){
+    $fields = !empty($fields) ? $fields : array();
+    $data = array();
+    foreach($this->_current as $field => $value){
+      if(in_array($field, $fields)) $data[$field] = $value;
+    }
+    return $data;
+  }
+  
   /**
    * Update data within this entity
    * @param array $data

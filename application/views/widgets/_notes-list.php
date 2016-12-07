@@ -35,19 +35,20 @@
           </span>
         </div>
         <div class="note-content">
+
           <?php
 
           $content = $note['content'];
+          echo $content;
 
-          $content = explode("\n", $content);
-
-          foreach($content as $paragraph){
-            if(trim($paragraph) != ''){
-              if(strpos($paragraph, '<p>') === false) echo '<p>';
-              echo $paragraph;
-              if(strpos($paragraph, '<p>') === false) echo '</p>';
-            }
-          }
+//          $content = explode("\n", $content);
+//          foreach($content as $paragraph){
+//            if(trim($paragraph) != ''){
+//              if(strpos($paragraph, '<p>') === false) echo '<p>';
+//              echo $paragraph;
+//              if(strpos($paragraph, '<p>') === false) echo '</p>';
+//            }
+//          }
 
           ?>
         </div>

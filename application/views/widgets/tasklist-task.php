@@ -12,6 +12,34 @@
 <div class="task-style task-<?php echo $task->id(); ?> <?php echo $task->isComplete() ? 'completed' : ''?> <?php echo $task->isStarted() ? 'started' : ''?>"
      data-task_id="<?php echo $task->id(); ?>"
 >
+  <div class="task-settings-widget bubble">
+    <form method="post" class="clearfix">
+      <div class="field"><label>Est. Completion (hrs): </label> <span class="form-field"><input type="text" placeholder="Ex. 2.5" /></span></div>
+      <div class="field"><label>Due Date: </label> <span class="form-field"><input type="text" placeholder="Ex. <?php echo date('m/d/Y') ?>" /></span></div>
+      <div class="field select"><label>Assigned To: </label>
+        <span class="form-field">
+          <select>
+            <option value="">Select Assignee</option>
+            <?php
+            if(!isset($users)) $users = array();
+            foreach((array)$users as $user){
+              echo '<option value="'. (string) $user->id() .'">' . $user->getName() . '</option>';
+            }
+            ?>
+          </select>
+        </span>
+      </div>
+      <div class="field links">
+        <a class="link-blue" href="#"><i class="fa fa-fast-forward"></i> Skip</a> |
+        <a class="link-blue" href="#"><i class="fa fa-trash"></i> Delete</a> <?php //@todo unset templateId or update template ?>
+      </div>
+      <button type="submit" class="btn submit"><i class="fa fa-save"></i> Save Settings</button>
+    </form>
+  </div>
+  <span class="task-option-links">
+    <a href="#" class="fa fa-reorder task-drag"></a>
+    <a href="#" class="fa fa-cog task-settings"></a>
+  </span>
   <div class="col-title">
     <a href="#" class="checkbox <?php echo $task->isComplete() ? 'checked' : 'clickable'?>">
       <i class="fa fa-check"></i>

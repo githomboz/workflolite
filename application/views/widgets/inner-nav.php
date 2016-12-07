@@ -6,7 +6,8 @@
  * Time: 4:20 PM
  */
 
-if(!isset($object)) $object = 'job';
+if(!isset($object)) $object = 'project';
+
 $seg1 = isset($this->$object) ? $this->$object->id() : null;
 $navItems = _get_inner_nav($this->navSelected, $seg1);
 $defaultItem = _get_inner_nav_default($navItems);

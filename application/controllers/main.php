@@ -16,8 +16,9 @@ class Main extends Front_Controller {
       );
       $tests = array('unprocessed' => is_null($result), 'success' => $result === true, 'failure' => $result === false);
       $data = array('redirect_url' => current_url());
+      show_sidebar(false);
       switch(true){
-        case $tests['unprocessed']:
+        case $tests['unprocessed']: // Form hasn't been submitted
           break;
         case $tests['success']:
           if($redirect_override){
@@ -27,6 +28,8 @@ class Main extends Front_Controller {
           }
           break;
         case $tests['failure']:
+          $this->message['text'] = 'Login Unsuccessful';
+          $this->message['classes'] = 'alert danger boxed';
           break;
       }
       $this->view('login', $data);
@@ -83,14 +86,14 @@ class Main extends Front_Controller {
     redirect('admin');
   }
 
-
   public function index(){
     redirect('dashboard');
   }
 
   public function progress($jobId){
-    $this->job = Job::Get($jobId);
-    if($this->job){
+    $job = Job::Get($jobId);
+    if($job){
+      $this->job = $job;
       $this->organization = Organization::Get($this->job->getValue('organizationId'));
       $this->load->view('client-view');
     } else {

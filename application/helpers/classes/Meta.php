@@ -31,9 +31,15 @@ class Meta
   private $_clientViewEnabled = false;
 
 
-  public function __construct(array $metaData, Job $job){
-    $this->_job = $job;
-    $this->initialize($metaData);
+  public function __construct(array $metaData, WorkflowFactory $entity){
+    if($entity instanceof Job || $entity instanceof Project){
+      if($entity instanceof Job){
+        $this->_job = $entity;
+      } else {
+        $this->_project = $entity;
+      }
+      $this->initialize($metaData);
+    }
   }
 
   public function initialize($metaData){
@@ -53,11 +59,19 @@ class Meta
   }
 
   public function CI(){
-    return $this->job()->CI();
+    return CI();
   }
 
   public function job(){
     return $this->_job;
+  }
+
+  public function project(){
+    return $this->_project;
+  }
+
+  public function isJob(){
+    return isset($this->_job);
   }
 
   public function set($mixed, $value = null){
@@ -68,7 +82,11 @@ class Meta
 
   public function save(){
     if(!empty($this->_toSave)){
+      if($this->isJob()){
         foreach($this->_toSave as $key => $value) $this->job()->setValue($key, $value)->save($key);
+      } else {
+        foreach($this->_toSave as $key => $value) $this->project()->setValue($key, $value)->save($key);
+      }
 
       $this->_toSave = array();
     }
@@ -83,9 +101,16 @@ class Meta
     return $this->_workflow;
   }
 
+  public function template(){
+    if(isset($this->_template)) return $this->_template;
+    $this->_template = $this->project()->loadTemplate()->getValue('template');
+    return $this->_template;
+  }
+
   public function getMetaFieldSettings($field = null){
-    if($this->workflow()){
-      if(!$this->_settings) $this->_settings = $this->workflow()->getValue('metaFields');
+    $templateSource = $this->isJob() ? $this->workflow() : $this->template() ;
+    if($templateSource){
+      if(!$this->_settings) $this->_settings = $templateSource->getValue('metaFields');
 
       // Return values
       if($field) {

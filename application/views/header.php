@@ -40,6 +40,7 @@
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_RenderBuddy.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/setTimeout.polyfill.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/main.js"></script>
   <link rel="shortcut icon" href="<?php echo base_url()?>favicon.png" type="image/x-icon">
   <link rel="icon" href="<?php echo base_url()?>favicon.png" type="image/x-icon">
   <title><?php echo config_item('site_name'); if(isset($this->page_header['header'])) echo '| '. $this->page_header['header'] ?></title>
@@ -47,8 +48,11 @@
 <body
   <?php if(UserSession::loggedIn()){ ?>
   data-organization="<?php echo UserSession::Get_Organization()->id()?>"
-  data-workflow="<?php if(isset($this->workflow)) echo $this->workflow->id()?>"
-  data-job="<?php if(isset($this->job)) echo $this->job->id()?>"
+  data-workflow="<?php if(workflow()) echo workflow()->id()?>"
+  data-template="<?php if(template()) echo template()->id()?>"
+  data-entity_type="<?php echo entity() ? (entity() instanceof Project ? 'Project' : 'Job') : null?>"
+  data-entity="<?php if(entity()) echo entity()->id()?>"
+  data-job="<?php if(job()) echo job()->id()?>"
   data-user="<?php echo UserSession::Get_User()->id()?>"
   <?php } ?>
 >
@@ -72,9 +76,9 @@
         <a href="<?php echo _url("/")?>?rel=main-logo"><img src="<?php echo base_url()?>/assets/temp/main-logo.gif" /></a>
       </div><!--/logo-container-->
       <div class="page-title">
-          <?php if(isset($this->job)){ ?>
-        <h1><?php echo $this->job->getValue('name')?></h1>
-        <h3><?php echo $this->job->getValue('workflow')->getValue('name')?></h3>
+          <?php if(project() || job()){ ?>
+        <h1><?php echo entity()->getValue('name')?></h1>
+        <h3><?php echo project() ? project()->getValue('template')->name('name') : $this->job->getValue('workflow')->getValue('name') ; ?></h3>
         <?php } else {
             if(isset($this->pageTitle)){ ?>
         <h1 class="<?php if(!isset($this->pageDescription)) echo 'solo '?>"><?php echo $this->pageTitle; ?></h1>
@@ -91,37 +95,47 @@
       </div>
       <?php } else { // What to do if user is not logged in?>
       <div class="page-title">
-        <h1>Workflo Lite</h1>
-        <h3>Workflow Management Software for the Modern Business</h3>
+        <h1>WorkfloLite.com</h1>
+        <h2>Project Management & Automation Framework</h2>
       </div>
       <?php } ?>
     </div><!--/main-head-->
   </div><!--/main-header-inner-->
 </header>
 
+<?php //var_dump(Template::Get('58379c3ebb222601208817fa')) ?>
+<?php //var_dump(Project::Get('58385d60bb222601208817fc')) ?>
+
 <div id="main-wrap" class="clearfix <?php if(isset($this->page_class)) { if(is_array($this->page_class)) echo join(' ', $this->page_class); else if(is_string($this->page_class)) echo $this->page_class; } ?>">
+
+  <?php if(show_sidebar()) { ?>
 
 <section class="sidepanel js-sidepanel <?php $collapse = isset($this->preCollapseSidePanel) && $this->preCollapseSidePanel == true; if($collapse) echo 'collapse'; ?>">
   <i class="js-toggle js-toggle-sidebar fa fa-chevron-<?php if($collapse) echo 'right'; else echo 'left'; ?>"></i>
-  <?php if(UserSession::loggedIn() && isset($this->job)) :
+  <?php if(UserSession::loggedIn() && (project() || job())) :
     include_once 'widgets/_sidebar-meta-include.php';
     ?>
   <div class="panel">
     <i class="js-send-message fa fa-envelope"></i>
     <h1><i class="fa fa-users"></i> Job Contacts</h1>
     <div class="contact-list">
-      <?php foreach($this->job->getContacts() as $i => $contact){
+      <?php foreach(entity()->getContacts() as $i => $contact){
         include 'widgets/_sidebar-contact-include.php';
       } ?>
     </div>
   </div><!--/.panel-->
   <?php endif; ?>
 </section>
+  <?php } // end show_sidebar() ?>
 <section class="main-content">
   <?php
-  if(UserSession::loggedIn()) $object = in_array($this->navSelected, array('jobs', 'jobsInner')) ? 'job' : 'organization';
+  if(UserSession::loggedIn()) {
+    $object = in_array($this->navSelected, array('projects', 'projectsInner')) ? 'project' : null; // Check if project or not
+    $object = !$object && in_array($this->navSelected, array('jobs', 'jobsInner')) ? 'job' : $object; // If not project, check if job
+    $object = $object ? $object : 'organization'; // If neither, make org
+  }
   if(UserSession::loggedIn()) include_once 'widgets/inner-nav.php';
-  if(UserSession::loggedIn() && isset($this->job)) :
+  if(UserSession::loggedIn() && (project() || job())) :
   include_once 'widgets/send-message.php';
   include_once 'widgets/notes-bubble.php';
   ?>

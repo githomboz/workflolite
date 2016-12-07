@@ -9,8 +9,14 @@ function mark_complete(){
   $data = _api_process_args($args, __FUNCTION__);
   if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
+  $task = null;
+  if($data['type'] == 'Project'){
+    $entity = Project::Get($data['entityId']);
+    $task = $entity->getTaskById($data['taskId']);
+  } else {
+    $task = Task::Get($data['taskId']);
+  }
 
-  $task = Task::Get($data['taskId']);
   if($task){
     if(!$task->isStarted()) {
       $task->start();
@@ -32,12 +38,12 @@ function mark_complete(){
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function mark_complete_args_map(){
-  return array('taskId');
+  return array('entityId', 'type', 'taskId');
 }
 
 // Field names of fields required
 function mark_complete_required_fields(){
-  return array('taskId');
+  return array('entityId', 'type', 'taskId');
 }
 
 function start_task(){
@@ -46,12 +52,21 @@ function start_task(){
   $data = _api_process_args($args, __FUNCTION__);
   if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
-  $task = Task::Get($data['taskId']);
-  if($task){
-    $task->start();
-    $response['response']['entityType'] = 'tasks';
-    $response['response']['taskId'] = (string) $task->id();
-    $response['response']['startDate'] = date('m/d/y', $task->getValue('startDate')->sec);
+  $task = null;
+  if($data['type'] == 'Project'){
+    $entity = Project::Get($data['entityId']);
+    $task = $entity->getTaskById($data['taskId']);
+  } else {
+    $task = Task::Get($data['taskId']);
+  }
+
+  if($task) {
+    if (!$task->isStarted()) {
+      $task->start();
+      $response['response']['startDate'] = date('m/d/y', $task->getValue('startDate')->sec);
+      $response['response']['entityType'] = 'tasks';
+      $response['response']['taskId'] = (string) $task->id();
+    }
   } else {
     $response['errors'][] = 'Invalid task id provided';
   }
@@ -62,12 +77,12 @@ function start_task(){
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function start_task_args_map(){
-  return array('taskId');
+  return array('taskId','entityId','type');
 }
 
 // Field names of fields required
 function start_task_required_fields(){
-  return array('taskId');
+  return array('taskId','entityId','type');
 }
 
 function save_comment(){
@@ -76,9 +91,16 @@ function save_comment(){
   $data = _api_process_args($args, __FUNCTION__);
   if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
-  $task = Task::Get($data['taskId']);
-  if($task){
-    $task->setValue('comments', trim($data['comments']))->save('comments');
+  $task = null;
+  if($data['type'] == 'Project'){
+    $entity = Project::Get($data['entityId']);
+    $task = $entity->getTaskById($data['taskId']);
+  } else {
+    $task = Task::Get($data['taskId']);
+  }
+
+  if($task) {
+    $task->setComments($data['comments']);
     $response['response']['entityType'] = 'tasks';
     $response['response']['taskId'] = (string) $task->id();
     $response['response']['comments'] = $task->getValue('comments');
@@ -92,12 +114,12 @@ function save_comment(){
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function save_comment_args_map(){
-  return array('taskId','comments');
+  return array('taskId','comments','entityId','type');
 }
 
 // Field names of fields required
 function save_comment_required_fields(){
-  return array('taskId','comments');
+  return array('taskId','comments','entityId','type');
 }
 
 function add_contact(){
@@ -134,18 +156,18 @@ function add_contact(){
   $response['response']['contactId'] = $contactId;
   if($contactId){
 
-    // Add Contact to Job
-    $job = Job::Get($contactData['jobId']);
-    if($job){
-      $job->addContactById($contactId, $contactData['role'], false, true);
-      $response['response']['success'] = $job->isContact($contactId);
+    // Add Contact to Entity
+    $entity = $data['type'] == 'Project' ? Project::Get($data['entityId']) : Job::Get($data['entityId']);
+    if($entity){
+      $entity->addContactById($contactId, $contactData['role'], false, true);
+      $response['response']['success'] = $entity->isContact($contactId);
       $contact = Contact::Get($contactId);
       $contact->setValue('role', $contactData['role']);
-      $roles = $job->loadWorkflow()->getValue('workflow')->getValue('roles');
+      $roles = $entity->loadTemplate()->getValue('template')->getValue('roles');
       $response['response']['people_html'] = get_include(APPPATH.'/views/widgets/_people-contact-include.php', array('contact' => $contact,'roles' => $roles), true);
       $response['response']['sidebar_html'] = get_include(APPPATH.'/views/widgets/_sidebar-contact-include.php', array('contact' => $contact), true);
     } else {
-      $response['errors'][] = 'Error has occurred. Invalid job id provided';
+      $response['errors'][] = 'Error has occurred. Invalid entity id provided';
     }
   } else {
     $response['errors'][] = 'Error has occurred. Contact could not be created';
@@ -157,12 +179,12 @@ function add_contact(){
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function add_contact_args_map(){
-  return array('organizationId','jobId','contactId','name','role','email','phone','mobile','emailUpdates','smsUpdates','active');
+  return array('organizationId','entityId','type','contactId','name','role','email','phone','mobile','emailUpdates','smsUpdates','active');
 }
 
 // Field names of fields required
 function add_contact_required_fields(){
-  return array('organizationId','jobId','name','role','email');
+  return array('organizationId','entityId','type','name','role','email');
 }
 
 function search_contacts(){
@@ -204,9 +226,9 @@ function remove_contact(){
   if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
   $response['response']['success'] = false;
-  $job = Job::Get($data['jobId']);
-  if($job){
-    if($job->isContact($data['contactId'])) $job->removeContact($data['contactId']);
+  $entity = $data['type'] == 'Project' ? Project::Get($data['entityId']) : Job::Get($data['entityId']);
+  if($entity){
+    if($entity->isContact($data['contactId'])) $entity->removeContact($data['contactId']);
     $response['response']['success'] = true;
   } else {
     $response['errors'][] = 'Invalid job id provided';
@@ -218,12 +240,12 @@ function remove_contact(){
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function remove_contact_args_map(){
-  return array('contactId','jobId');
+  return array('contactId','entityId','type');
 }
 
 // Field names of fields required
 function remove_contact_required_fields(){
-  return array('contactId','jobId');
+  return array('contactId','entityId','type');
 }
 
 function update_contact(){
@@ -250,8 +272,8 @@ function update_contact(){
     // Update Contact
     $response['response']['success'] = Contact::Update($contactData['contactId'], $contactData);
     if($response['response']['success']) {
-      $job = Job::Get($contactData['jobId']);
-      $job->updateContactRole($contactData['contactId'], $contactData['role']);
+      $entity = $data['type'] == 'Project' ? Project::Get($data['entityId']) : Job::Get($data['entityId']);
+      $entity->updateContactRole($contactData['contactId'], $contactData['role']);
     }
   } else {
     $response['errors'][] = 'Error has occurred. Contact could not be created';
@@ -263,12 +285,12 @@ function update_contact(){
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function update_contact_args_map(){
-  return array('organizationId','jobId','contactId','name','role','email','phone','mobile','emailUpdates','smsUpdates','active');
+  return array('organizationId','entityId','type','contactId','name','role','email','phone','mobile','emailUpdates','smsUpdates','active');
 }
 
 // Field names of fields required
 function update_contact_required_fields(){
-  return array('contactId','name','role','email');
+  return array('contactId','name','role','email','entityId','type');
 }
 
 function save_meta(){
@@ -279,22 +301,23 @@ function save_meta(){
 
   $response['response']['success'] = false;
   $collection = di_decrypt_s($data['collection'], salt());
-  $jobId = di_decrypt_s($data['record'], salt());
-  $job = Job::Get($jobId);
-  $metaArray = $job->getRawMeta();
+  $entityId = di_decrypt_s($data['record'], salt());
+  $entity = $data['type'] == 'Project' ? Project::Get($entityId) : Job::Get($entityId);
+
+  $metaArray = $entity->getRawMeta();
   $response['response']['rawMeta'] = $metaArray;
   $field = $data['field'];
-  if($job){
+  if($entity){
     $meta = new $data['metaObject']($data['value']);
     if(!$meta->errors()){
       $metaArray[$field] = $meta->get();
-      $job->meta()->set('meta', $metaArray)->save('meta');
+      $entity->meta()->set('meta', $metaArray)->save('meta');
       $response['response']['raw'] = $meta->get();
       $response['response']['display'] = $meta->display();
       $response['response']['success'] = true;
     }
   } else {
-    $response['errors'][] = 'Invalid job id provided';
+    $response['errors'][] = 'Invalid entity id provided';
   }
 
   $response['recordCount'] = 1;
@@ -303,12 +326,12 @@ function save_meta(){
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function save_meta_args_map(){
-  return array('metaObject','record','collection','field','value');
+  return array('metaObject','record','collection','field','value','type');
 }
 
 // Field names of fields required
 function save_meta_required_fields(){
-  return array('metaObject','record','collection','field','value');
+  return array('metaObject','record','collection','field','value','type');
 }
 
 function post_note(){
@@ -318,8 +341,9 @@ function post_note(){
   if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
   $response['response']['success'] = false;
-  $job = Job::Get($data['jobId']);
-  if($job){
+  $entity = $data['type'] == 'Project' ? Project::Get($data['entityId']) : Job::Get($data['entityId']);
+
+  if($entity){
 
     $current_author = UserSession::Get_User();
     $user = User::Get($data['author']['id']);
@@ -333,10 +357,10 @@ function post_note(){
         'type' =>  $data['author']['type'],
         'shortName' => $user->getValue('firstName') . ' ' . substr($user->getValue('lastName'), 0, 1) . '.'
       ),
-      'content' => $data['note'],
+      'content' => nl2br($data['note']),
       'verb' => '',
       'noun' => '',
-      'currentTaskId' => $job->getNextTask()->id(),
+      'currentTaskId' => $entity->getNextTask()->id(),
       'tags' => array(),
       'reference' => null
     );
@@ -349,7 +373,11 @@ function post_note(){
 
     }
 
-    $note['id'] = $job->addNote($note);
+    $response['response']['test'] = array(
+      $data['note'], strlen($data['note']), nl2br($data['note']), strlen(nl2br($data['note']))
+    );
+
+    $note['id'] = $entity->addNote($note);
 
     $response['response']['success'] = (bool) $note['id'];
 
@@ -361,7 +389,7 @@ function post_note(){
 
 
   } else {
-    $response['errors'][] = 'Invalid job id provided';
+    $response['errors'][] = 'Invalid entity id provided';
   }
 
   $response['recordCount'] = 1;
@@ -370,12 +398,12 @@ function post_note(){
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function post_note_args_map(){
-  return array('jobId','author','note','tags','reference');
+  return array('entityId','author','note','tags','reference','type');
 }
 
 // Field names of fields required
 function post_note_required_fields(){
-  return array('jobId','author','note');
+  return array('entityId','author','note','type');
 }
 
 function delete_note(){
@@ -385,13 +413,13 @@ function delete_note(){
   if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
   $response['response']['success'] = false;
-  $job = Job::Get($data['jobId']);
-  if($job){
+  $entity = $data['type'] == 'Project' ? Project::Get($data['entityId']) : Job::Get($data['entityId']);
+  if($entity){
 
-    $response['response']['success'] = $job->deleteNote($data['noteId']);
+    $response['response']['success'] = $entity->deleteNote($data['noteId']);
 
   } else {
-    $response['errors'][] = 'Invalid job id provided';
+    $response['errors'][] = 'Invalid entity id provided';
   }
 
   $response['recordCount'] = 1;
@@ -400,12 +428,33 @@ function delete_note(){
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function delete_note_args_map(){
-  return array('jobId','noteId');
+  return array('entityId','noteId', 'type');
 }
 
 // Field names of fields required
 function delete_note_required_fields(){
-  return array('jobId','noteId');
+  return array('entityId','noteId', 'type');
+}
+
+function task_template_form(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $response['response'] = get_include(APPPATH.'views/widgets/_task-template-details.php');
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function task_template_form_args_map(){
+  return array();
+}
+
+// Field names of fields required
+function task_template_form_required_fields(){
+  return array();
 }
 
 
