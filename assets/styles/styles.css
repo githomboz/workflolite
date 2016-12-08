@@ -2068,6 +2068,12 @@ span.checkbox {
     top: 0;
     right: 0; }
 
+.template-versions .versions {
+  font-weight: 300;
+  font-size: 16px; }
+  .template-versions .versions a {
+    color: #4992d0; }
+
 .templates-list {
   width: 60%;
   float: left; }

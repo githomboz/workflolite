@@ -442,19 +442,22 @@ function task_template_form(){
   $data = _api_process_args($args, __FUNCTION__);
   if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
-  $response['response'] = get_include(APPPATH.'views/widgets/_task-template-details.php');
+  $template = Template::Get($data['templateId'], $data['version']);
+  $taskTemplates = $template->getTemplates();
+  $templateCount = count($taskTemplates);
+  $response['response'] = get_include(APPPATH.'views/widgets/_task-template-details.php', array('templateCount'=>$templateCount), true);
   $response['recordCount'] = 1;
   return $response;
 }
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function task_template_form_args_map(){
-  return array();
+  return array('templateId', 'version');
 }
 
 // Field names of fields required
 function task_template_form_required_fields(){
-  return array();
+  return array('templateId', 'version');
 }
 
 

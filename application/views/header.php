@@ -50,6 +50,7 @@
   data-organization="<?php echo UserSession::Get_Organization()->id()?>"
   data-workflow="<?php if(workflow()) echo workflow()->id()?>"
   data-template="<?php if(template()) echo template()->id()?>"
+  data-version="<?php if(template()) echo template()->version()?>"
   data-entity_type="<?php echo entity() ? (entity() instanceof Project ? 'Project' : 'Job') : null?>"
   data-entity="<?php if(entity()) echo entity()->id()?>"
   data-job="<?php if(job()) echo job()->id()?>"

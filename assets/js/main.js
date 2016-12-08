@@ -34,6 +34,12 @@ function _CS_Get_Template_ID(){
     return _CS.TemplateId;
 }
 
+function _CS_Get_Template_Version(){
+    if(_CS.TemplateVersion) return _CS.TemplateVersion;
+    _CS.TemplateVersion = $("body").data('version');
+    return _CS.TemplateVersion;
+}
+
 function _CS_Get_Job_ID(){
     if(_CS.JobId) return _CS.JobId;
     _CS.JobId = $("body").data('job');

@@ -1361,6 +1361,17 @@ $tasklist_height : 36px;
   }
 }
 
+.template-versions {
+  .versions {
+    font-weight: $font-weight-light;
+    font-size: $font-size-md;
+
+    a {
+      color: $button_blue;
+    }
+  }
+}
+
 .templates-list {
   width: 60%;
   float: left;

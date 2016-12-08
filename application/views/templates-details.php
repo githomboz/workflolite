@@ -1,19 +1,43 @@
 <div class="main-mid-section clearfix">
   <div class="main-mid-section-inner clearfix">
 
-    <h1><?php echo $this->template->getValue('name') ?></h1>
+    <h1><?php echo $this->template->name() ?></h1>
     <h4><?php echo $this->template->getValue('description') ?></h4>
 
     <div class="inner-nav-btns">
       <a href="#" class="btn"><i class="fa fa-plus"></i> Create a Project</a>
     </div>
 
-    <?php var_dump(json_decode($this->input->post('formData'))); ?>
+    <?php var_dump(json_decode($this->input->post('formData')), $this->input->post('templateId'));
+
+//    var_dump(template()->applyUpdates(array(
+//      'noun'=>'test file name',
+//      'taskTemplateChanges' => array(
+//        '57fa9e82239409c44d0041ab' => array(
+//          'name' => 'Jahdy Owners Insurance Policy'
+//        ),
+//        '57fa92ac239409c44d0041a9' => array(
+//          'estimatedTime' => 1.4,
+//          'name' => 'Engagement letters sent to Party',
+//          'sortOrder' => 2,
+//        )
+//      )
+//    ), 3));
+
+    ?>
+    <div class="template-versions widget">
+      <?php $version = template()->getValue('version'); $length = ($this->version > $version ? $this->version: $version) ?>
+      <h2>Template Versions: <span class="versions"><?php for($i = 1; $i <= $length; $i ++) echo ' <a href="?ver='.$i.'">v' . ($i) . ($i > $version ? ' (pending)' : '').'</a>'.($i < $length ? ', ' : ''); ?>
+          <?php $highestVersion = $version + 1; if($this->version != $highestVersion) echo ', <a href="?ver='.$highestVersion.'">Create New Version</a>';?>
+        </span> </h2>
+    </div>
+
     <div class="templates-list widget">
       <h2>Task Templates: <a href="#" class="js-add-task-template-btn">+ Add Task</a> </h2>
       <div class="task-single"></div>
       <div class="task-list">
-        <?php $templates = template()->getTemplates(); //var_dump($templates);
+        <?php $templates = template()->setVersion($this->version)->getTemplates();
+        $templateCount = count($templates);
         foreach($templates as $template) include 'widgets/_task-template-details.php'; ?>
       </div>
     </div><!--/.templates-list-->
@@ -190,7 +214,13 @@
   });
 
   function addNewTask(callback){
-    var $taskSingle = $(".templates-list .task-single");
+    var $taskSingle = $(".templates-list .task-single"),
+      post = {
+        templateId : _CS_Get_Template_ID(),
+        version : _CS_Get_Template_Version()
+      };
+
+    console.log(post);
 
     CS_API.call(
       '/ajax/task_template_form',
@@ -208,12 +238,13 @@
         }
       },
       function(){
-        alertify.error('An error has occured while attempting to add a new task');
+        alertify.error('An error has occurred while attempting to add a new task');
         newTaskFormVisible = false;
       },
-      null,
+      post
+      ,
       {
-        method: 'GET',
+        method: 'POST',
         preferCache : false
       }
     );
@@ -228,23 +259,52 @@
     }
   });
 
+  function validateTaskTemplateChange(currentData, newData){
+    var rtn = {
+      hasChanges : false,
+      fieldsAffected : [],
+      updates : {}
+    };
+
+    for( var field in newData ){
+      if(currentData[field] !== newData[field]){
+        rtn.fieldsAffected.push(field);
+        rtn.updates[field] = newData[field];
+      }
+    }
+
+    rtn.hasChanges = rtn.fieldsAffected.length > 0;
+    return rtn;
+  }
+
   $(document).on('click','.js-update-task-template-btn', function(e){
     e.preventDefault();
     var $this = $(this),
-      $template = $this.parents('.template.entry');
+      $template = $this.parents('.template.entry'),
+      currentData = $template.data('current');
       post = {
-        id : $template.find('.id-field').val(),
+        id : $template.find('.task-template-id').val(),
         name : $template.find('input[id^=field-name-]').val(),
         taskGroup : $template.find('input[id^=field-taskGroup-]').val(),
         description: $template.find('textarea[id^=field-description-]').val(),
         instructions: $template.find('textarea[id^=field-instructions-]').val(),
-        milestone : null,
-        clientView : null,
-        estimatedTime : $template.find('input[id^=field-estimatedTime-]').val()
+        milestone : $template.find('[type=checkbox].milestone').is(':checked'),
+        clientView : $template.find('[type=checkbox].clientView').is(':checked'),
+        estimatedTime : $template.find('input[id^=field-estimatedTime-]').val(),
+        sortOrder : $template.find('select.sortOrder :selected').val()
       };
-    console.log(post);
-    $template.find('[name=formData]').val(JSON.stringify(post));
-    //$template.find('form').submit();
+
+    if(post.estimatedTime.trim() != '') post.estimatedTime = parseInt(post.estimatedTime); else post.estimatedTime = null;
+    if(post.sortOrder.trim() != '') post.sortOrder = parseInt(post.sortOrder);
+
+    var formValidation = validateTaskTemplateChange(currentData, post);
+    if(formValidation.hasChanges){
+      $template.find('[name=formData]').val(JSON.stringify(post));
+      $template.find('[name=templateId]').val(_CS_Get_Template_ID());
+      $template.find('form').submit();
+    } else {
+      alertify.alert('No updates made to this task template.');
+    }
   });
 
 </script>

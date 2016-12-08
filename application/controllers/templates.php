@@ -39,7 +39,13 @@ class Templates extends Users_Controller {
     $this->navSelected = 'templates';
     $this->innerNavSelected = 'details';
     $this->template = Template::Get($templateId);
-    if(isset($this->template) && $this->template){
+    $this->version = is_numeric($this->input->get('ver')) ? (int)$this->input->get('ver') : $this->template->version();
+    $validVersion = false;
+    if($this->version <= $this->template->version() + 1){
+      $validVersion = true;
+    }
+    $this->template = $this->template->setVersion($this->version);
+    if(isset($this->template) && $this->template && $validVersion ){
       $this->view($this->navSelected . '-details');
     } else {
       show_404();

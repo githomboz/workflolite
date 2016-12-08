@@ -5,8 +5,11 @@ class TaskTemplate2
 
   public $_current = array();
 
-  public function __construct(array $data)
+  private $_sortOrder = null;
+
+  public function __construct(array $data, $sortOrder)
   {
+    $this->setSortOrder($sortOrder);
     $this->_initialize($data);
   }
 
@@ -16,6 +19,14 @@ class TaskTemplate2
 
   public function getCurrent(){
     return $this->_current;
+  }
+
+  public function getSortOrder(){
+    return $this->_sortOrder;
+  }
+
+  public function setSortOrder($sortOrder){
+    $this->_sortOrder = $sortOrder;
   }
 
   public function getFields(array $fields = null){
@@ -28,8 +39,23 @@ class TaskTemplate2
   }
 
   public function getSettingsData(){
-    $fields = array('id','taskGroup','name','estimatedTime','instructions','clientView','milestone','description');
+    $fields = array('id','taskGroup','name','estimatedTime','instructions','clientView','milestone','description','sortOrder');
     $data = $this->getFields($fields);
+    foreach($fields as $field) {
+      if(!isset($data[$field])) {
+        switch ($field):
+          case 'description': $data[$field] = "";
+            break;
+          case 'sortOrder': $data[$field] = $this->getSortOrder();
+            break;
+          case 'estimatedTime' : $data[$field] = (float) $data[$field];
+            break;
+          default:
+            $data[$field] = null;
+            break;
+        endswitch;
+      }
+    }
     ksort($data);
     return $data;
   }

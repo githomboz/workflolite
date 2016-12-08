@@ -12,11 +12,13 @@
       <a href="#" class="js-cancel-edit"><i class="fa fa-times"></i> Cancel</a>
     </div>
     <form method="post">
+      <?php //var_dump($template); ?>
       <div class="aside">
         <input type="hidden" name="formData" />
-        <input type="hidden" class="id-field" value="<?php echo $template->id() ?>" />
-        <div class="form-input"><input type="checkbox" name="milestone" id="milestoneField-<?php echo $template->id() ?>" /> <label for="milestoneField-<?php echo $template->id() ?>">Is this a milestone?</label></div>
-        <div class="form-input"><input type="checkbox" name="clientView" id="clientViewField-<?php echo $template->id() ?>"/> <label for="clientViewField-<?php echo $template->id() ?>">Display in client portal?</label></div>
+        <input type="hidden" class="task-template-id" value="<?php echo $template->id() ?>" />
+        <input type="hidden" name="templateId" value="<?php echo template()->id() ?>" />
+        <div class="form-input"><input type="checkbox" class="milestone" id="milestoneField-<?php echo $template->id() ?>" <?php if($template->getValue('milestone') == true) echo 'checked="checked"' ?> /> <label for="milestoneField-<?php echo $template->id() ?>">Is this a milestone?</label></div>
+        <div class="form-input"><input type="checkbox" class="clientView" id="clientViewField-<?php echo $template->id() ?>" <?php if($template->getValue('clientView') == true) echo 'checked="checked"' ?>/> <label for="clientViewField-<?php echo $template->id() ?>">Display in client portal?</label></div>
         <button type="submit" class="btn submit js-update-task-template-btn"><i class="fa fa-save"></i> Update</button>
       </div>
       <div class="form-group">
@@ -41,17 +43,18 @@
       </div>
       <div class="form-group">
         <label>Sort Order: </label>
-        <select class="sortPosition">
-          <option value="after">After</option>
-          <option value="before">Before</option>
+        <select class="sortOrder">
+          <option value="<?php echo $templateCount ?>" <?php if($templateCount == $template->getSortOrder()) echo 'selected="selected"'; ?>>Last (<?php echo $templateCount ?>)</option>
+          <?php
+          for($i = ($templateCount-1); $i > 1; $i --){
+            echo '<option value="' . $i . '" ';
+            if($i == $template->getSortOrder()) echo 'selected="selected"';
+            echo '>' . $i . '</option>';
+          }
+          ?>
+          <option value="1" <?php if($templateCount == 0 || $template->getSortOrder() == 1) echo 'selected="selected"' ?>>First (1)</option>
         </select>
-        <select class="sortTask">
-          
-          <?php foreach($templates as $i => $template){?>
-            <option value="<?php echo $template->id() ?>" <?php if($i == (count($templates)-1)) echo 'selected="selected"'?>><?php echo $template->getValue('name') ?></option>
-          <?php } ?>
-        </select>
-
+        <span class="sort-hint">Change task position</span>
       </div>
     </form>
   </div>
@@ -71,9 +74,10 @@
       <form method="post">
         <div class="aside">
           <input type="hidden" name="formData" />
-          <input type="hidden" class="id-field" value="<?php echo $templateId ?>"/>
-          <div class="form-input"><input type="checkbox" name="milestone" id="milestoneField-<?php echo $templateId ?>" /> <label for="milestoneField-<?php echo $templateId ?>">Is this a milestone?</label></div>
-          <div class="form-input"><input type="checkbox" name="clientView" id="clientViewField-<?php echo $templateId ?>"/> <label for="clientViewField-<?php echo $templateId ?>">Display in client portal?</label></div>
+          <input type="hidden" class="task-template-id" value="<?php echo $templateId ?>" />
+          <input type="hidden" name="templateId" value="<?php if(template()) echo template()->id() ?>" />
+          <div class="form-input"><input type="checkbox" class="milestone" id="milestoneField-<?php echo $templateId ?>" /> <label for="milestoneField-<?php echo $templateId ?>">Is this a milestone?</label></div>
+          <div class="form-input"><input type="checkbox" class="clientView" id="clientViewField-<?php echo $templateId ?>"/> <label for="clientViewField-<?php echo $templateId ?>">Display in client portal?</label></div>
           <button type="submit" class="btn submit"><i class="fa fa-save"></i> Add Task</button>
         </div>
         <div class="form-group">
@@ -95,6 +99,19 @@
         <div class="form-group">
           <label for="field-estimatedTime-<?php echo $templateId ?>">Est. Time (hrs): </label>
           <input id="field-estimatedTime-<?php echo $templateId ?>" type="text" placeholder="Number of hours this task should take" value="<?php ?>" />
+        </div>
+        <div class="form-group">
+          <label>Sort Order: </label>
+          <select class="sortOrder">
+            <option value="<?php echo ($templateCount+1) ?>">Last (<?php echo ($templateCount+1) ?>)</option>
+            <?php
+            for($i = $templateCount; $i > 1; $i --){
+              echo '<option value="' . $i . '">' . $i . '</option>';
+            }
+            ?>
+            <option value="1">First (1)</option>
+          </select>
+          <span class="sort-hint">Place task in last position</span>
         </div>
       </form>
     </div>
