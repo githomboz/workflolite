@@ -20,7 +20,8 @@ class Templates extends Users_Controller {
         $file_prefix = $this->navSelected;
       }
       $this->preCollapseSidePanel = true;
-      $this->template = Template::Get($id);
+      $this->version = is_numeric($this->input->get('ver')) ? (int)$this->input->get('ver') : null;
+      $this->template = Template::cacheGet($id, $this->version);
       if(isset($this->template) && $this->template){
 
           $this->innerNavSelected = $slug;
@@ -38,13 +39,12 @@ class Templates extends Users_Controller {
     $this->pageTitle = 'Template Details';
     $this->navSelected = 'templates';
     $this->innerNavSelected = 'details';
-    $this->template = Template::Get($templateId);
-    $this->version = is_numeric($this->input->get('ver')) ? (int)$this->input->get('ver') : $this->template->version();
+    $this->version = is_numeric($this->input->get('ver')) ? (int)$this->input->get('ver') : null;
+    $this->template = Template::cacheGet($templateId, $this->version);
     $validVersion = false;
     if($this->version <= $this->template->version() + 1){
       $validVersion = true;
     }
-    $this->template = $this->template->setVersion($this->version);
     if(isset($this->template) && $this->template && $validVersion ){
       $this->view($this->navSelected . '-details');
     } else {

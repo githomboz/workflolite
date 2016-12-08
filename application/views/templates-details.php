@@ -8,25 +8,25 @@
       <a href="#" class="btn"><i class="fa fa-plus"></i> Create a Project</a>
     </div>
 
-    <?php var_dump(json_decode($this->input->post('formData')), $this->input->post('templateId'));
+    <?php $version = $this->template->getValue('ver'); $length = ($this->version > $version ? $this->version: $version) ?>
+    <?php //var_dump(json_decode($this->input->post('formData')), $this->input->post('templateId'));
 
 //    var_dump(template()->applyUpdates(array(
-//      'noun'=>'test file name',
+//      'noun'=>'title file',
 //      'taskTemplateChanges' => array(
 //        '57fa9e82239409c44d0041ab' => array(
-//          'name' => 'Jahdy Owners Insurance Policy'
+//          'name' => 'Title Owners Insurance Policy'
 //        ),
 //        '57fa92ac239409c44d0041a9' => array(
-//          'estimatedTime' => 1.4,
-//          'name' => 'Engagement letters sent to Party',
-//          'sortOrder' => 2,
+//          'estimatedTime' => 4,
+//          'name' => 'Engagement Letters Sent to Parties',
+//          'sortOrder' => 1,
 //        )
 //      )
-//    ), 3));
+//    ), $version));
 
     ?>
     <div class="template-versions widget">
-      <?php $version = template()->getValue('version'); $length = ($this->version > $version ? $this->version: $version) ?>
       <h2>Template Versions: <span class="versions"><?php for($i = 1; $i <= $length; $i ++) echo ' <a href="?ver='.$i.'">v' . ($i) . ($i > $version ? ' (pending)' : '').'</a>'.($i < $length ? ', ' : ''); ?>
           <?php $highestVersion = $version + 1; if($this->version != $highestVersion) echo ', <a href="?ver='.$highestVersion.'">Create New Version</a>';?>
         </span> </h2>

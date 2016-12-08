@@ -296,7 +296,10 @@ function entityType(){
   return null;
 }
 
-function template(){
-  if(isset(CI()->template)) return CI()->template;
+function template($version = null){
+  if(isset(CI()->template)) {
+    if($version) CI()->template->setVersion($version);
+    return CI()->template;
+  }
   return workflow();
 }

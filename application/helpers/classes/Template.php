@@ -23,6 +23,8 @@ class Template extends WorkflowFactory
    */
   protected $_updates = array();
 
+  public static $_instanceCount = 0;
+
   /**
    * @var array
    */
@@ -36,6 +38,7 @@ class Template extends WorkflowFactory
 
     $this->_initialize($data);
 
+    self::$_instanceCount++;
 
     $this->sortMetaSettings();
     //$this->_temp_importTaskTemplates();
@@ -56,6 +59,14 @@ class Template extends WorkflowFactory
     }
     return $this;
 
+  }
+
+  public function stateCheck(){
+    return array(
+      'instanceCount' => self::$_instanceCount,
+      'workingVersion' => $this->getValue('version'),
+      'thisVersion' => $this->version(),
+    );
   }
 
   public function setVersion($version){
@@ -388,11 +399,13 @@ class Template extends WorkflowFactory
       if(isset($this->_current[$key])) $this->_changedValues[$key] = $this->_current[$key]; // track the previous value of a field
     }
 
+    $version = is_numeric($version) ? (int) $version : $this->version();
     return $this->saveThisToVersion($version);
   }
 
   public function saveThisToVersion($version = null){
     $return = array(
+      'state' => null,
       'updates' => null,
       'hasUpdated' => false,
       'errors' => array()
@@ -402,7 +415,10 @@ class Template extends WorkflowFactory
     else {
       $version = is_numeric($version) ? (int) $version : $this->version();
 
+
       $return['updates'] = $this->_updates = self::GenerateVersionData($this, $version, $this->_updates);
+
+      $return['state'] = $this->stateCheck();
 
       // Save
       $return['hasUpdates'] = self::SaveToDb($this->id(), $this->getUpdates());
@@ -425,6 +441,7 @@ class Template extends WorkflowFactory
     $template = $template->setVersion($version);
     $allTaskTemplates = $template->getTemplates();
     $current = $template->getCurrent();
+    $currentVersion = $template->getValue('version');
     $currentUpdatedFieldValues = array();
 
     $performTaskTemplateSort = array();
@@ -450,7 +467,8 @@ class Template extends WorkflowFactory
     // var_dump($versionData['v'.$version], $currentUpdatedFieldValues);
 
     // if passed version the same as current version, update local fields as well
-    if($version == $current['version']){
+    //var_dump('Attempting to save to version ' . $version.'; Most current version is '. $currentVersion.'; Passed in version: ' . $version);
+    if($version == $currentVersion){
       $taskTemplateChanges = null;
       if(isset($updates['taskTemplateChanges'])) $taskTemplateChanges = $updates['taskTemplateChanges'];
       if($taskTemplateChanges){
@@ -498,7 +516,6 @@ class Template extends WorkflowFactory
         // Create v{x} if it doesn't exist. If higher than current, increment version field by one
         $update['version'] = $version;
 
-        // Since now the current version, unset versionData for this version
         // Merge in local data
       }
 
@@ -508,6 +525,8 @@ class Template extends WorkflowFactory
 
     }
 
+    //var_dump('yay', $update, $performTaskTemplateSort);
+
     if(!empty($performTaskTemplateSort)){
       $taskTemplate = null;
       $taskTemplateSorted = null;
@@ -516,24 +535,28 @@ class Template extends WorkflowFactory
         if($taskTemplate) $taskTemplateSorted = self::SortTaskTemplates($allTaskTemplates, $taskTemplate, $sortOrder);
       }
       // If isset $update['taskTemplates']
+      //var_dump('tester', $update);
       if(isset($update['taskTemplates'])){
         $update['taskTemplates'] = $taskTemplateSorted;
       } else {
         // Else each taskTemplate and corresponding sortOrder to versionData
         $tempVersionData = $update['versionData'];
+        //var_dump('test');
         foreach($tempVersionData as $versionId => $versionData){
           if($versionId == 'v'.$version){
             if(!isset($versionData['taskTemplateChanges'])) $tempVersionData[$versionId]['taskTemplateChanges'] = array();
             foreach($taskTemplateSorted as $i => $tmpl){
               $tempData = isset($tempVersionData[$versionId]['taskTemplateChanges'][(string) $tmpl['id']]) ? $tempVersionData[$versionId]['taskTemplateChanges'][(string) $tmpl['id']] : array();
                 $temp = array_merge($tmpl, $tempData);
+                // var_dump($temp);
                 $tempVersionData[$versionId]['taskTemplateChanges'][$tmpl['id']] = $temp;
                 $update['versionData'][$versionId]['taskTemplateChanges'][$tmpl['id']]['sortOrder'] = $temp['sortOrder'];
             }
           }
         }
-        if($version > $current['version']){
+        if($version > $currentVersion){
           $update['taskTemplates'] = array_values($tempVersionData['v'.$version]['taskTemplateChanges']);
+          // Since now the current version, unset versionData for this version
           unset($update['versionData']['v'.$version]);
         } else {
         }
