@@ -2073,6 +2073,8 @@ span.checkbox {
   font-size: 16px; }
   .template-versions .versions a {
     color: #4992d0; }
+    .template-versions .versions a.active {
+      color: #255e8e; }
 
 .templates-list {
   width: 60%;

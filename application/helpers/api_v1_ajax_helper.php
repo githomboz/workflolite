@@ -445,7 +445,8 @@ function task_template_form(){
   $template = Template::Get($data['templateId'], $data['version']);
   $taskTemplates = $template->getTemplates();
   $templateCount = count($taskTemplates);
-  $response['response'] = get_include(APPPATH.'views/widgets/_task-template-details.php', array('templateCount'=>$templateCount), true);
+  $templateId = $template->id();
+  $response['response'] = get_include(APPPATH.'views/widgets/_task-template-details.php', array('templateCount'=>$templateCount, 'templateId' => (string) $templateId, 'version' => $data['version']), true);
   $response['recordCount'] = 1;
   return $response;
 }

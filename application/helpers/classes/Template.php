@@ -26,6 +26,12 @@ class Template extends WorkflowFactory
   public static $_instanceCount = 0;
 
   /**
+   * Current value of getTemplates() method cached. Resets to null after each db save.
+   * @var null
+   */
+  private $cachedSortedTemplates = null;
+
+  /**
    * @var array
    */
   protected $_changedValues = array();
@@ -144,6 +150,7 @@ class Template extends WorkflowFactory
 
   public function getTemplates(){
     //foreach($this->getValue('taskTemplates') as $i => $entity) $this->entities[] = new TaskTemplate2($entity, ($i+1));
+    if(isset($this->cachedSortedTemplates)) return $this->cachedSortedTemplates;
     $templateVersionData = $this->getValue('versionData');
     $versionData = isset($templateVersionData['v' . $this->version()]) ? $templateVersionData['v' . $this->version()] : array();
     $taskTemplateChanges = isset($versionData['taskTemplateChanges']) ? $versionData['taskTemplateChanges'] : array();
@@ -156,8 +163,9 @@ class Template extends WorkflowFactory
       }
     }
     usort($allTaskTemplates, 'Template::taskSortCompare');
-    $this->setValue('taskTemplates', $allTaskTemplates);
+    $this->_current['taskTemplates'] = $allTaskTemplates;
     foreach($allTaskTemplates as $i => $v) $allTaskTemplates[$i] = new TaskTemplate2($v, $v['sortOrder']);
+    $this->cachedSortedTemplates = $allTaskTemplates;
     return $allTaskTemplates;
   }
 
@@ -393,6 +401,39 @@ class Template extends WorkflowFactory
     return $this;
   }
 
+  /**
+   * Returns array where only the keys and values that are different from currently stored data are present
+   * @param array $updates Updates to be made to db
+   * @return array
+   */
+  public function getTaskTemplateDiff(array $updates){
+    if(isset($updates['id'])){
+      $return = array();
+      foreach($this->getTemplates() as $i => $taskTemplate){
+        if((string) $taskTemplate->id() == $updates['id']) {
+          foreach($updates as $field => $value){
+            if($taskTemplate->getValue($field) != $value){
+              $return[$field] = $value;
+            }
+          }
+        }
+      }
+      return $return;
+    } else {
+      return false;
+    }
+  }
+
+  public function getTaskTemplate($id){
+    if(!empty($id)){
+      foreach($this->getTemplates() as $i => $taskTemplate){
+        if((string) $taskTemplate->id() == $id) {
+          return $taskTemplate;
+        }
+      }
+    }
+  }
+
   public function applyUpdates(array $updates, $version = null){
     foreach($updates as $key => $value) {
       $this->_updates[$key] = $value; // More efficient saving method
@@ -400,6 +441,9 @@ class Template extends WorkflowFactory
     }
 
     $version = is_numeric($version) ? (int) $version : $this->version();
+
+    //var_dump($version, $updates);
+    //var_dump($this->_updates);
     return $this->saveThisToVersion($version);
   }
 
@@ -421,11 +465,17 @@ class Template extends WorkflowFactory
       $return['state'] = $this->stateCheck();
 
       // Save
-      $return['hasUpdates'] = self::SaveToDb($this->id(), $this->getUpdates());
+      $save = self::SaveToDb($this->id(), $this->getUpdates());
+      // Merge data back into _current
+      $this->_current = array_merge($this->_current, $this->getUpdates());
+      $return['hasUpdates'] = true;
 
     }
 
-    if(empty($return['errors'])) $return['errors'] = false;
+    if(empty($return['errors'])) {
+      $return['errors'] = false;
+      $this->cachedSortedTemplates = null;
+    }
     return $return;
   }
 

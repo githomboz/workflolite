@@ -40,7 +40,49 @@ class Templates extends Users_Controller {
     $this->navSelected = 'templates';
     $this->innerNavSelected = 'details';
     $this->version = is_numeric($this->input->get('ver')) ? (int)$this->input->get('ver') : null;
+    $this->versions = array();
+
     $this->template = Template::cacheGet($templateId, $this->version);
+
+    $this->versions['db'] = template()->getValue('version');
+    $this->versions['save'] = is_numeric($this->version) ? $this->version : $this->versions['db'];
+    $this->versions['highest'] = $this->versions['db'] + 1;
+
+    if($post = $this->input->post()){
+      if(isset($post['formAction']) && $post['formAction'] == 'updateTaskTemplate' && !empty($post['formData'])){
+        $formErrors = array();
+        if(isset($post['taskTemplateId']) && !empty($post['taskTemplateId'])){
+          $taskTemplate = template()->getTaskTemplate($post['taskTemplateId']);
+
+          // Process update
+          $formData = json_decode($post['formData'], true);
+          $updatedData = template()->getTaskTemplateDiff($formData);
+          $this->messageBox = array(
+            'class' => 'general',
+            'content' => null
+          );
+          if(!empty($updatedData)){
+            // Data updated
+            $updates = array(
+              'taskTemplateChanges' => array(
+                (string) $taskTemplate->id() => $updatedData
+              )
+            );
+            template()->applyUpdates($updates, $this->versions['save']);
+            $this->messageBox['class'] .= ' success';
+            $this->messageBox['content'] = 'The following field(s) were updated successfully ['.join(', ', array_keys($updatedData)).']';
+          } else {
+            // No data to update
+            $this->messageBox['class'] .= ' error';
+            $this->messageBox['content'] = 'No valid updates found for this task';
+          }
+
+        } else {
+          $formErrors[] = 'No task template found';
+        }
+      }
+    }
+
     $validVersion = false;
     if($this->version <= $this->template->version() + 1){
       $validVersion = true;

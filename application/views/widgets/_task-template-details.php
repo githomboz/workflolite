@@ -15,8 +15,9 @@
       <?php //var_dump($template); ?>
       <div class="aside">
         <input type="hidden" name="formData" />
-        <input type="hidden" class="task-template-id" value="<?php echo $template->id() ?>" />
+        <input type="hidden" name="taskTemplateId" class="task-template-id" value="<?php echo $template->id() ?>" />
         <input type="hidden" name="templateId" value="<?php echo template()->id() ?>" />
+        <input type="hidden" name="formAction" value="updateTaskTemplate" />
         <div class="form-input"><input type="checkbox" class="milestone" id="milestoneField-<?php echo $template->id() ?>" <?php if($template->getValue('milestone') == true) echo 'checked="checked"' ?> /> <label for="milestoneField-<?php echo $template->id() ?>">Is this a milestone?</label></div>
         <div class="form-input"><input type="checkbox" class="clientView" id="clientViewField-<?php echo $template->id() ?>" <?php if($template->getValue('clientView') == true) echo 'checked="checked"' ?>/> <label for="clientViewField-<?php echo $template->id() ?>">Display in client portal?</label></div>
         <button type="submit" class="btn submit js-update-task-template-btn"><i class="fa fa-save"></i> Update</button>
@@ -60,10 +61,14 @@
   </div>
 </div>
 <?php } else {
-  $templateId = md5(_generate_id(8).time());
+  $taskTemplateId = md5(_generate_id(8).time());
+  $templateId = (isset($templateId)) ? $templateId : (template() ? (string) template()->id() : null);
+  $formUrl = site_url('templates/' . $templateId);
+  $formUrl .= isset($version) ? '?ver=' . $version : '';
+  $formUrl .= '#tasktemplate-'.$taskTemplateId;
   ?>
-  <div class="template entry new template-<?php echo $templateId ?> form-mode" >
-    <a href="#tasktemplate-<?php echo $templateId ?>" class="dark new boxed preview entry clearfix">
+  <div class="template entry new template-<?php echo $taskTemplateId ?> form-mode" >
+    <a href="#tasktemplate-<?php echo $taskTemplateId ?>" class="dark new boxed preview entry clearfix">
       <h2><i class="fa fa-chevron-right"></i> New Task Template</h2>
     </a>
     <div class="boxed form entry clearfix">
@@ -71,34 +76,35 @@
       <div class="link-group">
         <a href="#" class="js-cancel-edit"><i class="fa fa-times"></i> Cancel</a>
       </div>
-      <form method="post">
+      <form method="post" action="<?php echo $formUrl ?>">
         <div class="aside">
           <input type="hidden" name="formData" />
-          <input type="hidden" class="task-template-id" value="<?php echo $templateId ?>" />
-          <input type="hidden" name="templateId" value="<?php if(template()) echo template()->id() ?>" />
-          <div class="form-input"><input type="checkbox" class="milestone" id="milestoneField-<?php echo $templateId ?>" /> <label for="milestoneField-<?php echo $templateId ?>">Is this a milestone?</label></div>
-          <div class="form-input"><input type="checkbox" class="clientView" id="clientViewField-<?php echo $templateId ?>"/> <label for="clientViewField-<?php echo $templateId ?>">Display in client portal?</label></div>
+          <input type="hidden" name="taskTemplateId" class="task-template-id" value="<?php echo $taskTemplateId ?>" />
+          <input type="hidden" name="templateId" value="<?php echo $templateId; ?>" />
+          <input type="hidden" name="formAction" value="addNewTaskTemplate" />
+          <div class="form-input"><input type="checkbox" class="milestone" id="milestoneField-<?php echo $taskTemplateId ?>" /> <label for="milestoneField-<?php echo $taskTemplateId ?>">Is this a milestone?</label></div>
+          <div class="form-input"><input type="checkbox" class="clientView" id="clientViewField-<?php echo $taskTemplateId ?>"/> <label for="clientViewField-<?php echo $taskTemplateId ?>">Display in client portal?</label></div>
           <button type="submit" class="btn submit"><i class="fa fa-save"></i> Add Task</button>
         </div>
         <div class="form-group">
-          <label for="field-taskGroup-<?php echo $templateId ?>">Group Label: </label>
-          <input id="field-taskGroup-<?php echo $templateId ?>" type="text" placeholder="Enter a group name to categorize this task" value="<?php ?>" />
+          <label for="field-taskGroup-<?php echo $taskTemplateId ?>">Group Label: </label>
+          <input id="field-taskGroup-<?php echo $taskTemplateId ?>" type="text" placeholder="Enter a group name to categorize this task" value="<?php ?>" />
         </div>
         <div class="form-group">
-          <label for="field-name-<?php echo $templateId ?>">Task Name: </label>
-          <input id="field-name-<?php echo $templateId ?>" type="text" placeholder="Enter a task name" value="<?php ?>" />
+          <label for="field-name-<?php echo $taskTemplateId ?>">Task Name: </label>
+          <input id="field-name-<?php echo $taskTemplateId ?>" type="text" placeholder="Enter a task name" value="<?php ?>" />
         </div>
         <div class="form-group">
-          <label for="field-description-<?php echo $templateId ?>">Description: </label>
-          <textarea id="field-description-<?php echo $templateId ?>" placeholder="Explain what this task is in layman's terms"><?php ?></textarea>
+          <label for="field-description-<?php echo $taskTemplateId ?>">Description: </label>
+          <textarea id="field-description-<?php echo $taskTemplateId ?>" placeholder="Explain what this task is in layman's terms"><?php ?></textarea>
         </div>
         <div class="form-group">
-          <label for="field-instructions-<?php echo $templateId ?>">Instructions: </label>
-          <textarea id="field-instructions-<?php echo $templateId ?>" placeholder="Chart out what needs to be done"><?php ?></textarea>
+          <label for="field-instructions-<?php echo $taskTemplateId ?>">Instructions: </label>
+          <textarea id="field-instructions-<?php echo $taskTemplateId ?>" placeholder="Chart out what needs to be done"><?php ?></textarea>
         </div>
         <div class="form-group">
-          <label for="field-estimatedTime-<?php echo $templateId ?>">Est. Time (hrs): </label>
-          <input id="field-estimatedTime-<?php echo $templateId ?>" type="text" placeholder="Number of hours this task should take" value="<?php ?>" />
+          <label for="field-estimatedTime-<?php echo $taskTemplateId ?>">Est. Time (hrs): </label>
+          <input id="field-estimatedTime-<?php echo $taskTemplateId ?>" type="text" placeholder="Number of hours this task should take" value="<?php ?>" />
         </div>
         <div class="form-group">
           <label>Sort Order: </label>
@@ -111,7 +117,7 @@
             ?>
             <option value="1">First (1)</option>
           </select>
-          <span class="sort-hint">Place task in last position</span>
+          <span class="sort-hint">Define task position</span>
         </div>
       </form>
     </div>

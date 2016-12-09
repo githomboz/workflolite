@@ -1,14 +1,15 @@
 <div class="main-mid-section clearfix">
   <div class="main-mid-section-inner clearfix">
 
-    <h1><?php echo $this->template->name() ?></h1>
-    <h4><?php echo $this->template->getValue('description') ?></h4>
+    <h1><?php echo template()->name() ?></h1>
+    <h4><?php echo template()->getValue('description') ?></h4>
 
     <div class="inner-nav-btns">
       <a href="#" class="btn"><i class="fa fa-plus"></i> Create a Project</a>
     </div>
 
-    <?php $version = $this->template->getValue('ver'); $length = ($this->version > $version ? $this->version: $version) ?>
+    <?php $versions = $this->versions;
+    ?>
     <?php //var_dump(json_decode($this->input->post('formData')), $this->input->post('templateId'));
 
 //    var_dump(template()->applyUpdates(array(
@@ -27,8 +28,21 @@
 
     ?>
     <div class="template-versions widget">
-      <h2>Template Versions: <span class="versions"><?php for($i = 1; $i <= $length; $i ++) echo ' <a href="?ver='.$i.'">v' . ($i) . ($i > $version ? ' (pending)' : '').'</a>'.($i < $length ? ', ' : ''); ?>
-          <?php $highestVersion = $version + 1; if($this->version != $highestVersion) echo ', <a href="?ver='.$highestVersion.'">Create New Version</a>';?>
+      <h2>Template Versions: <span class="versions">
+          <?php for($i = 1; $i < $versions['highest']; $i ++) {
+            $active = $versions['save'] == $i;
+            echo ' <a href="?ver='.$i.'"';
+            if($active) echo ' class="active"';
+            echo '>v' . ($i);
+            if($active) echo ' (active)';
+            echo '</a>, ';
+          } ?>
+          <?php if($versions['save'] != $versions['highest']) {
+            echo '<a href="?ver='.$versions['highest'].'">Create New Version</a>';
+          } else {
+            echo '<a href="?ver='. $versions['highest'].'" class="active">v' . $versions['save'] . ' (pending)</a>';
+          }
+          ?>
         </span> </h2>
     </div>
 

@@ -1368,6 +1368,10 @@ $tasklist_height : 36px;
 
     a {
       color: $button_blue;
+
+      &.active {
+        color: darken($button_blue, 20%);
+      }
     }
   }
 }
