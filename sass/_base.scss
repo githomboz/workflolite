@@ -11,7 +11,6 @@ $sidepanel_color_dark: #555;
 $sidepanel_color_light: #7f7f7f;
 
 $button_blue: #4992d0;
-$error_red: #930810;
 
 
 
@@ -42,6 +41,18 @@ em {
   border: 1px solid darken($sidepanel_bg, 10%);
   box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
   margin-bottom: $paddingLarge;
+}
+
+.message-box {
+  @include message-box;
+
+  &.success {
+    @include message-box-success;
+  }
+
+  &.error {
+    @include message-box-error;
+  }
 }
 
 .sidepanel-bg {
@@ -1492,6 +1503,10 @@ $tasklist_height : 36px;
       position: absolute;
       right: 10px;
       color: $button_blue;
+
+      &.error {
+        color: $error_red;
+      }
     }
   }
 

@@ -11,6 +11,11 @@
       <a href="#" class="js-delete-task"><i class="fa fa-trash"></i> Delete</a>
       <a href="#" class="js-cancel-edit"><i class="fa fa-times"></i> Cancel</a>
     </div>
+    <?php if(isset($this->messageBox) && isset($this->messageBox['content']) && (string) $template->id() == $this->messageBox['taskTemplateId']){ ?>
+      <div class="message-box <?php echo $this->messageBox['class'] ?>">
+        <div class="content"><?php echo $this->messageBox['content'] ?></div>
+      </div>
+    <?php } ?>
     <form method="post">
       <?php //var_dump($template); ?>
       <div class="aside">
@@ -76,6 +81,11 @@
       <div class="link-group">
         <a href="#" class="js-cancel-edit"><i class="fa fa-times"></i> Cancel</a>
       </div>
+      <?php if(isset($this->messageBox)){ ?>
+      <div class="message-box <?php echo $this->messageBox['class'] ?>">
+        <div class="content"><?php echo $this->messageBox['content'] ?></div>
+      </div>
+      <?php } ?>
       <form method="post" action="<?php echo $formUrl ?>">
         <div class="aside">
           <input type="hidden" name="formData" />

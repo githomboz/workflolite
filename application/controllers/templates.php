@@ -48,9 +48,28 @@ class Templates extends Users_Controller {
     $this->versions['save'] = is_numeric($this->version) ? $this->version : $this->versions['db'];
     $this->versions['highest'] = $this->versions['db'] + 1;
 
+    $processUpdateTaskForm = $this->_processUpdateTaskForm();
+    $processAddRoleForm = $this->_processAddRoleForm();
+
+    $validVersion = false;
+    if($this->version <= $this->template->version() + 1){
+      $validVersion = true;
+    }
+    if(isset($this->template) && $this->template && $validVersion ){
+      $this->view($this->navSelected . '-details');
+    } else {
+      show_404();
+    }
+  }
+
+  private function _processUpdateTaskForm(){
+    $formErrors = array();
+    $formData = null;
+    $success = false;
+    $submitted = false;
     if($post = $this->input->post()){
-      if(isset($post['formAction']) && $post['formAction'] == 'updateTaskTemplate' && !empty($post['formData'])){
-        $formErrors = array();
+      if(isset($post['formAction']) && $post['formAction'] == 'updateTaskTemplate'){
+        $submitted = true;
         if(isset($post['taskTemplateId']) && !empty($post['taskTemplateId'])){
           $taskTemplate = template()->getTaskTemplate($post['taskTemplateId']);
 
@@ -69,29 +88,52 @@ class Templates extends Users_Controller {
               )
             );
             template()->applyUpdates($updates, $this->versions['save']);
+            $this->messageBox['taskTemplateId'] = (string) $taskTemplate->id();
             $this->messageBox['class'] .= ' success';
             $this->messageBox['content'] = 'The following field(s) were updated successfully ['.join(', ', array_keys($updatedData)).']';
-          } else {
-            // No data to update
-            $this->messageBox['class'] .= ' error';
-            $this->messageBox['content'] = 'No valid updates found for this task';
+            $success = true;
           }
+//          else {
+//            // No data to update
+//            $this->messageBox['class'] .= ' error';
+//            $this->messageBox['content'] = 'No valid updates found for this task';
+//          }
 
         } else {
           $formErrors[] = 'No task template found';
         }
       }
     }
+    return array(
+      'submitted' => $submitted,
+      'errors' => $formErrors,
+      'formData' => $formData,
+      'success' => $success
+    );
+  }
 
-    $validVersion = false;
-    if($this->version <= $this->template->version() + 1){
-      $validVersion = true;
+  private function _processAddRoleForm(){
+    $formErrors = array();
+    $formData = null;
+    $success = false;
+    $submitted = false;
+    if($post = $this->input->post()){
+      if(isset($post['formAction']) && $post['formAction'] == 'addRole'){
+        $submitted = true;
+        if(isset($post['role']) && !empty($post['role'])){
+          $success = template()->addRole($post['role']);
+        } else {
+          $formErrors[] = 'No role has been input';
+        }
+      }
     }
-    if(isset($this->template) && $this->template && $validVersion ){
-      $this->view($this->navSelected . '-details');
-    } else {
-      show_404();
-    }
+    unset($post['formAction']);
+    return array(
+      'submitted' => $submitted,
+      'errors' => $formErrors,
+      'formData' => $post,
+      'success' => $success
+    );
   }
 
   public function archive(){

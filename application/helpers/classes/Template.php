@@ -434,6 +434,33 @@ class Template extends WorkflowFactory
     }
   }
 
+  public function addRole($role){
+    if(!empty($role)){
+      $roles = $this->getValue('roles');
+      if(!in_array($role, $roles)) $roles[] = $role;
+      $this->clearUpdates();
+      $this->applyUpdates(array('roles' => $roles));
+      return true;
+    }
+    return false;
+  }
+
+  public function removeRole($role){
+    if(!empty($role)){
+      $roles = $this->getValue('roles');
+      $index = array_search($role, $roles);
+      if($index > -1){
+        unset($roles[$index]);
+        $roles = array_values($roles);
+        $this->clearUpdates();
+        $this->applyUpdates(array('roles' => $roles));
+        return true;
+      }
+      return false;
+    }
+    return false;
+  }
+
   public function applyUpdates(array $updates, $version = null){
     foreach($updates as $key => $value) {
       $this->_updates[$key] = $value; // More efficient saving method

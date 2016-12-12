@@ -26,6 +26,27 @@
   box-shadow: $hShadow $vShadow $blur $spread rgba( $color, $alpha );
 }
 
+@mixin message-box (){
+  border-radius: 3px;
+  padding: $padding;
+  background: darken($sidepanel_bg, 10%);
+  border: 1px solid darken($sidepanel_bg, 20%);
+  margin-bottom: $padding;
+  box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+@mixin message-box-error (){
+  @include message-box;
+  border-color: $error_red;
+  background: rgba($error_red, .3);
+}
+
+@mixin message-box-success (){
+  @include message-box;
+  border-color: $success_green;
+  background: rgba($success_green, .3);
+}
+
 /// Mixin to prefix a property
 /// @author Hugo Giraudel
 /// @param {String} $property - Property name

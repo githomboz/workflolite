@@ -1205,6 +1205,38 @@ em {
           box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
   margin-bottom: 18px; }
 
+.message-box {
+  -webkit-border-radius: 3px;
+          border-radius: 3px;
+  padding: 10px;
+  background: #d9d9d9;
+  border: 1px solid #bfbfbf;
+  margin-bottom: 10px;
+  -webkit-box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+          box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05); }
+  .message-box.success {
+    -webkit-border-radius: 3px;
+            border-radius: 3px;
+    padding: 10px;
+    background: #d9d9d9;
+    border: 1px solid #bfbfbf;
+    margin-bottom: 10px;
+    -webkit-box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+            box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+    border-color: #159215;
+    background: rgba(21, 146, 21, 0.3); }
+  .message-box.error {
+    -webkit-border-radius: 3px;
+            border-radius: 3px;
+    padding: 10px;
+    background: #d9d9d9;
+    border: 1px solid #bfbfbf;
+    margin-bottom: 10px;
+    -webkit-box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+            box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.05);
+    border-color: rgba(147, 8, 16, 0.42);
+    background: rgba(147, 8, 16, 0.3); }
+
 .sidepanel-bg {
   background: #f2f2f2; }
 
@@ -1218,9 +1250,9 @@ a.dark {
   color: #4992d0; }
 
 .error-red {
-  -webkit-columns: #930810;
-     -moz-columns: #930810;
-          columns: #930810; }
+  -webkit-columns: rgba(147, 8, 16, 0.42);
+     -moz-columns: rgba(147, 8, 16, 0.42);
+          columns: rgba(147, 8, 16, 0.42); }
 
 .upper-head {
   height: 34px;
@@ -2147,6 +2179,8 @@ span.checkbox {
       position: absolute;
       right: 10px;
       color: #4992d0; }
+      .dynamic-list .list-item a.error {
+        color: rgba(147, 8, 16, 0.42); }
 
 .entities-list.widget {
   float: right;

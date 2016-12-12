@@ -461,5 +461,27 @@ function task_template_form_required_fields(){
   return array('templateId', 'version');
 }
 
+function remove_role(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $template = Template::Get($data['templateId'], $data['version']);
+  $response['response']['success'] = $template->removeRole($data['role']);
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function remove_role_args_map(){
+  return array('templateId', 'role','version');
+}
+
+// Field names of fields required
+function remove_role_required_fields(){
+  return array('templateId', 'role','version');
+}
+
 
 

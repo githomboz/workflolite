@@ -59,6 +59,7 @@
     <div class="roles-list entities-list widget">
       <h2>Manage Roles: </h2>
       <form method="post" class="boxed sidepanel-bg">
+        <input type="hidden" name="formAction" value="addRole" />
         <div class="form-group">
           <label for="roleField">New Role</label> <input type="text" id="roleField" name="role" placeholder="Enter a Role" />
         </div>
@@ -67,7 +68,7 @@
         <?php if(!empty($roles)){?>
         <div class="roles entities dynamic-list">
           <?php foreach($roles as $i => $role) {?>
-          <div class="list-item entity role" data-role_key="<?php echo $i ?>"><span class="text"><?php echo $role; ?></span> <a href="#close" class="close fa fa-times"></a></div>
+          <div class="list-item entity role" data-role_key="<?php echo $i ?>" data-role="<?php echo $role; ?>"><span class="text"><?php echo $role; ?></span> <a href="#close" data-role="<?php echo $role; ?>" class="close fa fa-times delete-role-btn"></a></div>
           <?php } ?>
         </div>
         <?php } ?>
@@ -156,8 +157,10 @@
         <?php if(!empty($metaFields)){  ?>
           <div class="meta-fields entities dynamic-list">
             <?php foreach($metaFields as $i => $metaField) { ?>
-              <div class="list-item entity meta-field" data-slug="<?php $metaField['slug'] ?>"><span class="text"><?php echo $metaField['field'] . " ( {$metaField['type']}" . (isset($metaField['_']) ? '[' . $metaField['_'] . ']' : '') .  " )";
-                  ?></span> <a href="#close" class="close fa fa-times"></a></div>
+              <div class="list-item entity meta-field" data-slug="<?php $metaField['slug'] ?>">
+                <span class="text"><?php echo $metaField['field'] . " ( {$metaField['type']}" . (isset($metaField['_']) ? '[' . $metaField['_'] . ']' : '') .  " )";
+                  ?></span>
+                <a href="#close" data-slug="<?php $metaField['slug'] ?>" class="close fa fa-times remove-meta-btn"></a></div>
             <?php } ?>
           </div>
         <?php } ?>
@@ -182,6 +185,54 @@
       $template = $(".template-" + templateId);
       selectTemplate($template, 300);
   });
+
+  $(document).on('click', '.dynamic-list .delete-role-btn', function(){
+    var $link = $(this),
+      role = $link.data('role'),
+      inAction = false,
+      post = {
+        role : role,
+        templateId : _CS_Get_Template_ID(),
+        version : _CS_Get_Template_Version()
+      };
+    if(!inAction){
+      CS_API.call('/ajax/remove_role',
+        function(){
+          $link.removeClass('fa-times error').addClass('fa-spin fa-spinner');
+          inAction = true;
+        },
+        function(data){
+          inAction = false;
+          console.log(data);
+          if(data.errors == false){
+            $link.addClass('fa-times').removeClass('fa-spin fa-spinner error');
+            if(data.response.success){
+              $('.list-item.entity.role[data-role="'+role+'"]').fadeOut();
+            } else {
+              handleListLinkError($link, 'An error has occurred while attempting to remove role');
+            }
+          } else {
+            handleListLinkError($link, 'An error has occurred while attempting to remove role');
+          }
+        },
+        function(){
+          handleListLinkError($link, 'An error has occurred while attempting to remove role');
+          inAction = false;
+        },
+        post
+        ,
+        {
+          method: 'POST',
+          preferCache : false
+        }
+      );
+    }
+  });
+
+  function handleListLinkError($link, message){
+    alertify.error(message || 'An error has occurred');
+    $link.addClass('fa-warning error').removeClass('fa-spin fa-spinner fa-times');
+  }
 
   $(document).on('click', ".form .js-cancel-edit", function(){
     var $this = $(this), $templateList = $this.parents('.templates-list');
@@ -295,7 +346,7 @@
     e.preventDefault();
     var $this = $(this),
       $template = $this.parents('.template.entry'),
-      currentData = $template.data('current');
+      currentData = $template.data('current'),
       post = {
         id : $template.find('.task-template-id').val(),
         name : $template.find('input[id^=field-name-]').val(),
@@ -308,11 +359,13 @@
         sortOrder : $template.find('select.sortOrder :selected').val()
       };
 
+
     if(post.estimatedTime.trim() != '') post.estimatedTime = parseInt(post.estimatedTime); else post.estimatedTime = null;
     if(post.sortOrder.trim() != '') post.sortOrder = parseInt(post.sortOrder);
 
     var formValidation = validateTaskTemplateChange(currentData, post);
     if(formValidation.hasChanges){
+      $this.find('.fa-save').removeClass('fa-save').addClass('fa-spin fa-spinner');
       $template.find('[name=formData]').val(JSON.stringify(post));
       $template.find('[name=templateId]').val(_CS_Get_Template_ID());
       $template.find('form').submit();
@@ -320,5 +373,7 @@
       alertify.alert('No updates made to this task template.');
     }
   });
+
+
 
 </script>
