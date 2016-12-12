@@ -81,11 +81,6 @@
       <div class="link-group">
         <a href="#" class="js-cancel-edit"><i class="fa fa-times"></i> Cancel</a>
       </div>
-      <?php if(isset($this->messageBox)){ ?>
-      <div class="message-box <?php echo $this->messageBox['class'] ?>">
-        <div class="content"><?php echo $this->messageBox['content'] ?></div>
-      </div>
-      <?php } ?>
       <form method="post" action="<?php echo $formUrl ?>">
         <div class="aside">
           <input type="hidden" name="formData" />
