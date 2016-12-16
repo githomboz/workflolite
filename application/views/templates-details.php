@@ -157,10 +157,10 @@
         <?php if(!empty($metaFields)){  ?>
           <div class="meta-fields entities dynamic-list">
             <?php foreach($metaFields as $i => $metaField) { ?>
-              <div class="list-item entity meta-field" data-slug="<?php $metaField['slug'] ?>">
+              <div class="list-item entity meta-field" data-slug="<?php echo $metaField['slug'] ?>">
                 <span class="text"><?php echo $metaField['field'] . " ( {$metaField['type']}" . (isset($metaField['_']) ? '[' . $metaField['_'] . ']' : '') .  " )";
                   ?></span>
-                <a href="#close" data-slug="<?php $metaField['slug'] ?>" class="close fa fa-times remove-meta-btn"></a></div>
+                <a href="#close" data-slug="<?php echo $metaField['slug'] ?>" class="close fa fa-times remove-meta-btn"></a></div>
             <?php } ?>
           </div>
         <?php } ?>
@@ -195,38 +195,87 @@
         templateId : _CS_Get_Template_ID(),
         version : _CS_Get_Template_Version()
       };
-    if(!inAction){
-      CS_API.call('/ajax/remove_role',
-        function(){
-          $link.removeClass('fa-times error').addClass('fa-spin fa-spinner');
-          inAction = true;
-        },
-        function(data){
-          inAction = false;
-          console.log(data);
-          if(data.errors == false){
-            $link.addClass('fa-times').removeClass('fa-spin fa-spinner error');
-            if(data.response.success){
-              $('.list-item.entity.role[data-role="'+role+'"]').fadeOut();
+    alertify.confirm('Are you sure you want to remove this role?', function(){
+      if(!inAction){
+        CS_API.call('/ajax/remove_role',
+          function(){
+            $link.removeClass('fa-times error').addClass('fa-spin fa-spinner');
+            inAction = true;
+          },
+          function(data){
+            inAction = false;
+            console.log(data);
+            if(data.errors == false){
+              $link.addClass('fa-times').removeClass('fa-spin fa-spinner error');
+              if(data.response.success){
+                $('.list-item.entity.role[data-role="'+role+'"]').fadeOut();
+              } else {
+                handleListLinkError($link, 'ER03: An error has occurred while attempting to remove role');
+              }
             } else {
-              handleListLinkError($link, 'An error has occurred while attempting to remove role');
+              handleListLinkError($link, 'ER02: An error has occurred while attempting to remove role');
             }
-          } else {
-            handleListLinkError($link, 'An error has occurred while attempting to remove role');
+          },
+          function(){
+            handleListLinkError($link, 'ER01: An error has occurred while attempting to remove role');
+            inAction = false;
+          },
+          post
+          ,
+          {
+            method: 'POST',
+            preferCache : false
           }
-        },
-        function(){
-          handleListLinkError($link, 'An error has occurred while attempting to remove role');
-          inAction = false;
-        },
-        post
-        ,
-        {
-          method: 'POST',
-          preferCache : false
-        }
-      );
-    }
+        );
+      }
+    });
+  });
+
+  $(document).on('click', '.dynamic-list .remove-meta-btn', function(){
+    var $link = $(this),
+      slug = $link.data('slug'),
+      inAction = false,
+      post = {
+        metaKey : slug,
+        templateId : _CS_Get_Template_ID(),
+        version : _CS_Get_Template_Version()
+      };
+    console.log($link, post);
+    alertify.confirm('Are you sure you want to remove this meta value?',
+    function(){
+      if(!inAction){
+        CS_API.call('/ajax/remove_meta',
+          function(){
+            $link.removeClass('fa-times error').addClass('fa-spin fa-spinner');
+            inAction = true;
+          },
+          function(data){
+            inAction = false;
+            if(data.errors == false){
+              $link.addClass('fa-times').removeClass('fa-spin fa-spinner error');
+              if(data.response.success){
+                $('.list-item.entity.meta-field[data-slug="'+slug+'"]').fadeOut();
+              } else {
+                handleListLinkError($link, 'ER03: An error has occurred while attempting to remove meta field');
+              }
+            } else {
+              handleListLinkError($link, 'ER02: An error has occurred while attempting to remove meta field');
+            }
+          },
+          function(){
+            handleListLinkError($link, 'ER01: An error has occurred while attempting to remove meta field');
+            inAction = false;
+          },
+          post
+          ,
+          {
+            method: 'POST',
+            preferCache : false
+          }
+        );
+      }
+    });
+
   });
 
   function handleListLinkError($link, message){

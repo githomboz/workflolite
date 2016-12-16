@@ -324,6 +324,21 @@ class Template extends WorkflowFactory
     return $dataFormats;
   }
 
+  public function removeMeta($slug){
+    $success = false;
+    $allMeta = $this->getValue('metaFields');
+    foreach($allMeta as $i => $meta){
+      if(isset($meta['slug']) && $meta['slug'] == $slug){
+        unset($allMeta[$i]);
+        $allMeta = array_values($allMeta);
+        $success = true;
+        $this->clearUpdates();
+        $this->applyUpdates(array('metaFields' => $allMeta));
+      }
+    }
+    return $success;
+  }
+
   public function addMeta($key, $slug = null, $type = null, $hide = false, $defaultValue = null){
     $dataTypes = self::MetaDataTypes();
     $dataFields = array_keys($dataTypes);
@@ -363,8 +378,8 @@ class Template extends WorkflowFactory
       //$this->_current['metaFields'][$metaField['slug']] = $this->_current['metaFields'][$i];
     }
     //foreach($this->_current['metaFields'] as $i => $metaField) if(is_numeric($i)) unset($this->_current['metaFields'][$i]);
-    $this->_current['metaFields'] = array_values($this->_current['metaFields']);
-    return $this->save('metaFields');
+    $this->clearUpdates();
+    $this->applyUpdates(array('metaFields' => array_values($this->_current['metaFields'])));
     //return self::Update($this->id(), array( 'metaFields' => $this->_current['metaFields'] ));
   }
 
