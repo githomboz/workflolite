@@ -53,7 +53,7 @@ class Template extends WorkflowFactory
   protected function _initialize(array $data){
     $this->_current = $data;
     if(isset($data['_id'])) $this->_id = $data['_id'];
-    
+
     // Bring in valid template data based upon versionData
     if($this->_version != $data['version']){
       if(isset($data['versionData']['v' . $this->_version])){
@@ -168,20 +168,13 @@ class Template extends WorkflowFactory
     }
 
     // Run sort
-
-//    $versionData = isset($templateVersionData['v' . $this->version()]) ? $templateVersionData['v' . $this->version()] : array();
-//    $taskTemplateChanges = isset($versionData['taskTemplateChanges']) ? $versionData['taskTemplateChanges'] : array();
-//    foreach($allTaskTemplates as $i => $taskTemplate){
-//      foreach($taskTemplateChanges as $taskTemplateId => $td){
-//        if(!isset($taskTemplate['_exists'])) $allTaskTemplates[$i]['_exists'] = true;
-//        if($taskTemplate['id'] == $taskTemplateId){
-//          $allTaskTemplates[$i] = array_merge($allTaskTemplates[$i], $td);
-//        }
-//      }
-//    }
-
-    //var_dump($allTaskTemplates);
     usort($allTaskTemplates, 'Template::taskSortCompare');
+    $allTaskTemplates = array_values($allTaskTemplates);
+    foreach($allTaskTemplates as $i => $taskTemplate){
+      $allTaskTemplates[$i]['sortOrder'] = $i + 1;
+    }
+
+    // Overwrite local taskTemplates
     $this->_current['taskTemplates'] = $allTaskTemplates;
     foreach($allTaskTemplates as $i => $v) {
       //var_dump($v);
