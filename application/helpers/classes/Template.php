@@ -53,22 +53,7 @@ class Template extends WorkflowFactory
   protected function _initialize(array $data){
     $this->_current = $data;
     if(isset($data['_id'])) $this->_id = $data['_id'];
-
-    // Add in _original and _deleted if not already there
-    if(isset($this->_current['taskTemplates'])){
-      $saveTaskTemplates = false;
-      foreach($this->_current['taskTemplates'] as $i => $taskTemplate){
-        if(!isset($taskTemplate['_exists'])) {
-          $saveTaskTemplates = true;
-          $this->_current['taskTemplates'][$i]['_exists'] = true;
-        }
-      }
-      if($saveTaskTemplates) {
-        $this->_updates['taskTemplates'] = $this->_current['taskTemplates'];
-        $this->saveThisToVersion();
-      }
-    }
-
+    
     // Bring in valid template data based upon versionData
     if($this->_version != $data['version']){
       if(isset($data['versionData']['v' . $this->_version])){
@@ -546,7 +531,7 @@ class Template extends WorkflowFactory
       //var_dump($return, $this->getTemplates());
 
       // Save
-      //$save = self::SaveToDb($this->id(), $this->getUpdates());
+      $save = self::SaveToDb($this->id(), $this->getUpdates());
       // Merge data back into _current
       $this->_current = array_merge($this->_current, $this->getUpdates());
       $return['hasUpdates'] = true;
