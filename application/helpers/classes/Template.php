@@ -54,6 +54,21 @@ class Template extends WorkflowFactory
     $this->_current = $data;
     if(isset($data['_id'])) $this->_id = $data['_id'];
 
+    // Add in _original and _deleted if not already there
+    if(isset($this->_current['taskTemplates'])){
+      $saveTaskTemplates = false;
+      foreach($this->_current['taskTemplates'] as $i => $taskTemplate){
+        if(!isset($taskTemplate['_exists'])) {
+          $saveTaskTemplates = true;
+          $this->_current['taskTemplates'][$i]['_exists'] = true;
+        }
+      }
+      if($saveTaskTemplates) {
+        $this->_updates['taskTemplates'] = $this->_current['taskTemplates'];
+        $this->saveThisToVersion();
+      }
+    }
+
     // Bring in valid template data based upon versionData
     if($this->_version != $data['version']){
       if(isset($data['versionData']['v' . $this->_version])){
@@ -65,6 +80,10 @@ class Template extends WorkflowFactory
     }
     return $this;
 
+  }
+
+  public function getCurrent(){
+    return $this->_current;
   }
 
   public function stateCheck(){
@@ -80,24 +99,6 @@ class Template extends WorkflowFactory
 
     $this->_initialize($this->getCurrent());
     return $this;
-  }
-
-  public function _temp_importTaskTemplates(){
-    $requires_update = false;
-    $taskTemplates = $this->getValue('taskTemplates');
-    if(isset($taskTemplates[0]) && $taskTemplates[0] instanceof MongoId) $requires_update = true;
-    if($requires_update){
-      $entities = self::CI()->mdb->whereIn('_id', $this->getValue('taskTemplates'))->get(TaskTemplate::CollectionName());
-      foreach($entities as $i => $entity){
-        $entities[$i]['id'] = (string) $entity['_id'];
-        unset($entities[$i]['_id']);
-        unset($entities[$i]['organizationId']);
-      }
-      $entities = array_values($entities);
-      $this->setValue('taskTemplates', $entities);
-      $this->save('taskTemplates');
-      var_dump($this);
-    }
   }
 
   public function name(){
@@ -135,7 +136,7 @@ class Template extends WorkflowFactory
   }
 
   public function taskCount(){
-    return count($this->getValue('taskTemplates'));
+    return count($this->getTemplates());
   }
 
   public function getUpdates(){
@@ -151,20 +152,56 @@ class Template extends WorkflowFactory
   public function getTemplates(){
     //foreach($this->getValue('taskTemplates') as $i => $entity) $this->entities[] = new TaskTemplate2($entity, ($i+1));
     if(isset($this->cachedSortedTemplates)) return $this->cachedSortedTemplates;
-    $templateVersionData = $this->getValue('versionData');
-    $versionData = isset($templateVersionData['v' . $this->version()]) ? $templateVersionData['v' . $this->version()] : array();
-    $taskTemplateChanges = isset($versionData['taskTemplateChanges']) ? $versionData['taskTemplateChanges'] : array();
+
+
+    // Get raw taskTemplates
     $allTaskTemplates = $this->getValue('taskTemplates');
-    foreach($taskTemplateChanges as $taskTemplateId => $td){
+    $templateVersionData = $this->getValue('versionData');
+
+    // Go through each and versionData[v.{versionNumber}]
+    for($v = 1; $v <= $this->version(); $v++){
+      $vNum = 'v' . $v;
       foreach($allTaskTemplates as $i => $taskTemplate){
-        if($taskTemplate['id'] == $taskTemplateId){
-          $allTaskTemplates[$i] = array_merge($taskTemplate, $td);
+        //    if _exists field doesn't exists, create it
+        if(!isset($taskTemplate['_exists'])) $allTaskTemplates[$i]['_exists'] = true;
+        if(isset($templateVersionData[$vNum])){
+          $versionData = $templateVersionData[$vNum];
+          $taskTemplateChanges = isset($versionData['taskTemplateChanges']) ? $versionData['taskTemplateChanges'] : array();
+          foreach($taskTemplateChanges as $taskTemplateId => $taskTemplateData){
+            //    up to the current version, merge in data
+            if($taskTemplate['id'] == $taskTemplateId) {
+              $allTaskTemplates[$i] = array_merge($allTaskTemplates[$i], $taskTemplateData);
+            }
+          }
         }
       }
     }
+
+    // Unset taskTemplates where _exists === false
+    foreach($allTaskTemplates as $i => $taskTemplate) {
+      if($taskTemplate['_exists'] === false) unset($allTaskTemplates[$i]);
+    }
+
+    // Run sort
+
+//    $versionData = isset($templateVersionData['v' . $this->version()]) ? $templateVersionData['v' . $this->version()] : array();
+//    $taskTemplateChanges = isset($versionData['taskTemplateChanges']) ? $versionData['taskTemplateChanges'] : array();
+//    foreach($allTaskTemplates as $i => $taskTemplate){
+//      foreach($taskTemplateChanges as $taskTemplateId => $td){
+//        if(!isset($taskTemplate['_exists'])) $allTaskTemplates[$i]['_exists'] = true;
+//        if($taskTemplate['id'] == $taskTemplateId){
+//          $allTaskTemplates[$i] = array_merge($allTaskTemplates[$i], $td);
+//        }
+//      }
+//    }
+
+    //var_dump($allTaskTemplates);
     usort($allTaskTemplates, 'Template::taskSortCompare');
     $this->_current['taskTemplates'] = $allTaskTemplates;
-    foreach($allTaskTemplates as $i => $v) $allTaskTemplates[$i] = new TaskTemplate2($v, $v['sortOrder']);
+    foreach($allTaskTemplates as $i => $v) {
+      //var_dump($v);
+      $allTaskTemplates[$i] = new TaskTemplate2($v, $v['sortOrder']);
+    }
     $this->cachedSortedTemplates = $allTaskTemplates;
     return $allTaskTemplates;
   }
@@ -506,8 +543,10 @@ class Template extends WorkflowFactory
 
       $return['state'] = $this->stateCheck();
 
+      //var_dump($return, $this->getTemplates());
+
       // Save
-      $save = self::SaveToDb($this->id(), $this->getUpdates());
+      //$save = self::SaveToDb($this->id(), $this->getUpdates());
       // Merge data back into _current
       $this->_current = array_merge($this->_current, $this->getUpdates());
       $return['hasUpdates'] = true;
@@ -554,33 +593,35 @@ class Template extends WorkflowFactory
       if(isset($current[$field])) $currentUpdatedFieldValues[$field] = $current[$field];
     }
 
-    // Merge $currentUpdateFieldValues with current versionData.version_number()
+    // @todo:
+
     $versionData = $current['versionData'];
     // var_dump($versionData['v'.$version], $currentUpdatedFieldValues);
 
+    // Merge $currentUpdateFieldValues with current versionData.version_number()
     // if passed version the same as current version, update local fields as well
     //var_dump('Attempting to save to version ' . $version.'; Most current version is '. $currentVersion.'; Passed in version: ' . $version);
-    if($version == $currentVersion){
-      $taskTemplateChanges = null;
-      if(isset($updates['taskTemplateChanges'])) $taskTemplateChanges = $updates['taskTemplateChanges'];
-      if($taskTemplateChanges){
-        unset($updates['taskTemplateChanges']);
-        // replace taskTemplateChanges in the taskTemplates field
-        $newTaskTemplates = array();
-        foreach($template->getTemplates() as $i => $taskTemplate){
-          if(!$taskTemplate->getValue('sortOrder')) $taskTemplate->setValue('sortOrder', ($i + 1));
-          $taskTemplateCurrent = $taskTemplate->getCurrent();
-          if(isset($taskTemplateChanges[(string) $taskTemplate->id()])){
-            $taskTemplateCurrent = array_merge($taskTemplateCurrent, $taskTemplateChanges[(string) $taskTemplate->id()]);
-          }
-          $newTaskTemplates[] = $taskTemplateCurrent;
-        }
-        foreach($newTaskTemplates as $i => $tempTaskTemplate) $newTaskTemplates[$i]['sortOrder'] = $i + 1;
-        // Add fully formed task templates back into update array
-        $updates['taskTemplates'] = $newTaskTemplates;
-      }
-      $update = $updates;
-    } else {
+//    if($version == $currentVersion){
+//      $taskTemplateChanges = null;
+//      if(isset($updates['taskTemplateChanges'])) $taskTemplateChanges = $updates['taskTemplateChanges'];
+//      if($taskTemplateChanges){
+//        unset($updates['taskTemplateChanges']);
+//        // replace taskTemplateChanges in the taskTemplates field
+//        $newTaskTemplates = array();
+//        foreach($template->getTemplates() as $i => $taskTemplate){
+//          if(!$taskTemplate->getValue('sortOrder')) $taskTemplate->setValue('sortOrder', ($i + 1));
+//          $taskTemplateCurrent = $taskTemplate->getCurrent();
+//          if(isset($taskTemplateChanges[(string) $taskTemplate->id()])){
+//            $taskTemplateCurrent = array_merge($taskTemplateCurrent, $taskTemplateChanges[(string) $taskTemplate->id()]);
+//          }
+//          $newTaskTemplates[] = $taskTemplateCurrent;
+//        }
+//        foreach($newTaskTemplates as $i => $tempTaskTemplate) $newTaskTemplates[$i]['sortOrder'] = $i + 1;
+//        // Add fully formed task templates back into update array
+//        $updates['taskTemplates'] = $newTaskTemplates;
+//      }
+//      $update = $updates;
+//    } else {
 
       // Set or update version data
       if(isset($versionData['v'.$version])) {
@@ -615,7 +656,7 @@ class Template extends WorkflowFactory
       ksort($versionData);
       $update['versionData'] = $versionData;
 
-    }
+//    }
 
     //var_dump('yay', $update, $performTaskTemplateSort);
 
@@ -628,9 +669,9 @@ class Template extends WorkflowFactory
       }
       // If isset $update['taskTemplates']
       //var_dump('tester', $update);
-      if(isset($update['taskTemplates'])){
-        $update['taskTemplates'] = $taskTemplateSorted;
-      } else {
+//      if(isset($update['taskTemplates'])){
+//        $update['taskTemplates'] = $taskTemplateSorted;
+//      } else {
         // Else each taskTemplate and corresponding sortOrder to versionData
         $tempVersionData = $update['versionData'];
         //var_dump('test');
@@ -646,13 +687,13 @@ class Template extends WorkflowFactory
             }
           }
         }
-        if($version > $currentVersion){
-          $update['taskTemplates'] = array_values($tempVersionData['v'.$version]['taskTemplateChanges']);
-          // Since now the current version, unset versionData for this version
-          unset($update['versionData']['v'.$version]);
-        } else {
-        }
-      }
+//        if($version > $currentVersion){
+//          $update['taskTemplates'] = array_values($tempVersionData['v'.$version]['taskTemplateChanges']);
+//          // Since now the current version, unset versionData for this version
+//          unset($update['versionData']['v'.$version]);
+//        } else {
+//        }
+//      }
     }
     return $update;
   }

@@ -46,11 +46,14 @@
         </span> </h2>
     </div>
 
+    <?php //var_dump() ?>
+
     <div class="templates-list widget">
-      <h2>Task Templates: <a href="#" class="js-add-task-template-btn">+ Add Task</a> </h2>
+      <h2>Task Templates: (<?php echo template()->taskCount(); ?>) <a href="#" class="js-add-task-template-btn">+ Add Task</a> </h2>
       <div class="task-single"></div>
       <div class="task-list">
         <?php $templates = template()->setVersion($this->version)->getTemplates();
+        //var_dump($templates);
         $templateCount = count($templates);
         foreach($templates as $template) include 'widgets/_task-template-details.php'; ?>
       </div>

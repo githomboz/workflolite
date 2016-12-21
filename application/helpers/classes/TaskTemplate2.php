@@ -18,6 +18,7 @@ class TaskTemplate2
   }
 
   public function getCurrent(){
+    if(!isset($this->_current['_exists'])) $this->_current['_exists'] = true;
     return $this->_current;
   }
 
