@@ -49,12 +49,13 @@
     <?php //var_dump() ?>
 
     <div class="templates-list widget">
-      <h2>Task Templates: (<?php echo template()->taskCount(); ?>) <a href="#" class="js-add-task-template-btn">+ Add Task</a> </h2>
-      <div class="task-single"></div>
+      <h2>Task Templates: <span class="taskCount">(<?php echo template()->taskCount(); ?>)</span>  <a href="#" class="js-add-task-template-btn">+ Add Task</a> </h2>
+      <div class="task-single">
+        <?php if(isset($this->newTaskTemplateHTML)) echo $this->newTaskTemplateHTML; ?>
+      </div>
       <div class="task-list">
         <?php $templates = template()->setVersion($this->version)->getTemplates();
-        //var_dump($templates);
-        $templateCount = count($templates);
+        $templateCount = template()->taskCount();
         foreach($templates as $template) include 'widgets/_task-template-details.php'; ?>
       </div>
     </div><!--/.templates-list-->
@@ -180,7 +181,7 @@
 <script type="text/javascript">
 
   var $templateList = $('.templates-list'),
-    newTaskFormVisible = false;
+    newTaskFormVisible = $(".template.entry.new").is(":visible");
 
   $(document).on('click', ".template .entry.preview", function(){
     var $link = $(this),
@@ -281,6 +282,54 @@
 
   });
 
+  $(document).on('click', '.js-delete-task', function(e){
+    e.preventDefault();
+    var $link = $(this),
+      $taskTemplate = $link.parents('.template.entry'),
+      inAction = false,
+      post = {
+        templateId : _CS_Get_Template_ID(),
+        taskTemplateId : $taskTemplate.data('tasktemplate'),
+        version : _CS_Get_Template_Version()
+      };
+    console.log(post);
+    alertify.confirm('This action cannot be reversed. Are you sure you want to delete this task template?',
+      function(){
+        if(!inAction){
+          CS_API.call('/ajax/remove_task_template',
+            function(){
+              $link.find('i').removeClass('fa-trash').addClass('fa-spin fa-spinner');
+              inAction = true;
+            },
+            function(data){
+              inAction = false;
+              if(data.errors == false){
+                $link.find('i').addClass('fa-times').removeClass('fa-spin fa-spinner error');
+                if(data.response.success){
+                  $('.template.entry.template-'+post.taskTemplateId).fadeOut();
+                  PubSub.publish('_details_taskTemplateCountChanged', data.response.taskTemplateCount);
+                } else {
+                  alertify.error('ER03: An error has occurred while attempting to remove task template');
+                }
+              } else {
+                alertify.error('ER02: An error has occurred while attempting to remove task template');
+              }
+            },
+            function(){
+              alertify.error('ER01: An error has occurred while attempting to remove task template');
+              inAction = false;
+            },
+            post
+            ,
+            {
+              method: 'POST',
+              preferCache : false
+            }
+          );
+        }
+      });
+  });
+
   function handleListLinkError($link, message){
     alertify.error(message || 'An error has occurred');
     $link.addClass('fa-warning error').removeClass('fa-spin fa-spinner fa-times');
@@ -332,12 +381,14 @@
 
   function addNewTask(callback){
     var $taskSingle = $(".templates-list .task-single"),
+      $template = null, // Set in ajax call
       post = {
         templateId : _CS_Get_Template_ID(),
+        taskTemplateId : null, // Set in ajax call
         version : _CS_Get_Template_Version()
       };
 
-    console.log(post);
+    console.log($taskSingle, $template);
 
     CS_API.call(
       '/ajax/task_template_form',
@@ -349,6 +400,9 @@
       function(data){
         if(data.errors == false){
           $taskSingle.html(data.response);
+          $template = $taskSingle.find('.template.entry');
+          post.taskTemplateId = $template.data('tasktemplate');
+          console.log(post, data);
           if(typeof callback == 'function'){
             callback();
           }
@@ -383,8 +437,10 @@
       updates : {}
     };
 
+    var isUndefined = typeof currentData == 'undefined';
+
     for( var field in newData ){
-      if(currentData[field] !== newData[field]){
+      if(isUndefined || (!isUndefined && currentData[field] !== newData[field])){
         rtn.fieldsAffected.push(field);
         rtn.updates[field] = newData[field];
       }
@@ -417,6 +473,7 @@
 
     var formValidation = validateTaskTemplateChange(currentData, post);
     if(formValidation.hasChanges){
+      console.log(formValidation);
       $this.find('.fa-save').removeClass('fa-save').addClass('fa-spin fa-spinner');
       $template.find('[name=formData]').val(JSON.stringify(post));
       $template.find('[name=templateId]').val(_CS_Get_Template_ID());
@@ -426,6 +483,45 @@
     }
   });
 
+  $(document).on('click','.js-add-task-template-submit-btn', function(e){
+    e.preventDefault();
+    var $this = $(this),
+      $template = $('.template.entry.new'),
+      currentData = {},
+      post = {
+        id : $template.find('.task-template-id').val(),
+        name : $template.find('input[id^=field-name-]').val(),
+        taskGroup : $template.find('input[id^=field-taskGroup-]').val(),
+        description: $template.find('textarea[id^=field-description-]').val(),
+        instructions: $template.find('textarea[id^=field-instructions-]').val(),
+        milestone : $template.find('[type=checkbox].milestone').is(':checked'),
+        clientView : $template.find('[type=checkbox].clientView').is(':checked'),
+        estimatedTime : $template.find('input[id^=field-estimatedTime-]').val(),
+        sortOrder : $template.find('select.sortOrder :selected').val()
+      };
 
+    if(!post.estimatedTime) post.estimatedTime = '';
+    if(post.estimatedTime != '') post.estimatedTime = parseInt(post.estimatedTime); else post.estimatedTime = null;
+    if(!post.sortOrder) post.estimatedTime = ''; else post.sortOrder = post.sortOrder.trim();
+    if(post.sortOrder != '') post.sortOrder = parseInt(post.sortOrder);
+
+    var formValidation = validateTaskTemplateChange(currentData, post);
+    if(formValidation.hasChanges){
+      console.log(formValidation);
+      $this.find('.fa-save').removeClass('fa-save').addClass('fa-spin fa-spinner');
+      $template.find('[name=formData]').val(JSON.stringify(post));
+      $template.find('[name=templateId]').val(_CS_Get_Template_ID());
+      $template.find('form').submit();
+    } else {
+      alertify.alert('No updates made to this task template.');
+    }
+  });
+
+  function _htmlUpdateTaskTemplateCount(topic, count){
+    $(".templates-list h2 .taskCount").text('(' + count + ')');
+  }
+
+
+  PubSub.subscribe('_details_taskTemplateCountChanged', _htmlUpdateTaskTemplateCount);
 
 </script>

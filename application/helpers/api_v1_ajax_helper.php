@@ -506,6 +506,38 @@ function remove_meta_required_fields(){
   return array('templateId', 'metaKey','version');
 }
 
+function remove_task_template(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $template = Template::Get($data['templateId'], $data['version']);
+  $response['response'] = array('success' => false);
+  if($template->taskTemplateExists($data['taskTemplateId'])){
+    if($template->removeTaskTemplate($data['taskTemplateId'])){
+      $response['response']['success'] = true;
+      $response['response']['taskTemplateCount'] = $template->taskCount();
+    } else {
+      $response['errors'][] = 'An error has occurred while attempting to make this update';
+    }
+  } else {
+    $response['errors'][] = 'No task template matching this id';
+  }
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function remove_task_template_args_map(){
+  return array('templateId', 'taskTemplateId', 'version');
+}
+
+// Field names of fields required
+function remove_task_template_required_fields(){
+  return array('templateId', 'taskTemplateId', 'version');
+}
+
 
 
 

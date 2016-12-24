@@ -17,6 +17,8 @@ class Template extends WorkflowFactory
 
   private static $taskTemplatesCache = array();
 
+  private $_raw = array();
+
   /**
    * Fields in queue to be saved
    * @var array
@@ -51,7 +53,7 @@ class Template extends WorkflowFactory
   }
 
   protected function _initialize(array $data){
-    $this->_current = $data;
+    $this->_current = $this->_raw = $data;
     if(isset($data['_id'])) $this->_id = $data['_id'];
 
     // Bring in valid template data based upon versionData
@@ -69,6 +71,14 @@ class Template extends WorkflowFactory
 
   public function getCurrent(){
     return $this->_current;
+  }
+
+  public function getRaw($field = null){
+    if($field){
+      if(isset($this->_raw[$field])) return $this->_raw[$field];
+      return null;
+    }
+    return $this->_raw;
   }
 
   public function stateCheck(){
@@ -155,6 +165,7 @@ class Template extends WorkflowFactory
           foreach($taskTemplateChanges as $taskTemplateId => $taskTemplateData){
             //    up to the current version, merge in data
             if($taskTemplate['id'] == $taskTemplateId) {
+              //if($taskTemplateId == '57faa645239409bd4f0041a7') var_dump('current', $vNum, $allTaskTemplates[$i],'new', $taskTemplateData);
               $allTaskTemplates[$i] = array_merge($allTaskTemplates[$i], $taskTemplateData);
             }
           }
@@ -454,11 +465,23 @@ class Template extends WorkflowFactory
     }
   }
 
+  public function taskTemplateExists($id){
+    if(!empty($id)){
+      foreach($this->getTemplates() as $i => $taskTemplate){
+        if((string) $taskTemplate->id() == (string) $id) return true;
+      }
+      return false;
+    }
+    return false;
+  }
+
   public function getTaskTemplate($id){
     if(!empty($id)){
       foreach($this->getTemplates() as $i => $taskTemplate){
         if((string) $taskTemplate->id() == $id) {
-          return $taskTemplate;
+
+          // @todo: Need to bring in versionData to get to current version().
+          return $taskTemplate->applyVersionData($this->getValue('versionData'), $this->version());
         }
       }
     }
@@ -491,6 +514,31 @@ class Template extends WorkflowFactory
     return false;
   }
 
+  public function removeTaskTemplate($taskTemplateId){
+    if(!empty($taskTemplateId)){
+      $versionData = $this->getValue('versionData');
+      $vNum = 'v' . $this->version();
+      $currentVersionData = $versionData[$vNum];
+      if(!isset($currentVersionData[$taskTemplateId])) $currentVersionData[$taskTemplateId] = array();
+
+      $currentVersionData[$taskTemplateId]['_exists'] = false;
+      if(!isset($versionData[$vNum]['taskTemplateChanges'])) $versionData[$vNum]['taskTemplateChanges'] = array();
+      $versionData[$vNum]['taskTemplateChanges'][$taskTemplateId] = array_merge($versionData[$vNum]['taskTemplateChanges'][$taskTemplateId], $currentVersionData[$taskTemplateId]);
+      // var_dump($versionData);
+      $this->clearUpdates();
+      $this->applyUpdates(array('versionData' => $versionData));
+      return true;
+    }
+    return false;
+  }
+
+  public function getTaskTemplateIdBySortOrder($sortOrder){
+    $templates = $this->getTemplates();
+    foreach($templates as $i => $template){
+      if($template->getValue('sortOrder') == $sortOrder) return $template->id();
+    }
+  }
+
   public function applyUpdates(array $updates, $version = null){
     foreach($updates as $key => $value) {
       $this->_updates[$key] = $value; // More efficient saving method
@@ -514,17 +562,37 @@ class Template extends WorkflowFactory
 
     if(empty($this->_updates)) $return['errors'][] = 'No updates found';
     else {
-      $version = is_numeric($version) ? (int) $version : $this->version();
 
+      // Handle an attempt to save fields that should not be stored inside versionData field
+      $fieldDataToSave = array();
+      $fieldsNotToSaveInVersionData = array('versionData','version','taskTemplates');
+
+      foreach($fieldsNotToSaveInVersionData as $field){
+        $fieldDataToSave[$field] = false;
+        if(isset($this->_updates[$field])) {
+          $fieldDataToSave[$field] = $this->_updates[$field];
+          unset($this->_updates[$field]);
+        }
+      }
+
+
+      $version = is_numeric($version) ? (int) $version : $this->version();
 
       $return['updates'] = $this->_updates = self::GenerateVersionData($this, $version, $this->_updates);
 
+      // Restore field values that were not to be stored inside of versionData field
+      foreach($fieldDataToSave as $field => $value){
+        if($value) $this->_updates[$field] = $value;
+      }
+
+      $return['updates'] = $this->_updates;
+
       $return['state'] = $this->stateCheck();
 
-      //var_dump($return, $this->getTemplates());
+      var_dump($return);
 
       // Save
-      $save = self::SaveToDb($this->id(), $this->getUpdates());
+      //$save = self::SaveToDb($this->id(), $this->getUpdates());
       // Merge data back into _current
       $this->_current = array_merge($this->_current, $this->getUpdates());
       $return['hasUpdates'] = true;
@@ -616,7 +684,9 @@ class Template extends WorkflowFactory
         $versionData['v'.$version] = array_merge($versionData['v'.$version], $updates);
 
         // Reinput taskTemplateChanges
-      } else $versionData['v'.$version] = $updates;
+      } else {
+        $versionData['v'.$version] = $updates;
+      }
 
       // Add previous version if version added is higher than the highest available template version
       if($version > $current['version']){

@@ -49,7 +49,14 @@ class Templates extends Users_Controller {
     $this->versions['highest'] = $this->versions['db'] + 1;
 
     $processUpdateTaskForm = $this->_processUpdateTaskForm();
+    $processAddTaskForm = $this->_processAddTaskForm();
     $processAddRoleForm = $this->_processAddRoleForm();
+
+    var_dump($processAddTaskForm);
+
+    if(isset($processAddTaskForm['newTaskTemplateHTML'])){
+      $this->newTaskTemplateHTML = $processAddTaskForm['newTaskTemplateHTML'];
+    }
 
     $validVersion = false;
     if($this->version <= $this->template->version() + 1){
@@ -110,6 +117,125 @@ class Templates extends Users_Controller {
       'formData' => $formData,
       'success' => $success
     );
+  }
+
+  /**
+   * This returns once it encounters an error and doesn't go through the complete input data unless valid.
+   * This means that usually, even if other errors are present, the errors array will only ever have one member.
+   *
+   * @param $formData
+   * @return array
+   */
+  public static function _validateNewTaskForm($formData){
+    $return = array(
+      'errors' => array(),
+      'processed' => array(),
+      'valid' => false
+    );
+
+    $notEmpty = array('taskGroup','name','id','status');
+    $numeric = array('sortOrder');
+    $nullOrNumeric = array('estimatedTime');
+    $boolean = array('publiclyAccessible','optional','clientView','milestone');
+
+    foreach($formData as $field => $value){
+      if(empty($return['errors'])){
+        foreach(array(
+                  'notEmpty' => $notEmpty,
+                  'nullOrNumeric' => $nullOrNumeric,
+                  'numeric' => $numeric,
+                  'boolean' => $boolean
+                ) as $filterName => $filterArray){
+          if(in_array($field, $filterArray)){
+            switch ($filterName){
+              case 'notEmpty' :
+                if(empty($value)) {
+                  $return['errors'][] = 'Field "' . $field . '" is empty';
+                } else {
+                  $return['processed'][$field] = $value;
+                }
+                break;
+              case 'numeric' :
+                if(!is_numeric($value)) {
+                  $return['errors'][] = 'Field "' . $field . '" is not numeric';
+                } else {
+                  $return['processed'][$field] = (int) $value;
+                }
+                break;
+              case 'nullOrNumeric' :
+                if(!is_numeric($value) && !is_null($value)) $return['errors'][] = 'Field "' . $field . '" is not null or numeric';
+                if(is_numeric($value)) $return['processed'][$field] = (int) $value;
+                break;
+              case 'boolean' :
+                $return['processed'][$field] = (bool) $value;
+                break;
+              default: $return['processed'][$field] = $value;
+                break;
+            }
+          }
+        }
+      }
+    }
+
+    if(empty($return['errors'])) $return['valid'] = true;
+    return $return;
+  }
+
+  private function _processAddTaskForm(){
+    $formErrors = array();
+    $formData = null;
+    $success = false;
+    $submitted = false;
+    if($post = $this->input->post()){
+      if(isset($post['formAction']) && $post['formAction'] == 'addNewTaskTemplate'){
+        $submitted = true;
+
+          // Process add
+        $updatedData = false; // Whether or not info is valid for submission
+        $formData = json_decode($post['formData'], true);
+        $validate = self::_validateNewTaskForm($formData);
+        var_dump($post, $validate);
+        if($validate['valid']){
+          $taskTemplates = template()->getRaw('taskTemplates');
+          //var_dump($taskTemplates);
+          $formData['_exists'] = false;
+          $formData['status'] = 'new';
+          if(is_array($taskTemplates)) $taskTemplates[] = $formData;
+          $updates = array(
+            'taskTemplates' => $taskTemplates,
+            'taskTemplateChanges' => array(
+              $formData['id'] => array('_exists' => true)
+            )
+          );
+          template()->applyUpdates($updates, $this->versions['save']);
+          $this->messageBox['taskTemplateId'] = $updatedData['id'];
+          $this->messageBox['class'] = 'general success';
+          $this->messageBox['content'] = 'The task was added successfully';
+          $success = true;
+        } else {
+          $taskTemplateId = $formData['id'];
+          $messageBox = array(
+            'taskTemplateId' => $formData['id'],
+            'class' => 'general error',
+            'content' => 'The task info provided is invalid'
+          );
+          $newTaskTemplateHTML = get_include(APPPATH.'views/widgets/_task-template-details.php', array(
+            'taskTemplateId' => $taskTemplateId,
+            'templateCount' => template()->taskCount(),
+            'messageBox' => $messageBox,
+            'validatedData' => $validate
+          ), true);
+        }
+      }
+    }
+    $return = array(
+      'submitted' => $submitted,
+      'errors' => $formErrors,
+      'formData' => $formData,
+      'success' => $success
+    );
+    if(isset($newTaskTemplateHTML)) $return['newTaskTemplateHTML'] = $newTaskTemplateHTML;
+    return $return;
   }
 
   private function _processAddRoleForm(){

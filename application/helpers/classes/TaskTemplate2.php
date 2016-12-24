@@ -39,8 +39,18 @@ class TaskTemplate2
     return $data;
   }
 
-  public function getSettingsData(){
+  public static function GetSettingsDataFields($return_empty_array = false) {
     $fields = array('id','taskGroup','name','estimatedTime','instructions','clientView','milestone','description','sortOrder');
+    if($return_empty_array === true){
+      $return = array();
+      foreach($fields as $field) $return[$field] = null;
+      return $return;
+    }
+    return $fields;
+  }
+
+  public function getSettingsData(){
+    $fields = self::GetSettingsDataFields();
     $data = $this->getFields($fields);
     foreach($fields as $field) {
       if(!isset($data[$field])) {
@@ -104,6 +114,25 @@ class TaskTemplate2
     if(isset($this->_current[$field])) return $this->_current[$field];
     if(isset($this->$field)) return $this->$field;
     return false;
+  }
+
+  public function applyVersionData($versionData, $targetVersion){
+    if(!empty($versionData)) {
+      for($v = 1; $v <= $targetVersion; $v ++){
+        $_current = $this->_current;
+        $vNum = 'v' . $v;
+        if(isset($versionData[$vNum])){
+          if(isset($versionData[$vNum]['taskTemplateChanges'])){
+            if(isset($versionData[$vNum]['taskTemplateChanges'][(string) $this->id()])){
+              $taskTemplateVersionData = $versionData[$vNum]['taskTemplateChanges'][(string) $this->id()];
+              $this->_current = array_merge($this->_current, $taskTemplateVersionData);
+              //$this->_current = $_current;
+            }
+          }
+        }
+      }
+    }
+    return $this;
   }
 
 }
