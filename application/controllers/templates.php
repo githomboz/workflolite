@@ -52,7 +52,7 @@ class Templates extends Users_Controller {
     $processAddTaskForm = $this->_processAddTaskForm();
     $processAddRoleForm = $this->_processAddRoleForm();
 
-    var_dump($processAddTaskForm);
+    //var_dump($processAddTaskForm);
 
     if(isset($processAddTaskForm['newTaskTemplateHTML'])){
       $this->newTaskTemplateHTML = $processAddTaskForm['newTaskTemplateHTML'];
@@ -194,37 +194,56 @@ class Templates extends Users_Controller {
         $updatedData = false; // Whether or not info is valid for submission
         $formData = json_decode($post['formData'], true);
         $validate = self::_validateNewTaskForm($formData);
-        var_dump($post, $validate);
-        if($validate['valid']){
-          $taskTemplates = template()->getRaw('taskTemplates');
-          //var_dump($taskTemplates);
-          $formData['_exists'] = false;
-          $formData['status'] = 'new';
-          if(is_array($taskTemplates)) $taskTemplates[] = $formData;
-          $updates = array(
-            'taskTemplates' => $taskTemplates,
-            'taskTemplateChanges' => array(
-              $formData['id'] => array('_exists' => true)
-            )
-          );
-          template()->applyUpdates($updates, $this->versions['save']);
-          $this->messageBox['taskTemplateId'] = $updatedData['id'];
-          $this->messageBox['class'] = 'general success';
-          $this->messageBox['content'] = 'The task was added successfully';
-          $success = true;
+        //var_dump($post, $validate);
+
+        $isUnique = true;
+        $taskTemplates = template()->getRaw('taskTemplates');
+        foreach($taskTemplates as $taskTemplate) if($taskTemplate['id'] == $formData['id']) $isUnique = false;
+
+        if($isUnique){
+          if($validate['valid']){
+            //var_dump($taskTemplates);
+            $formData['_exists'] = false;
+            $formData['status'] = 'new';
+            if(is_array($taskTemplates)) {
+              $taskTemplates[] = $formData;
+            }
+            $updates = array(
+              'taskTemplates' => $taskTemplates,
+              'taskTemplateChanges' => array(
+                $formData['id'] => array('_exists' => true)
+              )
+            );
+            template()->applyUpdates($updates, $this->versions['save']);
+            $this->messageBox['taskTemplateId'] = $updatedData['id'];
+            $this->messageBox['class'] = 'general success';
+            $this->messageBox['content'] = 'The task was added successfully';
+            $success = true;
+          } else {
+            $taskTemplateId = $formData['id'];
+            $messageBox = array(
+              'taskTemplateId' => $formData['id'],
+              'class' => 'general error',
+              'content' => 'The task input provided is invalid'
+            );
+          }
         } else {
           $taskTemplateId = $formData['id'];
           $messageBox = array(
             'taskTemplateId' => $formData['id'],
             'class' => 'general error',
-            'content' => 'The task info provided is invalid'
+            'content' => 'This task has already been added.'
           );
+        }
+
+        if(isset($taskTemplateId)){
           $newTaskTemplateHTML = get_include(APPPATH.'views/widgets/_task-template-details.php', array(
             'taskTemplateId' => $taskTemplateId,
             'templateCount' => template()->taskCount(),
             'messageBox' => $messageBox,
             'validatedData' => $validate
           ), true);
+
         }
       }
     }

@@ -307,6 +307,7 @@
                 $link.find('i').addClass('fa-times').removeClass('fa-spin fa-spinner error');
                 if(data.response.success){
                   $('.template.entry.template-'+post.taskTemplateId).fadeOut();
+                  $('.templates-list.widget.selected').removeClass('selected');
                   PubSub.publish('_details_taskTemplateCountChanged', data.response.taskTemplateCount);
                 } else {
                   alertify.error('ER03: An error has occurred while attempting to remove task template');

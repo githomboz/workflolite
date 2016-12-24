@@ -98,7 +98,7 @@
           <input type="hidden" name="templateId" value="<?php echo $templateId; ?>" />
           <input type="hidden" name="formAction" value="addNewTaskTemplate" />
           <div class="form-input"><input type="checkbox" class="milestone" <?php if(isset($formData['milestone']) && $formData['milestone'] === true) echo 'checked="checked"' ?> id="milestoneField-<?php echo $taskTemplateId ?>" /> <label for="milestoneField-<?php echo $taskTemplateId ?>">Is this a milestone?</label></div>
-          <div class="form-input"><input type="checkbox" class="clientView" id="clientViewField-<?php echo $taskTemplateId ?>"/> <label for="clientViewField-<?php echo $taskTemplateId ?>">Display in client portal?</label></div>
+          <div class="form-input"><input type="checkbox" class="clientView" <?php if(isset($formData['clientView']) && $formData['clientView'] === true) echo 'checked="checked"' ?> id="clientViewField-<?php echo $taskTemplateId ?>"/> <label for="clientViewField-<?php echo $taskTemplateId ?>">Display in client portal?</label></div>
           <button type="submit" class="btn submit js-add-task-template-submit-btn"><i class="fa fa-save"></i> Add Task</button>
         </div>
         <div class="form-group">

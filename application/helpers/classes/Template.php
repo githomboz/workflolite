@@ -28,6 +28,12 @@ class Template extends WorkflowFactory
   public static $_instanceCount = 0;
 
   /**
+   * Disable saving to db for debug purposes
+   * @var bool
+   */
+  private $saveMode = true;
+
+  /**
    * Current value of getTemplates() method cached. Resets to null after each db save.
    * @var null
    */
@@ -589,10 +595,10 @@ class Template extends WorkflowFactory
 
       $return['state'] = $this->stateCheck();
 
-      var_dump($return);
+      //var_dump($return);
 
       // Save
-      //$save = self::SaveToDb($this->id(), $this->getUpdates());
+      if($this->saveMode) $save = self::SaveToDb($this->id(), $this->getUpdates());
       // Merge data back into _current
       $this->_current = array_merge($this->_current, $this->getUpdates());
       $return['hasUpdates'] = true;
