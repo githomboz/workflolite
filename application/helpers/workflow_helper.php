@@ -8,3 +8,4 @@ require_once 'classes/Template.php';
 require_once 'classes/Contact.php';
 require_once 'classes/Organization.php';
 require_once 'classes/Workflow.php';
+require_once 'classes/QueueItemSendEmail.php';

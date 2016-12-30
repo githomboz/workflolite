@@ -64,7 +64,7 @@ $autoload['libraries'] = array('modules','dummydata');
 |	$autoload['helper'] = array('url', 'file');
 */
 
-$autoload['helper'] = array('mongo','hooks','general','debug','modules','users','workflow');
+$autoload['helper'] = array('mongo','hooks','general','debug','modules','users','aws','workflow');
 
 
 /*

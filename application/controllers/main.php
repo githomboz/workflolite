@@ -101,4 +101,37 @@ class Main extends Front_Controller {
     }
   }
 
+  public function addDummy(){
+    $add = array(
+      'dateAdded' => new MongoDate(),
+      'organizationId' => UserSession::Get_Organization()->id(),
+      'payload' => array(
+        'recipients' => array(
+          'to' => array(
+            array(
+              'name' => 'Jahdy Lancelot',
+              'email' => 'jahdy@spotflare.com'
+            ),
+          ),
+          'cc' => array(
+            array(
+              'email' => 'jahdy@cosmicstrawberry.com'
+            ),
+          )
+        ),
+        'sender' => array(
+          'name' => 'Jermbo',
+          'email' => 'jermbo@cosmicstrawberry.com'
+        ),
+        'subject' => 'Test Subject',
+        'message' => 'Test Message'
+      ),
+    );
+    //$result = QueueItemSendEmail::AddTrigger($add);
+    //$result = QueueItemSendEmail::GetUnprocessed();
+    $result = QueueItemSendEmail::ProcessUnprocessed();
+    var_dump($result);
+  }
+
+
 }

@@ -221,24 +221,24 @@ $config['mongo_schema'] = array(
     'dateAdded',
     'scheduleDateTime',
     'completeDateTime',
+    'organizationId',
+    'userId',
     'jobId',
     'taskId',
     'trigger',
-    'sequence',
-    'blocking', // Whether to continue to next in trigger in sequence if this one hasn't completed
-    'triggerServer', // The server that processed the trigger
-    'payload',
+    'dependencies', // Array of ids of triggerQueues that must be processed before given trigger can be run
+    'broadcast', // The vendor, service, channel
+    'payload', // Data to be sent to service for processing
     'status', // [queued, working, failure, success]
     'processed', // Whether or not this trigger has been processed
     'acknowledged', // Whether or not the job is aware of completion of this trigger
-    'organizationId',
-    'returnPayload', // Data to be returned to by trigger
+    'returnPayload', // Data to be returned from broadcast
     'webhook', // Url to post trigger response to
-    'topic', // String used to associate with with task or step that queue item was registered from
   ),
   'triggers' => array(
     'name',
-    'class', // The group this trigger belongs to. // Messaging, Documents, Calendar, etc.
+    'group', // The group this trigger belongs to. // Messaging, Documents, Calendar, etc.
+    'tags', // Tags used to locate this trigger
     'description',
     'instructions',
     'samplePayload',

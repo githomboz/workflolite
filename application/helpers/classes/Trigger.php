@@ -19,7 +19,9 @@ class Trigger
 
   protected $status = 'active';
 
+  protected $_raw = null;
   protected $_current = null;
+  protected $_updates = null;
 
   public function __construct(array $data, Step $step){
     $this->_step = $step;
