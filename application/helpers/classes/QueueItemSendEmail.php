@@ -23,7 +23,7 @@ class QueueItemSendEmail extends TriggerQueueItem
       'Sender Validated',
       //'Template Not Set / Valid',
       'Subject Validated',
-      'Message Validated',
+      'Text & HTML Messages Validated',
       'Caller Not Set / Valid',
     );
 
@@ -50,7 +50,7 @@ class QueueItemSendEmail extends TriggerQueueItem
 
     // Test 3
     $setCorrectly = !isset($payload['recipients']['cc']) || isset($payload['recipients']['cc']) && is_array($payload['recipients']['cc']);
-    if($setCorrectly && $payload['recipients']['cc']) {
+    if($setCorrectly && isset($payload['recipients']['cc'])) {
       foreach($payload['recipients']['cc'] as $recipient) if(!self::validateEmailRecipient($recipient)) $setCorrectly = false;
     }
     $tests['Recipients CC Validated'] = $setCorrectly;
@@ -73,7 +73,9 @@ class QueueItemSendEmail extends TriggerQueueItem
     if(!in_array(false, $tests)) { if($return_results) return $tests; else return false; }
 
     // Test 7
-    $tests['Message Validated'] = isset($payload['message']) && trim($payload['message']) != '';
+    $html = isset($payload['html_message']) && !empty($payload['html_message']);
+    $message = isset($payload['text_message']) && !empty($payload['text_message']);
+    $tests['Text & HTML Messages Validated'] = $html || $message;
     if(!in_array(false, $tests)) { if($return_results) return $tests; else return false; }
 
     // Test 8
@@ -94,21 +96,49 @@ class QueueItemSendEmail extends TriggerQueueItem
     self::CI()->load->helper('email');
     $name_valid = !isset($recipient['name']) || isset($recipient['name']) && trim($recipient['name']) != '';
     $email_valid = isset($recipient['email']) && valid_email($recipient['email']);
+    //var_dump($recipient, $name_valid, $email_valid);
     return $name_valid && $email_valid;
   }
 
   public function broadcast(){
     if($this->isValid()){
+      $broadcast = $this->getValue('broadcast');
       $post = array(
         'time' => date('c'),
         'type' => static::$_trigger,
+        'triggerId' => (string) $this->id(),
         'payload' => json_encode($this->getPayload()),
-        'notified' => array('BOOL' => false)
+        'notified' => array('BOOL' => false),
+        'callback' => $broadcast['webhook'].'?triggerId='.(string) $this->id()
       );
 
     }
     $results = addToDynamoDBTable('send_email', $post);
     return $results;
+  }
+
+  public static function ParseEmailRecipients($recipients, $return_errors = false){
+    $recipientsData = array();
+
+    // Handle recipients as string email address
+    if(is_string($recipients)) $recipientsData[] = array('email' => $recipients);
+
+    // Handle recipients as array of email addresses or properly formed addresses
+    if(empty($recipientsData)) {
+      if (is_array($recipients) && !empty($recipients)){
+        // Check if format is correct
+        if(is_string($recipients[0])) foreach($recipients as $recipient) $recipientsData[] = array('email' => $recipient);
+
+        if(empty($recipientsData)){
+          // Handle recipients as array of well formed recipients
+          foreach($recipients as $recipient) {
+            if(is_array($recipient) && isset($recipient['email'])) $recipientsData[] = $recipient;
+          }
+        }
+      }
+    }
+
+    return !empty($recipientsData) ? $recipientsData : null;
   }
 
 }

@@ -124,13 +124,15 @@ class Main extends Front_Controller {
           'email' => 'jermbo@cosmicstrawberry.com'
         ),
         'subject' => 'Test Subject',
-        'message' => 'Test Message'
+        'text_message' => 'Test Message'
       ),
     );
     //$result = QueueItemSendEmail::AddTrigger($add);
     //$result = QueueItemSendEmail::GetUnprocessed();
-    $result = QueueItemSendEmail::ProcessUnprocessed();
-    var_dump($result);
+    //$result = QueueItemSendEmail::ProcessUnprocessed();
+    //var_dump($result);
+
+    var_dump(queueEmail('jahdy@spotflare.com', 'jahdy@spotflare.com','This is a test subject','This is my message body'));
   }
 
 

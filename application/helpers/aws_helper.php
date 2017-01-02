@@ -97,11 +97,39 @@ function validateDynamoDbData($data, $dataMap = array()){
 //var_dump(getAllFromDynamoDBTable('send_email'));
 //var_dump(getByIdFromDynamoDBTable('send_mail','65eb62fc9832623ca94c0530a547f0963d3e74d4b26e6caca2ce3db004f56907'));
 
-function queueEmail($recipients, $subject, $message, $carbonCopy = null, $blindCarbonCopy = null, $caller = null){
+function queueEmail($recipients, $sender, $subject, $text_message, $html_message = null, $carbonCopy = null, $blindCarbonCopy = null, array $caller = null){
+  $add = array('dateAdded' => new MongoDate(), 'organizationId' => UserSession::Get_Organization()->id());
 
+  $payload['organizationId'] = (string) $add['organizationId'];
+  $payload['recipients'] = array(
+    'to' => QueueItemSendEmail::ParseEmailRecipients($recipients),
+    'cc' => QueueItemSendEmail::ParseEmailRecipients($carbonCopy),
+    'bcc' => QueueItemSendEmail::ParseEmailRecipients($blindCarbonCopy),
+  );
+
+  foreach($payload['recipients'] as $group => $recipients) if(!isset($recipients)) unset($payload['recipients'][$group]);
+
+  $sender = QueueItemSendEmail::ParseEmailRecipients($sender);
+  $payload['sender'] = isset($sender[0]) ? $sender[0] : null;
+  $payload['subject'] = $subject;
+  $payload['text_message'] = $text_message;
+  $payload['html_message'] = $html_message;
+  if($caller){
+    foreach(array('organizationId','projectId','taskId','userId') as $field) if(isset($caller[$field])){
+      $payload[$field] = (string) $caller[$field];
+    }
+  }
+
+  $add['payload'] = $payload;
+
+  return QueueItemSendEmail::AddTrigger($add);
 }
 
 function queueSMS($recipients, $message, $caller = null){
+
+}
+
+function queueFormEmail(WFForms $form){
 
 }
 

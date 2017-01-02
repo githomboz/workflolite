@@ -142,7 +142,6 @@ class TriggerQueueItem
     $tests['dependencies_valid'] = $valid;
 
     $payload_test = self::ValidatePayload($data['payload'], true);
-    //var_dump($payload_test);
 
     $tests['payload_valid'] = is_array($payload_test) ? !in_array(false, $payload_test) : $payload_test;
 
@@ -151,6 +150,8 @@ class TriggerQueueItem
         if(in_array($test, $exclude_tests)) unset($tests[$test]);
       }
     }
+
+    //var_dump($tests, $payload_test);
 
     $return['isValid'] = !in_array(false, $tests);
     foreach($tests as $test => $value) if(!$value) $return['errors'][] = 'Test [' . $test . '] failed';
@@ -248,7 +249,12 @@ class TriggerQueueItem
   }
 
   public function getCaller(){
-
+    return array(
+      'userId' => $this->getValue('userId'),
+      'projectId' => $this->getValue('projectId'),
+      'taskId' => $this->getValue('taskId'),
+      'organizationId' => $this->getValue('organizationId'),
+    );
   }
 
   public function notifyCaller(){
@@ -298,19 +304,8 @@ class TriggerQueueItem
   }
 
   public static function GenerateWebhook($_current){
-    $validation = self::ValidateData($_current, array('broadcast_set','broadcast_valid'));
-    if($validation['isValid']){
-      $webhookRoot = 'http://workflowlite.com/api/v1/webhooks';
-      switch ($_current['trigger']){
-        case 'messaging-email' :
-          $webhookRoot .= '/send_email_response?orgId=' . (string) $_current['organizationId'];
-          if(isset($_current['projectId'])) $webhookRoot .= '&projectId=' . $_current['projectId'];
-          if(isset($_current['taskId'])) $webhookRoot .= '&taskId=' . $_current['taskId'];
-          return $webhookRoot;
-          break;
-      }
-    }
-    return 'http://workflowlite.com/api/v1/webhooks/catch_all_response';
+    $webhookRoot = 'http://workflowlite.com/api/v1/webhooks/post_trigger_response';
+    return $webhookRoot;
   }
 
   public static function GetBroadCastData($trigger, $_current){
@@ -355,8 +350,12 @@ class TriggerQueueItem
     }
 
     $validation = self::ValidateData($add);
+
+    //var_dump($validation);
+
     if($validation['isValid']){
       $id = static::Create($validation['data']);
+      self::ProcessUnprocessed();
       return $id;
     }
     return $validation['errors'];
@@ -380,7 +379,7 @@ class TriggerQueueItem
 
     if(isset($args->wheres) && !empty($args->wheres)) $handle->where($args->wheres);
 
-    if($return_count) return $handle->count(static::$collection);
+    if($return_count) return $handle->count(self::CollectionName());
     $args->direction = isset($args->direction) && strtolower($args->direction) == 'asc' ?  1 : -1;
     if(isset($args->orderby) && !empty($args->orderby)) {
       $handle->order_by(array($args->orderby=>$args->direction));
@@ -395,9 +394,9 @@ class TriggerQueueItem
     return $response;
   }
 
-  public static function GetUnprocessed($limit = 1){
+  public static function GetUnprocessed($limit = 1, $get_count = false){
     $args = array('wheres' => array('processed' => false));
-    return self::GetAll($args);
+    return self::GetAll($args, $get_count);
   }
 
   public static function GetRecordObjects(array $records){
