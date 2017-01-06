@@ -9,6 +9,7 @@ class QueueItemSendEmail extends TriggerQueueItem
 
   public function __construct(array $data){
     parent::__construct($data);
+    return $this;
   }
 
   protected static function _validatePayload($payload, $return_results = false){

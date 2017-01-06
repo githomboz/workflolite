@@ -87,9 +87,10 @@ $config['mongo_schema'] = array(
   'logs' => array(
     'dateAdded',
     'type',
-    'tags',
-    'content',
-    'phpErr',
+    'message',
+    'data', // supporting data
+    'context', // The page, method, line number, or other state information describing the origin of the log entry
+    'meta'
   ),
   'organizations' => array(
     'name',
@@ -234,6 +235,7 @@ $config['mongo_schema'] = array(
     'acknowledged', // Whether or not the job is aware of completion of this trigger
     'returnPayload', // Data to be returned from broadcast
     'webhook', // Url to post trigger response to
+    'logs',
   ),
   'triggers' => array(
     'name',

@@ -1,5 +1,11 @@
 <?php
 
+require_once 'classes/Logger.php';
+
+function logger($message, $data = null, $type = 'debug', array $context = null){
+  return Logger::Post($message, $data, $type, $context);
+}
+
 require_once 'classes/Task.php';
 require_once 'classes/TaskTemplate.php';
 require_once 'classes/Job.php';

@@ -22,11 +22,11 @@ function addToDynamoDBTable($tableName, $data, $dataMap = array()){
   $validate = validateDynamoDbData($data, $dataMap);
 
   if($validate['isValid']){
-    $response = $dynamodb->putItem([
+    $response = $dynamodb->putItem(array(
       'TableName' => $tableName,
       'Item' => $validate['validated'],
       'ReturnConsumedCapacity' => 'TOTAL',
-    ]);
+    ));
   }
 
   $response['_item'] = $validate['validated'];
@@ -37,9 +37,9 @@ function addToDynamoDBTable($tableName, $data, $dataMap = array()){
 function getAllFromDynamoDBTable($tableName){
   global $dynamodb;
 
-  $response = $dynamodb->scan([
+  $response = $dynamodb->scan(array(
     'TableName' => $tableName,
-  ]);
+  ));
 
   return $response;
 }
@@ -47,26 +47,26 @@ function getAllFromDynamoDBTable($tableName){
 function getByIdFromDynamoDBTable($tableName, $id){
   global $dynamodb;
 
-  $response = $dynamodb->getItem([
+  $response = $dynamodb->getItem(array(
     'TableName' => $tableName,
     'ConsistentRead' => true,
-    'Key' => [
-      'id' => [
+    'Key' => array(
+      'id' => array(
         'S' => $id
-      ]
-    ],
+      )
+    ),
     'ProjectionExpression' => 'Id, ISBN, Title, Authors'
-  ]);
+  ));
 
   return $response;
 }
 
 function validateDynamoDbData($data, $dataMap = array()){
-  $return = [
+  $return = array(
     'validated' => array(),
     'errors' => array(),
     'isValid' => false
-  ];
+  );
 
   foreach($data as $field => $saveData){
     if(is_array($saveData)){
