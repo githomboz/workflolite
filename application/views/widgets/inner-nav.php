@@ -9,8 +9,9 @@
 if(!isset($object)) $object = 'project';
 
 $seg1 = isset($this->$object) ? $this->$object->id() : null;
-$navItems = _get_inner_nav($this->navSelected, $seg1);
-$defaultItem = _get_inner_nav_default($navItems);
+$navItems = isset($this->navSelected) ? _get_inner_nav($this->navSelected, $seg1) : null;
+if($navItems) $defaultItem = _get_inner_nav_default($navItems);
+if($navItems){
 ?>
 <ul class="inner-nav clearfix">
   <?php foreach($navItems as $i => $navItem) { $this->innerNavSelected = isset($this->innerNavSelected) ? $this->innerNavSelected : $defaultItem['slug'];?>
@@ -21,3 +22,4 @@ $defaultItem = _get_inner_nav_default($navItems);
       <a href="<?php echo site_url($navItem['href']) ?>" class="<?php if($navItem['slug'] == 'notes') echo 'double-click' ?>"><?php echo $navItem['name'] ?></a></li>
   <?php } } ?>
 </ul>
+<?php } ?>

@@ -1,8 +1,12 @@
 <?php
 
-function emailer($to, $from, $subject, $message, $from_name = '', $cc = NULL, $bcc = NULL){
+function emailer($to, $from, $subject, $message, $from_name = '', $cc = NULL, $bcc = NULL, $html = false, $alt_message = null){
   $CI =& get_instance();
   $CI->load->library('email');
+
+  if(!$html) {
+    $CI->config->set_item('mailtype', 'text');
+  }
 
   $CI->email->from($from, (string) $from_name);
   $CI->email->to($to);
@@ -11,6 +15,8 @@ function emailer($to, $from, $subject, $message, $from_name = '', $cc = NULL, $b
 
   $CI->email->subject($subject);
   $CI->email->message($message);
+
+  if($alt_message) $CI->email->set_alt_message($alt_message);
 
   $CI->email->send();
 

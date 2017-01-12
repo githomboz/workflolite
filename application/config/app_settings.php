@@ -166,6 +166,7 @@ $config['mongo_schema'] = array(
     'templateVersion', // The version of the template being used
     'dateAdded',
     'name',
+    'triggerQueue', // list of queue triggers that have been queued and/or responded
     'dueDate', // a date set by user to track when workflow should be completed
     'approxEndDate', // approx end date based upon delays in task completion
     'nativeToken',
@@ -269,11 +270,34 @@ $config['mongo_schema'] = array(
     'seen',
   ),
   'webhooks' => array(
-    'referrer',
+    'organizationId',
     'dateAdded',
+    'topic',
+    'callback',
+  ),
+  'incoming' => array(
+    'dateAdded',
+    'organizationId',
+    'topic',
     'payload',
+    'callbackResponse',
     'processed',
-    'triggerId', // This refers to the trigger that originally called the webhook
+    'status',
+    'ipAddress',
+    'userAgent',
+    'logs'
+  ),
+  'confirmations' => array(
+    'dateAdded',
+    'jobId',
+    'redirect',
+    'receiptMessage',
+    'recipients',
+    'callbackYes',
+    'callbackNo',
+    'callbackResponse',
+    'confirmed',
+    'processed'
   ),
   'settings' => array(
     'group',

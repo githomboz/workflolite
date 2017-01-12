@@ -62,7 +62,7 @@ $route['contacts'] = 'jobs/contacts';
 $route['users'] = 'jobs/users';
 $route['search'] = 'jobs/search';
 $route['progress/(:any)'] = 'main/progress/$1';
-
+$route['confirmations/(:any)'] = 'main/confirmations/$1';
 
 
 $route['api/v1/(:any)'] = 'api/v1/call_method/$1';

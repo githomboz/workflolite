@@ -130,9 +130,10 @@
   <?php } // end show_sidebar() ?>
 <section class="main-content">
   <?php
+  $object = null;
   if(UserSession::loggedIn()) {
-    $object = in_array($this->navSelected, array('projects', 'projectsInner')) ? 'project' : null; // Check if project or not
-    $object = !$object && in_array($this->navSelected, array('jobs', 'jobsInner')) ? 'job' : $object; // If not project, check if job
+    $object = isset($this->navSelected) && in_array($this->navSelected, array('projects', 'projectsInner')) ? 'project' : null; // Check if project or not
+    $object = isset($this->navSelected) && !$object && in_array($this->navSelected, array('jobs', 'jobsInner')) ? 'job' : $object; // If not project, check if job
     $object = $object ? $object : 'organization'; // If neither, make org
   }
   if(UserSession::loggedIn()) include_once 'widgets/inner-nav.php';

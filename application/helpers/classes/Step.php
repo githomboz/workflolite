@@ -8,12 +8,6 @@ class Step
 
   protected $id = null;
 
-  /**
-   * Task $this step belongs to
-   * @var string
-   */
-  protected $_task = null;
-
   protected $status = 'active';
 
   private $_current = null;
@@ -24,19 +18,9 @@ class Step
    */
   protected $preconditions = array();
 
-  public function __construct(array $data, Task $task){
-    if(
-    (!isset($data['id']) ||
-      (isset($data['id']) && empty($data['id']))))
-        $data['id'] = md5($task->nextStepIndex());
-    $this->process($data);
-    $this->_task = $task;
-  }
-
-  private function process($data){
+  public function __construct(array $data){
     $this->_current = $data;
     if(isset($data['id'])) $this->id = $data['id'];
-
   }
 
   public function setNotApplicable(){

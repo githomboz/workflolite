@@ -1,6 +1,7 @@
 <nav class="clearfix">
   <ul>
     <?php
+    if(isset($this->navSelected)){
     $navItems = array('dashboard',
       //'workflows','jobs',
     'templates','projects','contacts','users','search');
@@ -12,6 +13,6 @@
       }
       ?>
       <li class="<?php if($active) echo 'active';?>"><a href="<?php echo site_url($navItem); ?>"><?php echo $navItem ?></a></li>
-    <?php } ?>
+    <?php }} ?>
   </ul>
 </nav>

@@ -114,7 +114,11 @@ class QueueItemSendEmail extends TriggerQueueItem
       );
 
     }
-    $results = addToDynamoDBTable('send_email', $post);
+    $results = Workflo()->Messaging()->SimpleEmail($this->getPayload());
+    // Verify completion
+    // Somehow call broadcast callback
+    return $results;
+    //$results = addToDynamoDBTable('send_email', $post);
     return $results;
   }
 

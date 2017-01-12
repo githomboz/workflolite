@@ -1,5 +1,7 @@
 <?php
 
+require_once 'Steps.php';
+
 class TaskTemplate2
 {
 
@@ -7,10 +9,13 @@ class TaskTemplate2
 
   private $_sortOrder = null;
 
+  private $STEPS = null;
+
   public function __construct(array $data, $sortOrder)
   {
     $this->setSortOrder($sortOrder);
     $this->_initialize($data);
+    $this->STEPS = new Steps($this);
   }
 
   public function id(){
@@ -133,6 +138,66 @@ class TaskTemplate2
       }
     }
     return $this;
+  }
+
+  /**
+   * @param $name
+   * @param null $description
+   * @param WFAction|null $action
+   * @param array|null $preconditions Functions that determine whether or not the current step is applicable
+   * @param array|null $dependencies Functions that must equate to true before this task can start
+   */
+  public function addStep($name, $description = null, WFAction $action = null, array $preconditions = null, array $dependencies = null){
+    // $dependencies [location (in office), meta availability (job.contacts)]
+    $errors = array();
+    if($action) {
+      if($action->isValid()) $action = $action->get();
+      else {
+        $errors[] = 'Action not valid';
+        logger('Action not valid', $action, 'error', [__METHOD__,__FILE__,__LINE__]);
+      }
+    }
+    if($dependencies){
+      foreach($dependencies as $dependency){
+        if(!isset($dependency['callable']) || isset($dependency['callable']) && empty($dependency['callable'])){
+          $errors[] = 'Dependency callable routine invalid';
+          logger('Dependency callable routine invalid', $dependency, 'error', [__METHOD__,__FILE__,__LINE__]);
+        }
+        if(!isset($dependency['callableArgs']) || isset($dependency['callableArgs']) && empty($dependency['callableArgs'])){
+          $errors[] = 'Dependency callable routine arguments invalid';
+          logger('Dependency callable routine arguments invalid', $dependency, 'error', [__METHOD__,__FILE__,__LINE__]);
+        }
+      }
+    }
+
+    if($preconditions){
+      foreach($preconditions as $precondition){
+        if(!isset($precondition['callable']) || isset($precondition['callable']) && empty($precondition['callable'])){
+          $errors[] = 'Pre-condition callable routine invalid';
+          logger('Pre-condition callable routine invalid', $precondition, 'error', [__METHOD__,__FILE__,__LINE__]);
+        }
+        if(!isset($precondition['callableArgs']) || isset($precondition['callableArgs']) && empty($precondition['callableArgs'])){
+          $errors[] = 'Pre-condition callable routine arguments invalid';
+          logger('Pre-condition callable routine arguments invalid', $precondition, 'error', [__METHOD__,__FILE__,__LINE__]);
+        }
+      }
+    }
+
+    if(empty($errors)){
+      $add = array(
+        'id' => md5($name . time()),
+        'name' => $name,
+        'description' => (string) $description
+      );
+
+      if($action) $add['action'] = $action;
+      if($dependencies) $add['dependencies'] = $dependencies;
+
+      $add['status'] = empty($preconditions) ? 'pending' : 'NA';
+
+      
+
+    }
   }
 
 }

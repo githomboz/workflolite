@@ -303,3 +303,75 @@ function template($version = null){
   }
   return workflow();
 }
+
+function _wfSimpleSMS($payload){
+  return array(
+    'response' => $payload,
+    'logs' => array(),
+    'errors' => false
+  );
+}
+
+function _wfSimpleEmail($payload){
+  $response = Workflo()->Messaging()->SimpleEmail($payload);
+  return array(
+    'response' => $response,
+    'logs' => array(),
+    'errors' => false
+  );
+}
+
+function _bytionApprove_fraudReport($projectId){
+  $logs = ['debug'=>[],'errors'=>[]];
+  $response = null;
+
+  if(isset($projectId)){
+    $project = Project::Get($projectId);
+    if($project){
+      $response = [
+        'test' => 'Fraud Report',
+        'value' => 'approve',
+        'success' => true
+      ];
+      $project->meta()->set(['fraudApproval'=> true])->save();
+    } else {
+      $logs['errors'][] = 'Project is invalid';
+    }
+  } else {
+    $logs['errors'][] = 'Project ID not set';
+  }
+
+  return array(
+    'response' => $response,
+    'logs' => $logs,
+    'errors' => !empty($logs['errors'])
+  );
+}
+
+function _bytionDeny_fraudReport($projectId){
+  $logs = ['debug'=>[],'errors'=>[]];
+  $response = null;
+
+  if(isset($projectId)){
+    $project = Project::Get($projectId);
+    if($project){
+      $response = [
+        'test' => 'Fraud Report',
+        'value' => 'deny',
+        'success' => true
+      ];
+      $project->meta()->set(['fraudApproval'=> false])->save();
+    } else {
+      $logs['errors'][] = 'Project is invalid';
+    }
+  } else {
+    $logs['errors'][] = 'Project ID not set';
+  }
+
+  return array(
+    'response' => $response,
+    'logs' => $logs,
+    'errors' => !empty($logs['errors'])
+  );
+}
+

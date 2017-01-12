@@ -77,7 +77,7 @@ function post_trigger_response(){
       $response['errors'][] = 'The trigger is invalid';
     }
   } else {
-    if($debug) _log_message('error', '1. If Trigger Id: ' , $trigger);
+    if($debug) _log_message('error', '1. If Trigger Id: ' , $triggerId);
     $response['errors'][] = 'The trigger id provided is invalid';
   }
 
@@ -162,6 +162,47 @@ function log_trigger_report_args_map(){
 // Field names of fields required
 function log_trigger_report_required_fields(){
   return array('logs');
+}
+
+function incoming(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $organizationId = CI()->input->get('orgId');
+  $topic = CI()->input->get('topic');
+
+  $return = null;
+
+  if($organizationId){
+    if($topic){
+      $return = Workflo()->Broadcast()->Incoming()->ProcessWebhookRequest($organizationId, $topic, $data['payload']);
+      $response['response'] = $return['response'];
+      if(is_array($return['errors'])) {
+        if(is_array($response['errors'])) {
+          $response['errors'] = array_merge($response['errors'], $return['errors']);
+        } else $response['errors'] = $return['errors'];
+      }
+    } else {
+      $response['errors'][] = 'Topic provided is invalid';
+    }
+  } else {
+    $response['errors'][] = 'Organization id provided is invalid';
+  }
+
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function incoming_args_map(){
+  return array('payload');
+}
+
+// Field names of fields required
+function incoming_required_fields(){
+  return array('payload');
 }
 
 

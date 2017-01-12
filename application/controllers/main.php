@@ -135,5 +135,102 @@ class Main extends Front_Controller {
     var_dump(queueEmail('jahdy@spotflare.com', 'jahdy@spotflare.com','This is a test subject','This is my message body'));
   }
 
+  public function confirmations($confirmationId = null){
+    $action = $this->input->get('action');
+    $action = in_array($action, ['approve','deny']) ? $action : false;
+    $errors = [];
+    $pageData = ['action' => $action,'isProcessed' => false];
+    $processed = $this->input->get('processed') === 'true';
+
+    [
+      'receiptMessage',
+      'redirect',
+      'jobId'
+    ];
+
+    $noActionMessage = 'Please select "Approve" or "Deny" to send confirmation.';
+    $pageData['noActionMessage'] = $noActionMessage;
+
+    // get conf id
+    if ($confirmationId) {
+      $confirmation = Confirmations::Get($confirmationId);
+      // get conf
+      if ($confirmation) {
+
+        //var_dump($processed, $confirmation);
+
+        // If it has been processed
+        if($processed || (isset($confirmation['processed']) && $confirmation['processed'])){
+          // Confirm that the confirmation has been processed
+          if($confirmation['processed']){
+            // Inform user that they are too late
+            $pageData['isProcessed'] = true;
+          } else {
+            // else, return user to original confirmation page
+            redirect('confirmations/'.$confirmationId);
+          }
+
+        } else {
+          if (isset($confirmation['payload']) && !empty($confirmation['payload'])){
+            $pageData['payload'] = $confirmation['payload'];
+
+          if ($action) {
+            if (isset($confirmation['projectId'])) {
+              // check if action is true or false
+              $callback = $action == 'approve' ? $confirmation['callbackYes'] : $confirmation['callbackNo'];
+
+              // fire appropriate callback
+              if (is_callable($callback)) {
+                // update receipt message & then optional redirect
+
+                $returned = call_user_func_array($callback, array($confirmation['projectId']));
+
+                Confirmations::Update($confirmationId, [
+                    'callbackResponse' => json_encode($returned),
+                    'processed' => true,
+                    'confirmed' => ($action == 'approve')
+                  ]
+                );
+
+                if ($confirmation['redirect']) {
+                  if (strpos($confirmation['redirect'], '{confirmationId}')) {
+                    $confirmation['redirect'] = str_replace('{confirmationId}', (string)$confirmationId, $confirmation['redirect']);
+                  }
+                  redirect($confirmation['redirect']);
+                }
+
+                $defaultMsg = 'Thank you, your submission has been received.';
+                $pageData['receiptMessage'] = isset($confirmation['receiptMessage']) ? $confirmation['receiptMessage'] : $defaultMsg;
+
+              } else {
+                $errors[] = 'ERROR024: An error has occurred while attempting to process your request; Callback invalid.';
+              }
+            } else {
+              $errors[] = 'ERROR025: An error has occurred while attempting to process your request; Project ID invalid.';
+            }
+          } else {
+              $errors[] = $noActionMessage;
+          }
+        } else {
+          $errors[] = 'ERROR026: An error has occurred while attempting to process your request; Payload invalid.';
+        }
+
+
+
+
+      }
+      } else {
+        $errors[] = 'Confirmation could not be found. Please ask your administrator for help.';
+      }
+    } else {
+      $errors[] = 'Confirmation ID provided is invalid. Please ask your administrator to resend.';
+    }
+
+    show_sidebar(false);
+    $pageData['errors'] = $errors;
+    $this->view('confirmations', $pageData);
+
+  }
+
 
 }
