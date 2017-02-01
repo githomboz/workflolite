@@ -13,6 +13,7 @@ abstract class MetaObject
   protected $_input = null;
   protected $_data = null;
   protected $_errors = false;
+  protected $_displayLength = 0;
 
   protected static $_instanceId = 0;
 
@@ -92,6 +93,14 @@ abstract class MetaObject
     }
   }
 
+  public function displayLength($var = null){
+    if(is_numeric($this->_displayLength) && $this->_displayLength > 0) return $this->_displayLength;
+    $string = $this->display($var);
+    $string = trim(strip_tags($string));
+    $this->_displayLength = strlen($string) > 0 ? strlen(trim($string)) + 4 : 0;
+    return $this->_displayLength;
+  }
+
   public function is($class){
     return is_object($class) && $this instanceof $class;
   }
@@ -120,6 +129,11 @@ abstract class MetaObject
    */
   public function dbValue(){
     return $this->_data;
+  }
+
+  public function flush(){
+    $this->_cache = null;
+    return $this;
   }
 
   public abstract static function formatData($val);

@@ -43,6 +43,7 @@ $route['404_override'] = '';
 
 $route['login'] = 'main/login';
 $route['logout'] = 'main/logout';
+$route['admin/logger'] = 'main/logger';
 $route['admin/login'] = 'main/admin_login';
 $route['admin/logout'] = 'main/admin_logout';
 

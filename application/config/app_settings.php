@@ -92,6 +92,14 @@ $config['mongo_schema'] = array(
     'context', // The page, method, line number, or other state information describing the origin of the log entry
     'meta'
   ),
+  'logger' => array(
+    'dateAdded',
+    'type',
+    'message',
+    'data', // supporting data
+    'context', // The page, method, line number, or other state information describing the origin of the log entry
+    'hash'
+  ),
   'organizations' => array(
     'name',
     'dateAdded',
@@ -176,7 +184,10 @@ $config['mongo_schema'] = array(
     'taskTemplates', // Array of tasks if is custom project
     'taskMeta', // Tasks specific data such as start time, end time, and status
     'availStatuses', // Statuses available for this particular project
+    'script',
     'meta',
+    'notes',
+    'nativeId',
     'settings',
   ),
   'tasks' => array(

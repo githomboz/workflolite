@@ -4,7 +4,26 @@
 
         <?php
 
-        Bytion_SC();
+        if(Bytion_SC()->getLibBySlug('RequestParser')){
+//            var_dump(Bytion_RP()->Router([
+//                'orgId' => '57feb50722deda011868dd60',
+//              'topic' => 'orders-added',
+//              'orderType' => 'twitter-order',
+//              'orderCount' => '2500',
+//              'twitterHandle' => '@jahdy1',
+//              'customer' => [
+//                'name' => 'Ashley Lancelot',
+//                'email' => 'ash@spotflare.com',
+//                'ipAddress' => '127.0.0.1',
+//                'country' => 'NG'
+//              ],
+//            ], 'orders-added'));
+
+            //var_dump(WFSocialUtilitiesTwitter::SimpleValidate(['twitterHandle'=>'jahdy1']));
+            //var_dump(WFSocialUtilities::FraudAnalysis(['email'=>'jahdy@spotflare.com']));
+            var_dump(WFLogger::Read());
+            //Bytion_SC()->_('RequestParser')->Validate([]);
+        }
 
         if(isset($errors) && isset($noActionMessage) && in_array($noActionMessage, $errors)) {
             $index = array_search($noActionMessage, $errors);

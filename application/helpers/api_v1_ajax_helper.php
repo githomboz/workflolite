@@ -315,6 +315,9 @@ function save_meta(){
       $response['response']['raw'] = $meta->get();
       $response['response']['display'] = $meta->display();
       $response['response']['success'] = true;
+    } else {
+      if(!is_array($response['errors'])) $response['errors'] = [];
+      $response['errors'] = array_merge($response['errors'], (array) $meta->errors());
     }
   } else {
     $response['errors'][] = 'Invalid entity id provided';
@@ -536,6 +539,27 @@ function remove_task_template_args_map(){
 // Field names of fields required
 function remove_task_template_required_fields(){
   return array('templateId', 'taskTemplateId', 'version');
+}
+
+function wf_logger(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $response['response']['entries'] = WFLogger::Read((array) CI()->input->get());
+  $response['recordCount'] = WFLogger::Read((array) CI()->input->get(), true);
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function wf_logger_args_map(){
+  return array();
+}
+
+// Field names of fields required
+function wf_logger_required_fields(){
+  return array();
 }
 
 

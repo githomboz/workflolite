@@ -17,6 +17,7 @@ class WFBroadcastIncoming
    * @return array $return
    */
   public static function ProcessWebhookRequest($orgId, $topic, $payload = null){
+    $logger = new WFLogger(__METHOD__, __FILE__);
     $response = [
       'status' => 200,
       'recordCount' => 0,
@@ -27,71 +28,78 @@ class WFBroadcastIncoming
     // Check if organization is valid
     $organization = Organization::Get($orgId);
     if($organization){
+      $logger->setEntityId($orgId)->setEntityOrg();
+      $logger->addDebug('Organization set', $orgId);
+
+      if(!isset($payload['topic'])) $payload['topic'] = $topic;
+      if(!isset($payload['orgId'])) $payload['orgId'] = (string) $orgId;
+
+      // Begin creating the $add array for the request
+      $add = [
+        'dateAdded'           => new MongoDate(),
+        'organizationId'      => $orgId,
+        'topic'               => $topic,
+        'payload'             => $payload,
+        'processed'           => false,
+        'callbackResponse'    => null,
+        'logs'                => []
+      ];
+
       // Check if topic is valid
       if(!empty($topic)){
         $webhook = Webhooks::GetByTopic($topic, $orgId);
-        //logger('Webhook response', $webhook, null, [__METHOD__,__FILE__,__LINE__]);
+        $logger->addDebug('Topic set', $topic);
         // Get registered webhook if valid
         if($webhook) {
           // Check if callback is valid
+          $logger->addDebug('Web hook identified');
           if(isset($webhook['registeredCallback']) && is_callable($webhook['registeredCallback'])){
-
-            // Begin creating the $add array for the request
-            $add = [
-              'dateAdded'           => new MongoDate(),
-              'organizationId'      => $orgId,
-              'topic'               => $topic,
-              'payload'             => $payload,
-              'processed'           => false,
-              'callbackResponse'    => null,
-              'logs'                => ['['.date('c').'] DEBUG:  Order Received']
-            ];
-
+            $logger->addDebug('Valid registered callback (`'.$webhook['registeredCallback'].'`)', $webhook['registeredCallback']);
             // Process request data
             if($callbackResponse = call_user_func_array($webhook['registeredCallback'], array($payload))){
-
+              $logger->addDebug('Registered callback returned');
               // validate response, logs, errors
-              if(isset($callbackResponse['response']) && isset($callbackResponse['logs']) && isset($callbackResponse['errors'])){
-                // Add response to the $add array
+              if(WFClientInterface::Valid_WFResponse($callbackResponse)){
+                $logger->addDebug('Valid callback response');
+                $logger->merge($callbackResponse['logger']);
                 $add['callbackResponse'] = $callbackResponse['response'];
                 $add['processed'] = true;
-
-                // Merge Logs from response
-                if(isset($callbackResponse['logs'])) $add['logs'] = array_merge($add['logs'], $callbackResponse['logs']);
-
-                // Add incoming requests to collection
-                $id = Webhooks::RegisterIncomingRequest($add);
-
-                if($id){
-                  // Return request id
-                  $response['response'] = array(
-                    'requestId' => (string) $id
-                  );
-                  return $response;
-                } else {
-                  $response['errors'][] = 'Error occurred while registering the incoming request';
-                }
-
-                if(empty($response['errors'])) $response['errors'] = false;
-
               } else {
-                $response['errors'][] = '_4; Callback response is invalid';
+                $logger->addError('Invalid registered callback response');
               }
             } else {
-              $response['errors'][] = '_3; Callback response is was unexpected. Invalid Data';
+              $logger->addError('_3; Callback response is was unexpected. Invalid Data');
             }
           } else {
-            $response['errors'][] = '_2; Callback is invalid';
+            $logger->addError('_2; Callback is invalid '.(isset($webhook['registeredCallback'])?'('.$webhook['registeredCallback'].')':''));
           }
+        } // Don't do anything if there is no webhook
+
+        // Add incoming requests to collection
+        $id = Webhooks::RegisterIncomingRequest($add);
+
+        if($id){
+          $logger->addDebug('Request registered successfully', $id);
+          // Return request id
+          $response['response'] = array(
+            'requestId' => (string) $id
+          );
+          return $response;
         } else {
-          $response['errors'][] = 'Webhook is invalid';
+          $logger->addError('Error occurred while registering the incoming request');
         }
+
+        if(empty($response['errors'])) $response['errors'] = false;
+
       } else {
-        $response['errors'][] = 'Topic is invalid';
+        $logger->addError('Topic is invalid');
       }
     } else {
-      $response['errors'][] = 'Organization is invalid';
+      $logger->addError('Organization is invalid');
     }
+
+    if($logger->hasErrors()) $response['errors'] = $logger->getMessages('errors');
+    $logger->sync();
 
     return $response;
   }
@@ -103,6 +111,7 @@ class WFBroadcastIncoming
    * @return array response array
    */
   public static function ProcessTriggerResponse($triggerId, array $payload = null){
+    $logger = new WFLogger(__METHOD__, __FILE__);
     $response = [
       'status' => 200,
       'recordCount' => 0,
@@ -164,6 +173,10 @@ class WFBroadcastIncoming
       if($debug) logger('1. If Trigger Id: ' , $triggerId);
       $response['errors'][] = 'The trigger id provided is invalid';
     }
+
+    if($logger->hasErrors()) $response['errors'] = $logger->getMessages('errors');
+    $logger->sync();
+
     return $response;
   }
 

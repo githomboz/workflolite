@@ -29,10 +29,25 @@ class Contact extends WorkflowFactory
 
   }
 
+  public static function GetByEmail($email){
+    $logger = new WFLogger(__METHOD__, __FILE__);
+    $logger->addDebug('Entering ...');
+
+    $emails = is_array($email) ? $email : array($email);
+    $logger->addDebug('Emails is set to ' . json_encode($emails));
+
+    $contacts = self::CI()->mdb->whereIn('email', $emails)->get(self::CollectionName());
+    $class = __CLASS__;
+    foreach($contacts as $i => $contact) $contacts[$i] = new $class($contact);
+    //var_dump(CI()->mdb->lastQuery());
+    return $contacts;
+  }
+
   public static function Get($id){
     $record = static::LoadId($id, static::$_collection);
     $class = __CLASS__;
-    return new $class($record);
+    if(!empty($record)) return new $class($record);
+    return false;
   }
 
   public static function GetByIds(array $contactIds){
@@ -73,8 +88,21 @@ class Contact extends WorkflowFactory
     }
     return $dummydata_users;
   }
-  
-  
+
+  public static function Create($data){
+    if(!isset($data['dateAdded'])) $data['dateAdded'] = new MongoDate();
+    if(!isset($data['pin'])) $data['pin'] = _generate_id(4);
+    $data['organizationId'] = isset($data['organizationId']) ? $data['organizationId'] : (UserSession::loggedIn() ? UserSession::Get_Organization()->id() : null);
+    if(!isset($data['settings'])){
+      $data['settings'] = [
+        'emailUpdates' => true,
+        'smsUpdates' => false
+      ];
+    }
+    $data['active'] = isset($data['active']) ? (bool) $data['active'] : true;
+
+    return parent::Create($data);
+  }
 
 
 

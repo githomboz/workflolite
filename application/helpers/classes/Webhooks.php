@@ -28,9 +28,16 @@ class Webhooks extends WFInterface
   }
 
   public static function RegisterIncomingRequest($data){
+    $logger = new WFLogger(__METHOD__, __FILE__);
+    $logger->addDebug('Entering ...');
     $collection = 'incoming';
+    $logger->addDebug('Saving incoming request data', $data);
     $filtered = di_allowed_only($data, mongo_get_allowed($collection));
-    return self::CI()->mdb->insert($collection, $filtered);
+    $return = self::CI()->mdb->insert($collection, $filtered);
+    $logger->addDebug('DB insert result', $return)
+      ->addDebug('Insertion into collection (`'.$collection.'`) result', CI()->mdb->lastQuery());
+    $logger->sync();
+    return $return;
   }
 
 

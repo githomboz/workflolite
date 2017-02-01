@@ -19,6 +19,7 @@ class Bytion_SuperClass
 
   public function init(){
     static::_getRequestParser();
+    $this->RegisterLibrary('OrderManager','OrderManager');
   }
 
   public static function GetInstance(){
@@ -26,8 +27,16 @@ class Bytion_SuperClass
     return self::$instance;
   }
 
+  /**
+   * Get Organization Templates
+   */
+  public static function GetTemplates(){
+
+  }
+
   public function RegisterLibrary($libName, $slug = null, $params = array(), $location = null){
-    $logs = WFClientInterface::_getLogsTemplate();
+    $logs = WFClientInterface::GetLogsTemplate();
+    $ll = '['.__METHOD__.'::scope] ';
 
     // Check if lib location is set
     // If set, verify file location
@@ -36,7 +45,7 @@ class Bytion_SuperClass
       if(file_exists($location)){
         require_once $location;
       } else {
-        $logs['errors'][] = 'Invalid library location provided ('.$location.')';
+        $logs['errors'][] = str_replace('::scope','', $ll) . 'Invalid library location provided ('.$location.')';
       }
     }
 
@@ -56,7 +65,7 @@ class Bytion_SuperClass
       $reflection = new \ReflectionClass($libName);
       $myClassInstance = $reflection->newInstanceArgs($params);
     } else {
-      $logs['errors'][] = 'The library requested could not be found';
+      $logs['errors'][] = str_replace('::scope','', $ll) . 'The library requested could not be found';
     }
 
     $active = false;
@@ -74,7 +83,7 @@ class Bytion_SuperClass
           'location' => $location,
           'instance' => $myClassInstance,
           'active' => $active,
-          'logs' => static::_mergeLogs($lib['logs'], $logs)
+          'logs' => WFClientInterface::MergeLogs($lib['logs'], $logs)
         ];
       }
     }
@@ -89,22 +98,23 @@ class Bytion_SuperClass
       ];
     }
 
-    var_dump($this->lib);
     return $this;
   }
 
-  public function lib($libName){
+  public function getLib($libName, $getInstance = true){
     foreach($this->lib as $lib){
       if($lib['libName'] == $libName && $lib['active']){
+        if($getInstance) return $lib['instance'];
         return $lib;
       }
     }
     return false;
   }
 
-  public function _($slug){
+  public function getLibBySlug($slug, $getInstance = true){
     foreach($this->lib as $lib){
       if($lib['slug'] == $slug && $lib['active']){
+        if($getInstance) return $lib['instance'];
         return $lib;
       }
     }
@@ -115,17 +125,22 @@ class Bytion_SuperClass
     return $this->RegisterLibrary('RequestParser','RequestParser');
   }
 
-  public static function _mergeLogs(array $current_logs, array $new_logs){
-    foreach(['errors','logs'] as $context){
-      if(isset($current_logs[$context]) && isset($new_logs[$context])){
-        $current_logs[$context] = array_merge($current_logs[$context], $new_logs[$context]);
-      }
-    }
-    return $current_logs;
-  }
-
 }
 
 function Bytion_SC(){
   return Bytion_SuperClass::GetInstance();
+}
+
+function Bytion_RP(){
+  $BS = Bytion_SuperClass::GetInstance();
+  return $BS->getLibBySlug('RequestParser');
+}
+
+function Bytion_OM(){
+  $BS = Bytion_SuperClass::GetInstance();
+  return $BS->getLibBySlug('OrderManager');
+}
+
+function Bytion_Router($payload){
+  return Bytion_RP()->Router($payload);
 }

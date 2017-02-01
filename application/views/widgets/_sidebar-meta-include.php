@@ -9,31 +9,40 @@
     $totalMeta ++;
     if($meta['hide']) $hideMeta ++;
   }
+
+  //var_dump($metaRecords);
+
   ?>
   <div class="job-meta cs-job-meta <?php if(!$hideMeta) echo 'show-all';?>">
     <?php
     foreach($metaRecords as $key => $meta){
       $metaSettings = template()->getMetaSettings($key);
+      //var_dump($metaRecords, $meta, $key);
       ?>
-      <div class="meta-pair meta-<?php echo $meta['slug'] ?> <?php if($meta['hide']) echo 'not-priority '; else echo 'priority '; $value = $meta['value']->get(); if(is_null($value) || ($meta['value'] instanceof MetaArray && empty($value))) echo 'edit-mode '?>">
+      <div class="meta-pair meta-<?php echo $meta['slug'] ?> <?php if($meta['hide']) echo 'not-priority '; else echo 'priority '; ($value = $meta['value'] instanceof MetaObject ? $meta['value']->get() : null); if(is_null($value) || ($meta['value'] instanceof MetaArray && empty($value))) echo 'edit-mode '?>">
         <span class="meta-title"><?php echo $metaSettings['field'] ?>: </span>
         <?php
-        $valueLength = strlen($meta['value']->display());
-        $valueContent = $meta['value']->display();
-        if($meta['value'] instanceof MetaUrl) {
-          $valueLength = strlen($meta['value']->get());
-          $valueContent = $meta['value']->display();
-        }
-        if($meta['value'] instanceof MetaUrl) {
-          $valueLength = strlen($meta['value']->get());
-          $valueContent = $meta['value']->display();
-        }
-        if($meta['value'] instanceof MetaDateTime) {
-          $valueLength = (strlen($meta['value']->display()) - strlen(' <a href=#add_to_calendar"><i class="fa fa-calendar-plus-o"></i></a>')) + 2;
-          $valueContent = $meta['value']->display();
-        }
-        $multiLine = is_string($valueContent) ? ((strlen($key) + $valueLength + 2) > 33) : true;
+        $valueContent = '';
+        $multiLine = false;
+        if($meta['value'] instanceof MetaObject){
+          $valueLength = $meta['value']->displayLength();
+          $valueContent = $meta['value']->flush()->display();
+          if($meta['value'] instanceof MetaUrl) {
+            $valueLength = $meta['value']->displayLength();
+            $valueContent = $meta['value']->flush()->display();
+          }
+          if($meta['value'] instanceof MetaUrl) {
+            $valueLength = $meta['value']->displayLength();
+            $valueContent = $meta['value']->flush()->display();
+          }
+          if($meta['value'] instanceof MetaDateTime) {
+            //var_dump($meta);
+            $valueLength = $meta['value']->displayLength($meta['formatDefault']);
+            $valueContent = $meta['value']->flush()->display($meta['formatDefault']);
+          }
+          $multiLine = is_string($valueContent) ? ((strlen($key) + $valueLength + 2) > 33) : true;
 
+        }
         ?>
         <span class="meta-value <?php if($multiLine) echo 'multi-line'?>"><?php echo $valueContent ?>&nbsp; <a href="#editMeta-<?php echo $meta['slug']?>" class="fa fa-pencil js-edit-mode"></a></span>
         <?php echo get_include(MetaObject::getFormHtmlPath($meta['type']), array('meta' => $meta), true);?>

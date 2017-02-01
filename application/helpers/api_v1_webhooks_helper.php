@@ -173,11 +173,19 @@ function incoming(){
   $organizationId = CI()->input->get('orgId');
   $topic = CI()->input->get('topic');
 
+  $logger = new WFLogger('/api/v1/webhooks/incoming', __FILE__);
+
+  $logger->addDebug('Incoming Webhook Request');
+
   $return = null;
 
   if($organizationId){
+    $logger->setEntityOrg()->setEntityId($organizationId)->addDebug('Valid organization id', $organizationId);
     if($topic){
+      $logger->addDebug('Valid topic id', $topic);
+      $logger->addDebug('Preparing to process web hook request...')->sync();
       $return = Workflo()->Broadcast()->Incoming()->ProcessWebhookRequest($organizationId, $topic, $data['payload']);
+      $logger->addDebug('Processed webhook request');
       $response['response'] = $return['response'];
       if(is_array($return['errors'])) {
         if(is_array($response['errors'])) {
@@ -185,12 +193,15 @@ function incoming(){
         } else $response['errors'] = $return['errors'];
       }
     } else {
-      $response['errors'][] = 'Topic provided is invalid';
+      $logger->addError('Topic provided is invalid');
     }
   } else {
-    $response['errors'][] = 'Organization id provided is invalid';
+    $logger->addError('Organization id provided is invalid');
   }
 
+  if($logger->hasErrors()) $response['errors'] = $logger->getMessages('errors');
+  $logger->addDebug('Leaving Request');
+  $logger->sync();
   $response['recordCount'] = 1;
   return $response;
 }

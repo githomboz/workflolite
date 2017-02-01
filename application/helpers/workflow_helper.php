@@ -9,10 +9,14 @@ function logger($message, $data = null, $type = 'debug', array $context = null){
 function loggerBulk($message, $data = null, $type = 'debug', array $context = null){
 }
 
+require_once 'classes/WFLogger.php';
 require_once 'classes/WFInterface.php';
 require_once 'classes/WFClientInterface.php';
 require_once 'classes/Workflo.php';
 require_once 'classes/Webhooks.php';
+require_once 'classes/core/WFRequestParser.php';
+require_once 'classes/core/WFSocialUtilities.php';
+require_once 'classes/core/WFSocialUtilitiesTwitter.php';
 
 $CI =& get_instance();
 $CI->Workflo = new Workflo();
@@ -20,6 +24,7 @@ $CI->Workflo = new Workflo();
 function Workflo(){
   return CI()->Workflo;
 }
+require_once 'orgs/Bytion_SuperClass.php';
 
 require_once 'classes/Confirmations.php';
 require_once 'classes/utilities/WFAction.php';
@@ -34,4 +39,3 @@ require_once 'classes/Organization.php';
 require_once 'classes/Workflow.php';
 require_once 'classes/QueueItemSendEmail.php';
 
-require_once 'orgs/Bytion_SuperClass.php';

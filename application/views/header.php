@@ -38,6 +38,7 @@
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_MessageBox.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_EditableContentDivs.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_RenderBuddy.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_WFLogger.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/setTimeout.polyfill.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/main.js"></script>
@@ -74,7 +75,7 @@
     <div class="main-head clearfix">
       <?php if(UserSession::loggedIn()){ ?>
       <div class="logo-container">
-        <a href="<?php echo _url("/")?>?rel=main-logo"><img src="<?php echo base_url()?>/assets/temp/main-logo.gif" /></a>
+        <?php /**  <a href="<?php echo _url("/")?>?rel=main-logo"><img src="<?php echo base_url()?>/assets/temp/main-logo.gif" /></a><?php **/ ?>
       </div><!--/logo-container-->
       <div class="page-title">
           <?php if(project() || job()){ ?>

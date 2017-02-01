@@ -47,6 +47,15 @@ class Main extends Front_Controller {
     redirect('/');
   }
 
+  public function logger(){
+    $this->page_header = array(
+      'icon' => 'fa-sign-in',
+      'header' => 'Login / Sign Up',
+    );
+
+    $this->view('logger');
+  }
+
   public function admin_login(){
     if(!admin_logged_in()){
       // If form submitted

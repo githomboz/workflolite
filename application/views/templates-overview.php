@@ -8,7 +8,7 @@
       <a href="#" class="btn"><i class="fa fa-plus"></i> Create a Template</a>
     </div>
     <?php $templates = $this->organization->getTemplates();
-    foreach($templates as $workflow){
+    foreach((array) $templates as $workflow){
 
     ?>
     <div class="workflow entry boxed sidepanel-bg workflow-<?php echo $workflow->id() ?>">

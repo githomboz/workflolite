@@ -43,7 +43,7 @@ class Templates extends Users_Controller {
     $this->versions = array();
 
     $this->template = Template::cacheGet($templateId, $this->version);
-
+    
     $this->versions['db'] = template()->getValue('version');
     $this->versions['save'] = is_numeric($this->version) ? $this->version : $this->versions['db'];
     $this->versions['highest'] = $this->versions['db'] + 1;

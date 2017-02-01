@@ -8,6 +8,8 @@ require_once 'core/meta-types/MetaUrl.php';
 require_once 'core/meta-types/MetaArray.php';
 require_once 'core/meta-types/MetaNumber.php';
 require_once 'core/meta-types/MetaText.php';
+require_once 'core/meta-types/MetaBoolean.php';
+require_once 'core/meta-types/MetaTwitterHandle.php';
 
 class Meta
 {
@@ -133,7 +135,8 @@ class Meta
         ),
       ));
 
-      switch ($this->_data[$field]['type']){
+
+      switch (strtolower($this->_data[$field]['type'])){
         case 'string':
           $this->_data[$field]['value'] = new MetaString($this->_data[$field]['value']);
           break;
@@ -152,16 +155,24 @@ class Meta
         case 'number':
           $this->_data[$field]['value'] = new MetaNumber($this->_data[$field]['value']);
           break;
+        case 'bool':
+        case 'boolean':
+          $this->_data[$field]['value'] = new MetaBoolean($this->_data[$field]['value']);
+          break;
         case 'text':
           $this->_data[$field]['value'] = new MetaText($this->_data[$field]['value']);
           break;
-        case 'dateTime':
+        case 'twitterhandle':
+          $this->_data[$field]['value'] = new MetaTwitterHandle($this->_data[$field]['value']);
+          break;
+        case 'datetime':
         case 'date':
         case 'time':
           $this->_data[$field]['value'] = new MetaDateTime($this->_data[$field]['value']);
           break;
       }
 
+      //var_dump($field, $this->_data[$field]);
 
       if($this->_data[$field]['value'] instanceof MetaString)
       $this->_data[$field]['html']['rowStrLen'] = strlen($this->_data[$field]['field']) + strlen($this->_data[$field]['value']->get());

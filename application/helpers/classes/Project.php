@@ -3,6 +3,7 @@
 require_once 'Meta.php';
 require_once 'Task2.php';
 require_once 'WorkflowFactory.php';
+require_once 'ScriptEngine.php';
 
 class Project extends WorkflowFactory
 {
@@ -22,6 +23,8 @@ class Project extends WorkflowFactory
   private $templateFields = array();
 
   private $tasks = array();
+
+  private $sciptEngine = null;
 
   //private $sortOrder = array();
 
@@ -50,6 +53,15 @@ class Project extends WorkflowFactory
     $this->cacheTasksBeforeUpdates();
   }
 
+  public function ScriptEngine(){
+    if(!isset($this->sciptEngine)) $this->sciptEngine = new ScriptEngine($this->id());
+    return $this->sciptEngine;
+  }
+
+  public function run(){
+    $this->ScriptEngine()->run();
+  }
+
   /**
    * Before any changes occur to tasks, record tasks as they currently are
    */
@@ -72,6 +84,10 @@ class Project extends WorkflowFactory
     } else {
       throw new Exception('Tasks can not be added without an _id');
     }
+  }
+
+  public function saveScript(ScriptEngine $script){
+    return self::Update($this->id(), ['script' => $script->getStepsRaw()]);
   }
 
   public function addNote($noteData){
@@ -156,6 +172,10 @@ class Project extends WorkflowFactory
   public function setNotesArray($notes){
     sortBy('datetime', $notes, 'desc');
     return $this->setValue('notes', $notes)->save('notes');
+  }
+
+  public function setStatus($status){
+    return $this->setValue('status', $status)->save('status');
   }
 
   public function searchNotes($term){
@@ -365,7 +385,7 @@ class Project extends WorkflowFactory
         array(
           'status' => 'skipped',
           'displayName' => 'Skipped (N/A)',
-          'description' => 'Task has been deemed inapplicable based upon configured dependancies'
+          'description' => 'Task has been deemed inapplicable based upon configured dependencies'
         ),
         array(
           'status' => 'force_skipped',
@@ -643,22 +663,22 @@ class Project extends WorkflowFactory
 
 
     // Create Job
-    $projectData = array(
+    $projectData = [
       'dateAdded' => new MongoDate(),
       'name' => $data['name'],
       'dueDate' => null,
       'approxEndDate' => null,
-      'partiesInvolved' => array(),
+      'partiesInvolved' => isset($data['partiesInvolved']) ? (array) $data['partiesInvolved'] : [],
       'nativeId' => _generate_unique_id(Job::CollectionName(), 'nativeId', 7),
-      'organizationId' => isset($data['organizationId']) ? $data['organizationId'] : UserSession::Get_Organization()->id(),
-      'viewableContacts' => array(),
-      'meta' => array(),
-      'taskTemplates' => array(),
-      'taskMeta' => array(),
-      'notes' => array(),
-      'templateId' => null,
-      'sortOrder' => array()
-    );
+      'organizationId' => isset($data['organizationId']) ? $data['organizationId'] : (UserSession::loggedIn() ? UserSession::Get_Organization()->id() : null),
+      'viewableContacts' => [],
+      'meta' => isset($data['meta']) ? (array) $data['meta'] : [],
+      'taskMeta' => [],
+      'notes' => [],
+      'templateId' => isset($data['templateId']) ? (array) $data['templateId'] : null,
+      'templateVersion' => isset($data['templateVersion']) ? $data['templateVersion'] : null,
+      'sortOrder' => []
+    ];
 
     if(isset($data['templateId']) && !empty($data['templateId'])) {
       $projectData['templateId'] = _id($data['templateId']);
@@ -671,6 +691,17 @@ class Project extends WorkflowFactory
 
   public function meta(){
     return $this->meta;
+  }
+
+  /**
+   * Payload data to be passed around in place of project instance
+   */
+  public function payload(){
+    $payload = [
+      'projectId' => $this->id(),
+      'meta' => $this->meta()->getAll()
+    ];
+    return $payload;
   }
 
   /**

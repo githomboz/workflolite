@@ -18,8 +18,12 @@
     <div class="meta">
       <span class="data name"><?php echo $contact->getValue('name') ?></span>
       <span class="data email"><i class="fa fa-envelope"></i> <?php echo $contact->getValue('email') ?></span>
+      <?php $phone = $contact->getValue('phone'); if(trim($phone) != '') {?>
       <span class="data phone"><i class="fa fa-phone"></i> <?php echo phoneFormat($contact->getValue('phone')) ?></span>
+      <?php } ?>
+      <?php $mobile = $contact->getValue('mobile'); if(trim($mobile) != '') {?>
       <span class="data mobile"><i class="fa fa-mobile"></i> <?php echo phoneFormat($contact->getValue('mobile')) ?></span>
+      <?php } ?>
     </div>
   </div><!--/.contact-card-->
   <div class="people-form clearfix">

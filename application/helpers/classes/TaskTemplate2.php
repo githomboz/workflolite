@@ -15,7 +15,7 @@ class TaskTemplate2
   {
     $this->setSortOrder($sortOrder);
     $this->_initialize($data);
-    $this->STEPS = new Steps($this);
+    $t = $this;
   }
 
   public function id(){

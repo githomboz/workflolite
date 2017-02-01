@@ -56,6 +56,7 @@ class Organization extends WorkflowFactory
     if($this->hasId()){
       if(!empty($this->templates)) return $this->templates;
       else {
+        $this->templates = [];
         $templates = self::CI()->mdb->where('organizationId', $this->id())->get(Template::CollectionName());
         foreach($templates as $template) $this->templates[] = new Template($template);
         return $this->templates;
@@ -114,16 +115,18 @@ class Organization extends WorkflowFactory
     }
     // Check for string occurrence
     foreach($contacts as $contact){
-      if(strpos(strtolower($contact[$field]), strtolower($string)) !== false){
-        $matches[] = array(
-          'contactId' => (string) $contact['_id'],
-          'name' => $contact['name'],
-          'email' => $contact['email'],
-          'phone' => $contact['phone'],
-          'mobile' => $contact['mobile'],
-          'collection' => 'contacts',
-          'settings' => $contact['settings'],
-        );
+      if(isset($contact[$field])){
+        if(strpos(strtolower($contact[$field]), strtolower($string)) !== false){
+          $matches[] = array(
+            'contactId' => (string) $contact['_id'],
+            'name' => $contact['name'],
+            'email' => $contact['email'],
+            'phone' => isset($contact['phone']) ? $contact['phone'] : null,
+            'mobile' => isset($contact['mobile']) ? $contact['mobile'] : null,
+            'collection' => 'contacts',
+            'settings' => $contact['settings'],
+          );
+        }
       }
     }
     // Return id, name, and collection
@@ -138,7 +141,8 @@ class Organization extends WorkflowFactory
   public static function Get($id){
     $record = static::LoadId($id, static::$_collection);
     $class = __CLASS__;
-    return new $class($record);
+    if(!empty($record)) return new $class($record);
+    return false;
   }
 
   public function getSettings($field = null){
