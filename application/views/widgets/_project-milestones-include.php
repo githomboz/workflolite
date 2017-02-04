@@ -5,6 +5,7 @@
 >
   <div class="job-title">
     <h2><a href="<?php echo $job->getUrl() ?>"><?php echo $job->getValue('name') ?></a></h2>
+    <span class="completion-count">Created: <?php echo date('n-d-Y h:ia', $job->getValue('dateAdded')->sec) ?> </span>
     <span class="completion-count">Completed Tasks: <?php echo $jobStats['completed'] ?> / <?php echo $jobStats['total'] ?></span>
     <span class="estimated-hours">Est. Hours Completed: <?php echo $jobStats['completedTime'] ?> / <?php echo $jobStats['totalEstimatedTime'] ?></span>
   </div>

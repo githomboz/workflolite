@@ -23,17 +23,17 @@ class WFRequestParser
    */
   public static function Validate($payload, $context = null){
     $logger = new WFLogger(__METHOD__, __FILE__);
-    $logger->addDebug('Entering ...');
+    $logger->setLine(__LINE__)->addDebug('Entering ...');
     $response = WFClientInterface::GetPayloadTemplate();
 
     if(!$context) {
       if(isset($payload['topic'])) {
         $context = $payload['topic'];
       } else {
-        $logger->addError('No validation context provided');
+        $logger->setLine(__LINE__)->addError('No validation context provided');
       }
     } else {
-      $logger->addDebug('Context has been set to `'.$context.'`');
+      $logger->setLine(__LINE__)->addDebug('Context has been set to `'.$context.'`')->sync();
     }
 
     $tests = [];
@@ -48,23 +48,24 @@ class WFRequestParser
 
           break;
         default:
-          $logger->addError('Invalid validation context provided ('.$context.')');
+          $logger->setLine(__LINE__)->addError('Invalid validation context provided ('.$context.')');
           break;
       }
     }
 
     if(is_array($tests)){
       foreach($tests as $testCallback => $testFields){
-        $results = self::_validateFieldsByCallback($payload, $testFields, $testCallback);
+        $results = static::_validateFieldsByCallback($payload, $testFields, $testCallback);
         if(WFClientInterface::Valid_WFResponse($results)){
+          
           $logger->merge($results['logger']);
         } else {
-          $logger->addError('Invalid response from _validateFieldsByCallback');
+          $logger->setLine(__LINE__)->addError('Invalid response from _validateFieldsByCallback');
         }
       }
     }
 
-    $logger->addDebug('Exiting ...');
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
     $response['response']['success'] = empty($logs['errors']);
     $response['logs'] = $logger->getLogsArray();
     $logger->sync();
@@ -82,16 +83,16 @@ class WFRequestParser
    */
   public static function _validateFieldsByCallback(array $data, array $fields, $callback){
     $logger = new WFLogger(__METHOD__, __FILE__);
-    $logger->addDebug('Entering ...');
+    $logger->setLine(__LINE__)->addDebug('Entering ...');
     $response = WFClientInterface::GetPayloadTemplate();
 
     $response['response']['success'] = true;
 
     if(is_callable($callback)){
-      $logger->addDebug('Callback is callable (`'.$callback.'`)');
+      $logger->setLine(__LINE__)->addDebug('Callback is callable (`'.$callback.'`)');
       if(!empty($fields)){
-        $logger->addDebug('Fields to test: ['.join(', ', $fields).']');
-        $parsedFields = self::_parseDotNotation($fields);
+        $logger->setScope($callback)->setLine(__LINE__)->addDebug('Fields to test: ['.join(', ', $fields).']');
+        $parsedFields = static::_parseDotNotation($fields);
         $fieldsSet = [];
         foreach($parsedFields['response']['routes'] as $route){
           $segs = explode('.', $route);
@@ -129,27 +130,27 @@ class WFRequestParser
           }
         }
 
-        $logger->addDebug('Field Set :' . json_encode($fieldsSet));
+        $logger->setLine(__LINE__)->addDebug('Field Set :' . json_encode($fieldsSet));
 
         if(in_array(false, $fieldsSet)){
           $invalid = [];
           foreach($fieldsSet as $route => $valid) if($valid === false) $invalid[] = $route;
-          $logger->setScope(explode('::', $callback)[1])->addError('Field(s) invalid ('.join(',', $invalid).')');
+          $logger->setScope(explode('::', $callback)[1])->setLine(__LINE__)->addError('Field(s) invalid ('.join(',', $invalid).')');
         } else {
-          $logger->addDebug('Field(s) valid');
+          $logger->setLine(__LINE__)->addDebug('Field(s) valid');
         }
 
         $response['response']['success'] = true;
         $response['response']['fieldSet'] = $fieldsSet;
 
       } else {
-        $logger->addError('No fields to validate against');
+        $logger->setLine(__LINE__)->addError('No fields to validate against');
       }
     } else {
-      $logger->addError('Callback is invalid');
+      $logger->setLine(__LINE__)->addError('Callback is invalid');
     }
 
-    $logger->addDebug('Exiting ...');
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
     $response['logs'] = $logger->getLogsArray();
     $logger->sync();
     $response['logger'] = $logger;
@@ -229,7 +230,7 @@ class WFRequestParser
    */
   public static function ParseTopic($topic, array $additionalRoutes = []){
     $logger = new WFLogger(__METHOD__, __FILE__);
-    $logger->addDebug('Entering ...');
+    $logger->setLine(__LINE__)->addDebug('Entering ...');
     $response = WFClientInterface::GetPayloadTemplate();
 
     // Topics paired with the callbacks they execute
@@ -242,10 +243,10 @@ class WFRequestParser
       $response['response']['callback'] = $routes[$topic];
       $response['response']['success'] = true;
     } else {
-      $logger->addError('Invalid topic ('.$topic.')');
+      $logger->setLine(__LINE__)->addError('Invalid topic ('.$topic.')');
     }
 
-    $logger->addDebug('Exiting ...');
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
     $response['logs'] = $logger->getLogsArray();
     $logger->sync();
     $response['logger'] = $logger;
@@ -260,14 +261,14 @@ class WFRequestParser
    */
   public static function Router($payload){
     $logger = new WFLogger(__METHOD__, __FILE__);
-    $logger->addDebug('Entering ...');
+    $logger->setLine(__LINE__)->addDebug('Entering ...');
     $logs = WFClientInterface::GetLogsTemplate();
     $response = WFClientInterface::GetPayloadTemplate();
 
     // Validate the request
     $validate = Bytion_RequestParser::Validate($payload);
     if(WFClientInterface::Valid_WFResponse($validate)){
-      $logger->setScope('Validate')->addDebug('Valid response');
+      $logger->setScope('Router -> Validate')->setLine(__LINE__)->addDebug('Valid response', $validate);
       $logger->merge($validate['logger']);
       if(!$validate['errors']){
 
@@ -276,14 +277,14 @@ class WFRequestParser
         // Parse topic
         $parseTopic = Bytion_RequestParser::ParseTopic($payload['topic']);
         if(WFClientInterface::Valid_WFResponse($parseTopic)){
-          $logger->setScope('ParseTopic')->addDebug('Valid response');
+          $logger->setScope('Router -> ParseTopic')->setLine(__LINE__)->addDebug('Valid response', $parseTopic);
           $logger->merge($parseTopic['logger']);
           if(!$parseTopic['errors']){
 
             // Route the request to the appropriate classes and methods
-            $request = self::ProcessRequest($payload, $parseTopic['response']['callback']);
+            $request = static::ProcessRequest($payload, $parseTopic['response']['callback']);
             if(WFClientInterface::Valid_WFResponse($request)){
-              $logger->setScope('ProcessRequest')->addDebug('Valid response');
+              $logger->setScope('Router -> ProcessRequest')->setLine(__LINE__)->addDebug('Valid response', $request);
               $logger->merge($request['logger']);
               if(!$request['errors']){
 
@@ -292,20 +293,21 @@ class WFRequestParser
               }
 
             } else {
-              $logger->setScope('ProcessRequest')->addError('Invalid response');
+              $logger->setScope('Router -> ProcessRequest')->setLine(__LINE__)->addError('Invalid response', $request);
             }
           }
         } else {
-          $logger->setScope('ParseTopic')->addError('Invalid response');
+          $logger->setScope('Router -> ParseTopic')->setLine(__LINE__)->addError('Invalid response', $parseTopic);
         }
       }
     } else {
-      $logger->setScope('Validate')->addError('Invalid response');
+      $logger->setScope('Router -> Validate')->setLine(__LINE__)->addError('Invalid response', $validate);
     }
 
-    $logger->addDebug('Exiting ...');
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
     $response['logs'] = $logs;
     $logger->importLogs($logs)->sync();
+    $response['logger'] = $logger;
     //@todo: remove this as each individual method will log itself, this would likely produce duplicate log messages
     $response['errors'] = !empty($logs['errors']);
     return $response;
@@ -319,20 +321,20 @@ class WFRequestParser
    */
   public static function ProcessRequest($payload, $requestCallback){
     $logger = new WFLogger(__METHOD__, __FILE__);
-    $logger->addDebug('Entering ...');
+    $logger->setLine(__LINE__)->addDebug('Entering ...', $requestCallback);
     $response = WFClientInterface::GetPayloadTemplate();
 
     if($requestCallback && is_callable($requestCallback)){
-      $logger->addDebug('Preparing to execute callback (`'.$requestCallback.'`)');
+      $logger->setLine(__LINE__)->addDebug('Preparing to execute callback (`'.$requestCallback.'`)');
       $result = call_user_func_array($requestCallback, array($payload));
-      $logger->addDebug('Callback (`'.$requestCallback.'`) executed', ['payload' => $payload]);
+      $logger->setLine(__LINE__)->setScope('ProcessRequest -> '.$requestCallback)->addDebug('Callback (`'.$requestCallback.'`) executed', ['payload' => $payload]);
       $response['response']['processed'] = $result;
       $response['response']['success'] = true;
     } else {
-      $logger->addError('Invalid callback (`'.$requestCallback.'`)');
+      $logger->setLine(__LINE__)->addError('Invalid callback (`'.$requestCallback.'`)');
     }
 
-    $logger->addDebug('Exiting ...');
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
     $response['logs'] = $logger->getLogsArray();
     $logger->sync();
     $response['logger'] = $logger;

@@ -46,7 +46,6 @@ class WorkflowFactory extends WorkflowInterface
   /**
    * Prepare data and class for processing
    * @param array $data
-   * @param bool $fullLoad Whether or not to load all linked records
    */
   protected function _initialize(array $data){
     $this->_current = $data;

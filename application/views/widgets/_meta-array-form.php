@@ -9,7 +9,7 @@
             <input type="text" placeholder="Key" value="<?php echo $key ?>" />
           </span>
           <span class="array-value">
-            <input type="text" placeholder="Value" value="<?php echo $value ?>" />
+            <input type="text" placeholder="Value" value="<?php echo is_array($value) ? json_encode($value) : $value ?>" />
           </span>
           <a href="#" class="fa fa-minus-circle link-blue"></a>
         </div>

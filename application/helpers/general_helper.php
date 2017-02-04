@@ -321,12 +321,13 @@ function _wfSimpleEmail($payload){
   );
 }
 
-function _bytionApprove_fraudReport($projectId){
-  $logs = ['debug'=>[],'errors'=>[]];
+function _bytionApprove_fraudReport($payload){
+  $logger = new WFLogger(__METHOD__, __FILE__);
+  $logger->setLine(__LINE__)->addDebug('Entering ...', $payload);
   $response = null;
 
-  if(isset($projectId)){
-    $project = Project::Get($projectId);
+  if(isset($payload['projectId'])){
+    $project = Project::Get($payload['projectId']);
     if($project){
       $response = [
         'test' => 'Fraud Report',
@@ -334,26 +335,29 @@ function _bytionApprove_fraudReport($projectId){
         'success' => true
       ];
       $project->meta()->set(['fraudApproval'=> true])->save();
+      $logger->setLine(__LINE__)->addDebug('Fraud Approval True');
     } else {
-      $logs['errors'][] = 'Project is invalid';
+      $logger->setLine(__LINE__)->addError('Project is invalid');
     }
   } else {
-    $logs['errors'][] = 'Project ID not set';
+    $logger->setLine(__LINE__)->addError('Project ID not set');
   }
 
+  $logger->setLine(__LINE__)->addDebug('Exiting ...');
   return array(
     'response' => $response,
-    'logs' => $logs,
+    'logs' => $logger->getMessages(),
     'errors' => !empty($logs['errors'])
   );
 }
 
-function _bytionDeny_fraudReport($projectId){
-  $logs = ['debug'=>[],'errors'=>[]];
+function _bytionDeny_fraudReport($payload){
+  $logger = new WFLogger(__METHOD__, __FILE__);
+  $logger->setLine(__LINE__)->addDebug('Entering ...', $payload);
   $response = null;
 
-  if(isset($projectId)){
-    $project = Project::Get($projectId);
+  if(isset($payload['projectId'])){
+    $project = Project::Get($payload['projectId']);
     if($project){
       $response = [
         'test' => 'Fraud Report',
@@ -361,17 +365,18 @@ function _bytionDeny_fraudReport($projectId){
         'success' => true
       ];
       $project->meta()->set(['fraudApproval'=> false])->save();
+      $logger->setLine(__LINE__)->addDebug('Fraud Denial True');
     } else {
-      $logs['errors'][] = 'Project is invalid';
+      $logger->setLine(__LINE__)->addError('Project is invalid');
     }
   } else {
-    $logs['errors'][] = 'Project ID not set';
+    $logger->setLine(__LINE__)->addError('Project ID not set');
   }
 
+  $logger->setLine(__LINE__)->addDebug('Exiting ...');
   return array(
     'response' => $response,
-    'logs' => $logs,
+    'logs' => $logger->getMessages(),
     'errors' => !empty($logs['errors'])
   );
 }
-

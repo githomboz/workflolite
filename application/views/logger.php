@@ -8,9 +8,11 @@
         <?php
         CI()->load->library('pagination');
 
+        $queryDefaults = WFLogger::QueryDefaults();
+        $args = array_merge($queryDefaults, (array) CI()->input->get());
         $config['base_url'] = (strpos(current_url(), ':8888') >= 0 ? '/source':''). '/admin/logger?';
-        $config['total_rows'] = 200;
-        $config['per_page'] = 20;
+        $config['total_rows'] = WFLogger::Read($args, true);
+        $config['per_page'] = $args['limit'];
         $config['use_page_numbers'] = TRUE;
         $config['page_query_string'] = TRUE;
         $config['query_string_segment'] = 'page';
@@ -31,13 +33,20 @@
         margin-bottom: .5em;
     }
 
+
     .wflogger-entries .entry .dateAdded {
         padding-right: 20px;
+        color: rgba(0, 0, 0, .6);
     }
 
     .wflogger-entries .entry .type {
         padding-right: 20px;
         text-transform: uppercase;
+        color: rgba(0, 0, 0, .6);
+    }
+
+    .wflogger-entries .entry .type.errors {
+        color: rgba(184, 5, 0, 0.55);
     }
 
     .wflogger-entries .entry .message {
@@ -45,9 +54,18 @@
         display: block;
     }
 
+    .wflogger-entries .entry.type-errors .message {
+        color: rgba(184, 5, 0, 1);
+    }
+
     .wflogger-entries .entry .data {
         color: #555;
         display: block;
+    }
+
+    .wflogger-entries .entry .data .btn-json-format {
+        color: #006600;
+
     }
 
     .wflogger-entries .entry .context {

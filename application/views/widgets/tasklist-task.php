@@ -9,7 +9,7 @@
 //var_dump($task->getValue('status'));
 ?>
 
-<div class="task-style task-<?php echo $task->id(); ?> <?php echo $task->isComplete() ? 'completed' : ''?> <?php echo $task->isStarted() ? 'started' : ''?>"
+<div class="task-style task-<?php echo $task->id(); ?> <?php echo $task->isComplete() ? 'completed' : ''?> <?php echo $task->isStarted() ? 'started' : ''?> <?php echo $task->isErrored() ? 'errors' : ''?>"
      data-task_id="<?php echo $task->id(); ?>"
 >
   <div class="task-settings-widget bubble">

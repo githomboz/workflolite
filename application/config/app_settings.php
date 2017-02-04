@@ -79,6 +79,14 @@ $config['email_senders'] = array(
     'subject_template' => APPPATH.'views/templates/email_xxx_subject.php',
     'message_template' => APPPATH.'views/templates/email_xxx_message.php',
   ),
+  'confirmations' => array(
+    'from' => 'no-reply@ourteam.com',
+    'name' => 'Our Team',
+    //'subject' => 'Write in a subject',
+    //'message' => 'Write in a message',
+    'subject_template' => APPPATH.'views/templates/email_confirmations_subject.php',
+    'message_template' => APPPATH.'views/templates/email_confirmations_message.php',
+  ),
 );
 
 /******* [ Mongo Schema ] ********/
@@ -300,8 +308,9 @@ $config['mongo_schema'] = array(
   ),
   'confirmations' => array(
     'dateAdded',
-    'jobId',
+    'projectId',
     'redirect',
+    'question',
     'receiptMessage',
     'recipients',
     'callbackYes',

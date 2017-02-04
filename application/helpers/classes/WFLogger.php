@@ -13,6 +13,8 @@ class WFLogger
 
   private static $_collection = 'logger';
 
+  private $_syncMode = false; // Whether to run sync for batch logs or automatically persist every log call.
+
   public function __construct($__FUNCTION__, $__FILE__, $context = null){
     if($context) $this->setContext($context);
     $this->setFunction($__FUNCTION__);
@@ -207,7 +209,7 @@ class WFLogger
 
   public function isSynced(){
     foreach($this->getEntries() as $entry) {
-      if(!$entry['_id']) return false;
+      if(!isset($entry['_id'])) return false;
     }
     return true;
   }
@@ -243,9 +245,12 @@ class WFLogger
       'dateAdded' => $logTime,
       'type' => $this->getType(),
       'message' => $this->_drawMessagePrefix($logTime->sec) . $message,
-      'data' => $data,
+      'data' => json_decode(json_encode($data)),
       'context' => $this->getContext(),
     ];
+
+    $id = self::Create($entry);
+    if(!isset($entry['_id'])) $entry['_id'] = $id;
 
     $this->_addEntry($entry);
     $this->unsetScope();
@@ -274,16 +279,29 @@ class WFLogger
   }
 
   public function sync(){
-    // Save currently unsynced log messages to db in bulk action.
-    if(!$this->isSynced()){
-      foreach($this->getEntries() as $i => $entry){
-        if(!isset($entry['_id'])){
-          // Save to log collection
-          $id = self::Create($entry);
-          // Save new log id back to entry
-          if($id && !isset($this->_entries[$i])) $this->_entries[$i]['_id'] = $id;
+    $this->setScope('sync');
+    if($this->_syncMode){
+      // Save currently unsynced log messages to db in bulk action.
+      if(!$this->isSynced()){
+        $alreadySynced = [];
+        $logsToBeSynced = [];
+        foreach($this->getEntries() as $i => $entry){
+          if(!isset($entry['_id']) || (isset($entry['_id']) && empty($entry['_id']))){
+            $logsToBeSynced[] = $entry['message'];
+            // Save to log collection
+            $id = self::Create($entry);
+            // Save new log id back to entry
+            if($id && !isset($this->_entries[$i])) $this->_entries[$i]['_id'] = $id;
+          } else {
+            $alreadySynced[] = $entry['message'];
+          }
         }
+        $this->addDebug('Log messages already synced', $alreadySynced);
+      } else {
+        $this->setLine(__LINE__)->addDebug('Log sync requested; All entries already synced');
       }
+    } else {
+      $this->setLine(__LINE__)->addDebug('Sync Mode is disabled. Logs are being added upon log call');
     }
     return $this;
   }
@@ -314,6 +332,7 @@ class WFLogger
   }
 
   public static function Create($data){
+    if(isset($data['_id'])) unset($data['_id']);
     $filtered = di_allowed_only($data, mongo_get_allowed(static::CollectionName()));
     return CI()->mdb->insert(static::CollectionName(), $filtered);
   }

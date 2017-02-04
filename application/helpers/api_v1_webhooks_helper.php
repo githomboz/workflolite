@@ -175,17 +175,17 @@ function incoming(){
 
   $logger = new WFLogger('/api/v1/webhooks/incoming', __FILE__);
 
-  $logger->addDebug('Incoming Webhook Request');
+  $logger->setLine(__LINE__)->addDebug('Incoming Webhook Request ------------------------------------------>');
 
   $return = null;
 
   if($organizationId){
-    $logger->setEntityOrg()->setEntityId($organizationId)->addDebug('Valid organization id', $organizationId);
+    $logger->setEntityOrg()->setEntityId($organizationId)->setLine(__LINE__)->addDebug('Valid organization id', $organizationId);
     if($topic){
-      $logger->addDebug('Valid topic id', $topic);
-      $logger->addDebug('Preparing to process web hook request...')->sync();
+      $logger->setLine(__LINE__)->addDebug('Valid topic id', $topic);
+      $logger->setLine(__LINE__)->addDebug('Preparing to process web hook request...')->sync();
       $return = Workflo()->Broadcast()->Incoming()->ProcessWebhookRequest($organizationId, $topic, $data['payload']);
-      $logger->addDebug('Processed webhook request');
+      $logger->setLine(__LINE__)->addDebug('Processed webhook request');
       $response['response'] = $return['response'];
       if(is_array($return['errors'])) {
         if(is_array($response['errors'])) {
@@ -193,14 +193,14 @@ function incoming(){
         } else $response['errors'] = $return['errors'];
       }
     } else {
-      $logger->addError('Topic provided is invalid');
+      $logger->setLine(__LINE__)->addError('Topic provided is invalid');
     }
   } else {
-    $logger->addError('Organization id provided is invalid');
+    $logger->setLine(__LINE__)->addError('Organization id provided is invalid');
   }
 
   if($logger->hasErrors()) $response['errors'] = $logger->getMessages('errors');
-  $logger->addDebug('Leaving Request');
+  $logger->setLine(__LINE__)->addDebug('Leaving Request');
   $logger->sync();
   $response['recordCount'] = 1;
   return $response;
@@ -215,6 +215,43 @@ function incoming_args_map(){
 function incoming_required_fields(){
   return array('payload');
 }
+
+function run_script(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $response['response'] = array('success' => false);
+  $projectId = CI()->input->get('projectId');
+
+  $project = null;
+  if(!empty($projectId)){
+    $project = Project::Get($projectId);
+  }
+
+  if($project){
+    $response['response']['success'] = $project->run();
+  } else {
+    $response['errors'][] = 'Invalid project id provided';
+  }
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function run_script_args_map(){
+  return array('logs');
+}
+
+// Field names of fields required
+function run_script_required_fields(){
+  return array('logs');
+}
+
+
+
+
 
 
 

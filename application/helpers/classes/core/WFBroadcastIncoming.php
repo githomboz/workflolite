@@ -29,7 +29,7 @@ class WFBroadcastIncoming
     $organization = Organization::Get($orgId);
     if($organization){
       $logger->setEntityId($orgId)->setEntityOrg();
-      $logger->addDebug('Organization set', $orgId);
+      $logger->setLine(__LINE__)->addDebug('Organization set', $orgId);
 
       if(!isset($payload['topic'])) $payload['topic'] = $topic;
       if(!isset($payload['orgId'])) $payload['orgId'] = (string) $orgId;
@@ -48,30 +48,31 @@ class WFBroadcastIncoming
       // Check if topic is valid
       if(!empty($topic)){
         $webhook = Webhooks::GetByTopic($topic, $orgId);
-        $logger->addDebug('Topic set', $topic);
+        $logger->setLine(__LINE__)->addDebug('Topic set', $topic);
         // Get registered webhook if valid
         if($webhook) {
           // Check if callback is valid
-          $logger->addDebug('Web hook identified');
+          $logger->setLine(__LINE__)->addDebug('Web hook identified', $webhook);
           if(isset($webhook['registeredCallback']) && is_callable($webhook['registeredCallback'])){
-            $logger->addDebug('Valid registered callback (`'.$webhook['registeredCallback'].'`)', $webhook['registeredCallback']);
+            $logger->setLine(__LINE__)->addDebug('Valid registered callback (`'.$webhook['registeredCallback'].'`)', [$webhook['registeredCallback'], $payload]);
             // Process request data
             if($callbackResponse = call_user_func_array($webhook['registeredCallback'], array($payload))){
-              $logger->addDebug('Registered callback returned');
+              $logger->setLine(__LINE__)->addDebug('Project & Contact info created');
+              $logger->setLine(__LINE__)->setScope('ProcessWebhookRequest -> $webhook["registeredCallback"]')->addDebug('Registered callback returned `' .$webhook['registeredCallback']. '`', $callbackResponse);
               // validate response, logs, errors
               if(WFClientInterface::Valid_WFResponse($callbackResponse)){
-                $logger->addDebug('Valid callback response');
+                $logger->setLine(__LINE__)->setScope('ProcessWebhookRequest -> $webhook["registeredCallback"]')->addDebug('Valid response [registeredCallback, response]', [$webhook['registeredCallback'], $callbackResponse]);
                 $logger->merge($callbackResponse['logger']);
                 $add['callbackResponse'] = $callbackResponse['response'];
                 $add['processed'] = true;
               } else {
-                $logger->addError('Invalid registered callback response');
+                $logger->setLine(__LINE__)->setScope('ProcessWebhookRequest -> $webhook["registeredCallback"]')->addError('Invalid response [registeredCallback, response]', [$webhook['registeredCallback'], $callbackResponse]);
               }
             } else {
-              $logger->addError('_3; Callback response is was unexpected. Invalid Data');
+              $logger->setLine(__LINE__)->addError('_3; Callback response is was unexpected. Invalid Data');
             }
           } else {
-            $logger->addError('_2; Callback is invalid '.(isset($webhook['registeredCallback'])?'('.$webhook['registeredCallback'].')':''));
+            $logger->setLine(__LINE__)->addError('_2; Callback is invalid '.(isset($webhook['registeredCallback'])?'('.$webhook['registeredCallback'].')':''));
           }
         } // Don't do anything if there is no webhook
 
@@ -79,23 +80,23 @@ class WFBroadcastIncoming
         $id = Webhooks::RegisterIncomingRequest($add);
 
         if($id){
-          $logger->addDebug('Request registered successfully', $id);
+          $logger->setLine(__LINE__)->addDebug('Request registered successfully', $id);
           // Return request id
           $response['response'] = array(
             'requestId' => (string) $id
           );
           return $response;
         } else {
-          $logger->addError('Error occurred while registering the incoming request');
+          $logger->setLine(__LINE__)->addError('Error occurred while registering the incoming request');
         }
 
         if(empty($response['errors'])) $response['errors'] = false;
 
       } else {
-        $logger->addError('Topic is invalid');
+        $logger->setLine(__LINE__)->addError('Topic is invalid');
       }
     } else {
-      $logger->addError('Organization is invalid');
+      $logger->setLine(__LINE__)->addError('Organization is invalid');
     }
 
     if($logger->hasErrors()) $response['errors'] = $logger->getMessages('errors');

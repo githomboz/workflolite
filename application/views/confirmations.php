@@ -21,7 +21,8 @@
 
             //var_dump(WFSocialUtilitiesTwitter::SimpleValidate(['twitterHandle'=>'jahdy1']));
             //var_dump(WFSocialUtilities::FraudAnalysis(['email'=>'jahdy@spotflare.com']));
-            var_dump(WFLogger::Read());
+            $project = Project::Get('5894f9072394097e05004637');
+            var_dump($project->getTaskByName('Validate Twitter Handle'));
             //Bytion_SC()->_('RequestParser')->Validate([]);
         }
 

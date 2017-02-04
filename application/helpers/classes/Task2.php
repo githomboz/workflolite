@@ -14,6 +14,7 @@ class Task2
 
   public static $statusComplete = 'completed';
   public static $statusDeleted = 'deleted';
+  public static $statusError = 'error';
   public static $statusSkipped = 'skipped';
   public static $statusForceSkipped = 'force_skipped';
   public static $statusActive = 'active';
@@ -126,14 +127,27 @@ class Task2
     return $this->update();
   }
 
-  public function complete(){
+  public function error(){
     $update = array(
-      'completeDate' => new MongoDate(),
+      'status' => Task2::$statusError
+    );
+    $this->_current = array_merge($this->_current, $update);
+    return $this->update();
+  }
+
+  public function complete(){
+    $logger = new WFLogger(__METHOD__, __FILE__);
+    $logger->setLine(__LINE__)->addDebug('Entering ...');
+    $now = new MongoDate();
+    $update = array(
+      'completeDate' => $now,
       'status' => Task2::$statusComplete
     );
+    if(empty($this->_current['startDate'])) $update['startDate'] = $now;
     $this->_current = array_merge($this->_current, $update);
     $this->runPostRoutines();
     $this->queueTriggers();
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
     return $this->update();
   }
 
@@ -219,6 +233,10 @@ class Task2
 
   public function isComplete(){
     return $this->getValue('status') == self::$statusComplete;
+  }
+
+  public function isErrored(){
+    return $this->getValue('status') == self::$statusError;
   }
 
   public function isStarted(){

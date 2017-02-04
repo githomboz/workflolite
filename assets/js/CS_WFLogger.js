@@ -134,15 +134,36 @@ var CS_WFLogger = (function($){
     }
 
     function _generateLogMessageHTML(msgData){
-        var output = '<div class="entry entry-' + msgData._id + '">';
+        var output = '<div class="entry entry-' + msgData._id + ' type-' + msgData.type + ' json-standard">';
+        output += '<span class="hidden" style="display: none;"><span class="_data">' + JSON.stringify(msgData.data) + '</span></span>';
         output += '<span class="dateAdded">' + msgData.dateAdded + '</span>';
-        output += '<span class="type">' + msgData.type + '</span>';
+        output += '<span class="type ' + msgData.type + '">' + msgData.type + '</span>';
         output += '<span class="message">' + msgData.message + '</span>';
-        output += '<span class="data">' + JSON.stringify(msgData.data) + '</span>';
+        output += '<span class="data">';
+        output += msgData.data == null ? '' : '<a href="#" class="btn-json-format"><i class="fa fa-binoculars"></i> Toggle</a>: ';
+        output += '<span class="content">' + (msgData.data == null ? '':JSON.stringify(msgData.data)) + '</span></span>';
         output += '<span class="context">' + JSON.stringify(msgData.context) + '</span>';
         output += '</div>';
         return output;
     }
+
+    $(document).on('click', ".entry .btn-json-format", function(e){
+        e.preventDefault();
+        var $this = $(this),
+            $logEntry = $this.parents('.entry'),
+            dataContent = $logEntry.find('.hidden ._data').html();
+
+        if(dataContent) dataContent = JSON.parse(dataContent);
+
+        if($logEntry.is('.json-standard')){
+            $logEntry.find('.data .content').html('<pre>' + JSON.stringify(dataContent, null, 2) + '</pre>');
+            $logEntry.removeClass('json-standard').addClass('json-pretty');
+        } else {
+            $logEntry.find('.data .content').html(JSON.stringify(dataContent));
+            $logEntry.removeClass('json-pretty').addClass('json-standard');
+        }
+
+    });
 
     // Publish function
     PubSub.subscribe('WFLogger.new-logs', _handleNewLogsIncoming);

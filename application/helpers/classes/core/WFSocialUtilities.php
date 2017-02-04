@@ -18,7 +18,7 @@ class WFSocialUtilities
 
   public static function FraudAnalysis($payload){
     $logger = new WFLogger(__METHOD__, __FILE__);
-    $logger->addDebug('Entering ...');
+    $logger->setLine(__LINE__)->addDebug('Entering ...');
     $response = WFClientInterface::GetPayloadTemplate();
 
     $apiUrl = 'http://dottedmap.com/api/v1/blacklist/scrutinize';
@@ -28,23 +28,23 @@ class WFSocialUtilities
     $returnJson = CI()->curl->simple_post($apiUrl, $payload);
 
     if(WFClientInterface::Valid_JSON($returnJson)){
-      $logger->addDebug('Return json', $returnJson);
+      $logger->setLine(__LINE__)->addDebug('Return json', $returnJson);
       $returnData = json_decode($returnJson, true);
       if(!$returnData['errors']){
-          $logger->addDebug('No errors from API');
+          $logger->setLine(__LINE__)->addDebug('No errors from API');
           $response['response']['success'] = true;
           $response['response']['data'] = $returnData['response'];
 
       } else {
         foreach((array) $returnData['errors'] as $error){
-          $logger->addError((string) $error);
+          $logger->setLine(__LINE__)->addError((string) $error);
         }
       }
     } else {
       echo '<pre>';
       echo($returnJson);
       echo '</pre>';
-      $logger->addError('Invalid response format from Fraud Analyzer API');
+      $logger->setLine(__LINE__)->addError('Invalid response format from Fraud Analyzer API');
     }
 
     $response['logs'] = $logger->getLogsArray();

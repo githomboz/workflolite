@@ -18,19 +18,20 @@ class Bytion_OrderManager
    */
   public static function PlaceOrder($payload){
     $logger = new WFLogger(__METHOD__, __FILE__);
-    $logger->addDebug('Entering ...');
+    $logger->setLine(__LINE__)->addDebug('Entering ...');
     $response = WFClientInterface::GetPayloadTemplate();
 
     // Find or Create client
     $customerResponse = self::GetContactByEmail($payload['customer'], _id($payload['orgId']));
+    $logger->setLine(__LINE__)->addDebug('Response from self::GetContactByEmail', $customerResponse);
     if(WFClientInterface::Valid_WFResponse($customerResponse)){
-      $logger->setScope('GetContactByEmail')->addDebug('Valid response');
+      $logger->setScope('PlaceOrder -> GetContactByEmail')->setLine(__LINE__)->addDebug('Valid response', $customerResponse);
       $logger->merge($customerResponse['logger']);
       if(!$customerResponse['errors']){
         // Create Project
         switch($payload['orderType']){
           case 'twitter-order':
-            $logger->setScope($payload['orderType'])->addDebug('Executing `' . $payload['orderType'] . '`');
+            $logger->setScope($payload['orderType'])->setLine(__LINE__)->addDebug('Executing `' . $payload['orderType'] . '`');
             $templateId = '587a7c006ccca20165e0ecd9';
             // Create Project
             $add = [
@@ -56,32 +57,38 @@ class Bytion_OrderManager
               ],
               'nativeId' => _generate_unique_id(Job::CollectionName(), 'nativeId', 7),
               'script' => [
-                [
-                  'id' => md5(1),
-                  'scheduleTime' => null,
-                  'executedTime' => null,
-                  'completedTime' => null,
-                  'dependencies' => [],
-                  'callback' => 'Bytion_RequestParser::StartTwitterFollowersProject',
-                  'payload' => null,
-                  'description' => 'Check the status of the given twitter account and return meta info.',
-                  'response' => null,
-                  'taskId' => null,
-                  'logs' => WFClientInterface::GetLogsTemplate(),
-                  'usage' => ['time' => 0, 'mem' => 0],
-                  'status' => 'ready'
-                ]
+                'steps' => [
+                  [
+                    'id' => md5(1),
+                    'scheduleTime' => null,
+                    'executedTime' => null,
+                    'completedTime' => null,
+                    'dependencies' => [],
+                    'callback' => 'Bytion_RequestParser::StartTwitterFollowersProject',
+                    'payload' => null,
+                    'description' => 'Check the status of the given twitter account and return meta info.',
+                    'response' => null,
+                    'taskId' => null,
+                    'attempts' => [],
+                    'logs' => WFClientInterface::GetLogsTemplate(),
+                    'usage' => ['time' => 0, 'mem' => 0],
+                    'status' => 'ready'
+                  ]
+                ],
+                'status' => 'ready'
               ],
               'notes' => [],
               'templateId' => _id($templateId),
               'templateVersion' => 1
             ];
-            $logger->addDebug('Preparing to create project...');
+            $logger->setLine(__LINE__)->addDebug('Preparing to create project...', $add);
             $projectId = Project::Create($add);
-            $logger->addDebug('Project created', $projectId);
+            $logger->setLine(__LINE__)->addDebug('Project created', $projectId);
             //var_dump($projectId, $add);
             // Start Project
             $project = Project::Get($projectId);
+            $logger->setLine(__LINE__)->addDebug('Project valid', $project->payload());
+            $logger->setLine(__LINE__)->addDebug('Calling $project->run()');
             $project->run();
             break;
         }
@@ -92,7 +99,7 @@ class Bytion_OrderManager
     }
 
 
-    $logger->addDebug('Exiting ...');
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
     $response['logs'] = $logger->getLogsArray();
     $logger->sync();
     $response['logger'] = $logger;
@@ -106,40 +113,40 @@ class Bytion_OrderManager
 
   public static function GetContactByEmail(array $customer, $organizationId = null){
     $logger = new WFLogger(__METHOD__, __FILE__);
-    $logger->addDebug('Entering ...');
+    $logger->setLine(__LINE__)->addDebug('Entering ...', [$organizationId, $customer])->sync();
     $response = WFClientInterface::GetPayloadTemplate();
     require_once APPPATH.'/helpers/classes/Contact.php';
     $searchResults = Contact::GetByEmail($customer['email']);
 
-    $logger->addDebug('Search results from Contact::GetByEmail', $searchResults);
+    $logger->setLine(__LINE__)->addDebug('Search results from Contact::GetByEmail', $searchResults);
 
     if(empty($searchResults)){
-      $logger->addDebug('No customer found. Preparing to create customer');
+      $logger->setLine(__LINE__)->addDebug('No customer found. Preparing to create customer');
       // create
       if(!isset($customer['organizationId'])){
         if(_id($organizationId) instanceof MongoId){
           $customer['organizationId'] = _id($organizationId);
         } else {
-          $logger->addError('Invalid organization id. Required to create contact.', $organizationId);
+          $logger->setLine(__LINE__)->addError('Invalid organization id. Required to create contact.', $organizationId);
         }
 
         if(!$logger->hasErrors(__METHOD__)){
-          $logger->addDebug('Creating customer ...');
+          $logger->setLine(__LINE__)->addDebug('Creating customer ...');
           $id = Contact::Create($customer);
-          $logger->addDebug('Customer created', $id);
+          $logger->setLine(__LINE__)->addDebug('Customer created', $id);
           $customer = Contact::Get($id);
           $response['response']['success'] = true;
         } else {
-          $logger->addError('Errors found so contact could not be created', $logger->getMessages('errors'));
+          $logger->setLine(__LINE__)->addError('Errors found so contact could not be created', $logger->getMessages('errors'));
         }
       }
     } else {
-      $logger->addDebug('Customer found.', $customer);
+      $logger->setLine(__LINE__)->addDebug('Customer found.', $customer);
       $customer = $searchResults[0];
     }
 
     $response['response']['customer'] = $customer;
-    $logger->addDebug('Exiting ...');
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
     $response['logs'] = $logger->getLogsArray();
     $logger->sync();
     $response['logger'] = $logger;

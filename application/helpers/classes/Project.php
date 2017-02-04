@@ -45,9 +45,10 @@ class Project extends WorkflowFactory
     $this->meta = new Meta($data['meta'], $this);
   }
 
-  public function _initialize(array $data)
+  public function _initialize(array $data, $initializeMeta = false)
   {
     parent::_initialize($data); // TODO: Change the auto-generated stub
+    if($initializeMeta) $this->meta = new Meta($data['meta'], $this);
     //$this->sortOrder = $this->getValue('sortOrder');
     $this->getAllTasks();
     $this->cacheTasksBeforeUpdates();
@@ -59,7 +60,9 @@ class Project extends WorkflowFactory
   }
 
   public function run(){
-    $this->ScriptEngine()->run();
+    $logger = new WFLogger(__METHOD__, __FILE__);
+    $logger->setLine(__LINE__)->setScope('Project calling run()')->addDebug('Entering ...')->sync();
+    return $this->ScriptEngine()->run();
   }
 
   /**
@@ -86,8 +89,17 @@ class Project extends WorkflowFactory
     }
   }
 
-  public function saveScript(ScriptEngine $script){
-    return self::Update($this->id(), ['script' => $script->getStepsRaw()]);
+  public function saveScript($script){
+    $logger = new WFLogger(__METHOD__, __FILE__);
+    $logger->setLine(__LINE__)->addDebug('Entering ...', $script);
+    if(ScriptEngine::ValidScript($script)){
+      $logger->setLine(__LINE__)->addDebug('Script valid');
+      $update = static::Update($this->id(), ['script' => ScriptEngine::TransformScriptForDb($script)]);
+      $logger->setLine(__LINE__)->addDebug('Script update complete [result, lastQuery]', [$update, CI()->mdb->lastQuery()]);
+      return $update;
+    }
+    $logger->setLine(__LINE__)->addDebug('Returning false. Exiting ...');
+    return false;
   }
 
   public function addNote($noteData){
@@ -310,7 +322,11 @@ class Project extends WorkflowFactory
         break;
       case 'STORE_TASK_META_ONLY': // Only store taskMeta info and discard all other changes
       default:
-        $response['response'] = self::Update($this->id(), array('taskMeta' => $taskMeta));
+        $updates = array('taskMeta' => $taskMeta);
+        $response['response'] = self::Update($this->id(), $updates);
+        if($response['response']){
+          $this->_current = array_merge($this->_current, $updates);
+        }
         break;
     }
 
@@ -542,6 +558,13 @@ class Project extends WorkflowFactory
     return false;
   }
 
+  public function getTaskByName($taskName){
+    foreach($this->tasks as $task){
+      if($task->getValue('name') == $taskName) return $task;
+    }
+    return false;
+  }
+
   public function getCurrentTask(){
     $tasks = $this->getActionableTasks();
     foreach($tasks as $task) if(!$task->isComplete()) return $task;
@@ -660,6 +683,8 @@ class Project extends WorkflowFactory
 
     // Check if template is set
     // If template is set, set template id
+    $logger = new WFLogger(__METHOD__, __FILE__);
+    $logger->setLine(__LINE__)->addDebug('Entering ...');
 
 
     // Create Job
@@ -674,6 +699,7 @@ class Project extends WorkflowFactory
       'viewableContacts' => [],
       'meta' => isset($data['meta']) ? (array) $data['meta'] : [],
       'taskMeta' => [],
+      'script' => ScriptEngine::ValidScript($data['script']) ? $data['script'] : [],
       'notes' => [],
       'templateId' => isset($data['templateId']) ? (array) $data['templateId'] : null,
       'templateVersion' => isset($data['templateVersion']) ? $data['templateVersion'] : null,
@@ -684,8 +710,11 @@ class Project extends WorkflowFactory
       $projectData['templateId'] = _id($data['templateId']);
     }
 
+    $logger->setLine(__LINE__)->addDebug('Data prepared for insert', $projectData);
     $projectId = parent::Create($projectData);
-
+    $logger->setLine(__LINE__)->addDebug('Project creation result', $projectId);
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
+    $logger->sync();
     return $projectId;
   }
 
@@ -698,8 +727,8 @@ class Project extends WorkflowFactory
    */
   public function payload(){
     $payload = [
-      'projectId' => $this->id(),
-      'meta' => $this->meta()->getAll()
+      'projectId' => (string) $this->id(),
+      'meta' => $this->getValue('meta')
     ];
     return $payload;
   }

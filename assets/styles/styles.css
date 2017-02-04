@@ -1718,6 +1718,11 @@ span.checkbox {
     height: 36px;
     font-size: 13px;
     border-bottom: 1px solid #f2f2f2; }
+    .tasklist .task-style.errors {
+      color: #930810; }
+      .tasklist .task-style.errors .checkbox {
+        color: rgba(147, 8, 16, 0.42);
+        border-color: rgba(147, 8, 16, 0.42); }
     .tasklist .task-style .task-settings-widget {
       min-width: 315px;
       background: #fff;

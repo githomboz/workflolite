@@ -13,8 +13,14 @@ class Contact extends WorkflowFactory
 
   public function __construct(array $data)
   {
+    $logger = new WFLogger(__METHOD__, __FILE__);
+    $logger->setLine(__LINE__)->addDebug('Entering ...');
     parent::__construct();
+    $logger->setLine(__LINE__)->addDebug('Id instance of MongoId', $data['_id'] instanceof MongoId);
+    $logger->setLine(__LINE__)->addDebug('Initializing data', $data);
     $this->_initialize($data);
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
+    return $this;
   }
 
   public function getRecipientData(){
@@ -22,7 +28,7 @@ class Contact extends WorkflowFactory
   }
 
   public function getEmail(){
-
+    return $this->getValue('email');
   }
   
   public static function AdminToContact(Admin $admin){
@@ -31,15 +37,24 @@ class Contact extends WorkflowFactory
 
   public static function GetByEmail($email){
     $logger = new WFLogger(__METHOD__, __FILE__);
-    $logger->addDebug('Entering ...');
+    $logger->setLine(__LINE__)->addDebug('Entering ...', $email);
 
     $emails = is_array($email) ? $email : array($email);
-    $logger->addDebug('Emails is set to ' . json_encode($emails));
+    $logger->setLine(__LINE__)->addDebug('Emails is set to ' . json_encode($emails))->sync();
 
-    $contacts = self::CI()->mdb->whereIn('email', $emails)->get(self::CollectionName());
-    $class = __CLASS__;
-    foreach($contacts as $i => $contact) $contacts[$i] = new $class($contact);
-    //var_dump(CI()->mdb->lastQuery());
+    $contacts = [];
+    try {
+      $contacts = CI()->mdb->whereIn('email', $emails)->get(self::CollectionName());
+      $logger->setLine(__LINE__)->addDebug('Try block contacts',  $contacts);
+      $logger->setLine(__LINE__)->addDebug('Mongo Query',  CI()->mdb->lastQuery())->sync();
+      foreach($contacts as $i => $contact) $contacts[$i] = new Contact($contact);
+      $logger->setLine(__LINE__)->addDebug('Checking if anything happens after new Contact() loop');
+    } catch (MongoException $e){
+      $logger->setLine(__LINE__)->addError('Mongo Exception thrown', $e);
+    }
+
+    $logger->setLine(__LINE__)->addDebug('Contacts response ',  $contacts);
+    $logger->setLine(__LINE__)->addDebug('Exiting ...')->sync();
     return $contacts;
   }
 

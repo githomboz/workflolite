@@ -759,6 +759,15 @@ $tasklist_height : 36px;
     font-size: $font-size-sm;
     border-bottom: 1px solid $sidepanel_bg;
 
+    &.errors {
+      color: rgba($error_red, 1);
+
+      .checkbox {
+        color: $error_red;
+        border-color: $error_red;
+      }
+    }
+
     .task-settings-widget {
       min-width: 315px;
       background: #fff;
