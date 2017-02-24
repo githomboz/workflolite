@@ -110,6 +110,36 @@ class Bytion_RequestParser extends WFRequestParser
     return $response;
   }
 
+  public static function TestScript($payload){
+    $logger = new WFLogger(__METHOD__, __FILE__);
+    $logger->setLine(__LINE__)->addDebug('Entering ...');
+    $response = WFClientInterface::GetPayloadTemplate();
+
+    $logger->setLine(__LINE__)->addDebug('Payload', $payload);
+
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
+    $response['logs'] = $logger->getLogsArray();
+    $logger->sync();
+    $response['logger'] = $logger;
+    $response['errors'] = $logger->hasErrors(__FUNCTION__);
+    return $response;
+  }
+
+  public static function TestScript2($payload){
+    $logger = new WFLogger(__METHOD__, __FILE__);
+    $logger->setLine(__LINE__)->addDebug('Entering ...');
+    $response = WFClientInterface::GetPayloadTemplate();
+
+    $logger->setLine(__LINE__)->addDebug('Payload', $payload);
+
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
+    $response['logs'] = $logger->getLogsArray();
+    $logger->sync();
+    $response['logger'] = $logger;
+    $response['errors'] = $logger->hasErrors(__FUNCTION__);
+    return $response;
+  }
+
   public static function StartTwitterFollowersProject($payload){
     $logger = new WFLogger(__METHOD__, __FILE__);
     $logger->setLine(__LINE__)->addDebug('Entering ...');
@@ -238,8 +268,8 @@ class Bytion_RequestParser extends WFRequestParser
 //                        ]);
 
                           $adminRecipient = [
-                            'name' => 'Jahdy Lancelot',
-                            'email' => 'jahdy@spotflare.com'
+                            'name' => 'German Calas',
+                            'email' => 'german@bytion.co'
                           ];
 
                           $task = $project->getTaskByName('Generate Fraud Analysis Report');
@@ -247,6 +277,7 @@ class Bytion_RequestParser extends WFRequestParser
                           $logger->setLine(__LINE__)->addDebug('Task marked complete');
 
                           $confirmation = [
+                            'dateAdded' => new MongoDate(),
                             'projectId' => $project->id(),
                             'redirect' => '/confirmations/{confirmationId}?processed=true',
                             'question' => 'Please review and either approve or deny the following data',
@@ -270,8 +301,12 @@ class Bytion_RequestParser extends WFRequestParser
                           $templateData = $project->payload();
                           $templateData['confirmationId'] = $confirmationId;
                           $response = email_template($adminRecipient['email'], $templateData, 'confirmations');
-                          $logger->setLine(__LINE__)->addDebug('Fraud report sent', $response);
+                          $logger->setLine(__LINE__)->addDebug('Fraud report sent');
                           $project->ScriptEngine()->statusPause();
+
+                          $task = $project->getTaskByName('Validate Order Info');
+                          $task->start();
+
 
                           $response['response']['success'] = true;
                           $response['response']['root'] = 'Ok';
@@ -416,6 +451,5 @@ class Bytion_RequestParser extends WFRequestParser
     $response['errors'] = $logger->hasErrors(__FUNCTION__);
     return $response;
   }
-
 
 }

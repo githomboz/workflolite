@@ -17,6 +17,7 @@ class Main extends Front_Controller {
       $tests = array('unprocessed' => is_null($result), 'success' => $result === true, 'failure' => $result === false);
       $data = array('redirect_url' => current_url());
       show_sidebar(false);
+      //var_dump(UserSession::EncodePassword('demo'));
       switch(true){
         case $tests['unprocessed']: // Form hasn't been submitted
           break;
@@ -99,11 +100,16 @@ class Main extends Front_Controller {
     redirect('dashboard');
   }
 
-  public function progress($jobId){
-    $job = Job::Get($jobId);
-    if($job){
-      $this->job = $job;
-      $this->organization = Organization::Get($this->job->getValue('organizationId'));
+  public function form_tester(){
+    show_sidebar(false);
+    $this->view('form-tester');
+  }
+
+  public function progress($projectId){
+    $project = Project::Get($projectId);
+    if($project){
+      $this->project = $project;
+      $this->organization = Organization::Get($this->project->getValue('organizationId'));
       $this->load->view('client-view');
     } else {
       show_404();
@@ -150,12 +156,27 @@ class Main extends Front_Controller {
     $errors = [];
     $pageData = ['action' => $action,'isProcessed' => false];
     $processed = $this->input->get('processed') === 'true';
+    
+    $response = WFEvents::Subscribe(
+      'someTopic',
+      'Bytion_RequestParser::TestScript2',
+      UserSession::Get_Organization()->id(),
+      'slingshot'
+    );
 
-    [
-      'receiptMessage',
-      'redirect',
-      'jobId'
-    ];
+    $response = WFEvents::Publish(
+      'someTopic',
+      [
+        'testData' => 'fartNoise',
+        'reference' => [
+          'entityType' => 'project',
+          'entityId' => 'shoes',
+          'context' => 'test'
+        ]
+      ],
+      UserSession::Get_Organization()->id()
+    );
+    //var_dump($response);
 
     $noActionMessage = 'Please select "Approve" or "Deny" to send confirmation.';
     $pageData['noActionMessage'] = $noActionMessage;
@@ -165,9 +186,7 @@ class Main extends Front_Controller {
       $confirmation = Confirmations::Get($confirmationId);
       // get conf
       if ($confirmation) {
-
-        //var_dump($processed, $confirmation);
-
+        $pageData['confirmation'] = $confirmation;
         // If it has been processed
         if($processed || (isset($confirmation['processed']) && $confirmation['processed'])){
           // Confirm that the confirmation has been processed
@@ -180,54 +199,52 @@ class Main extends Front_Controller {
           }
 
         } else {
+          //var_dump($confirmation);
           if (isset($confirmation['payload']) && !empty($confirmation['payload'])){
             $pageData['payload'] = $confirmation['payload'];
 
-          if ($action) {
-            if (isset($confirmation['projectId'])) {
-              // check if action is true or false
-              $callback = $action == 'approve' ? $confirmation['callbackYes'] : $confirmation['callbackNo'];
+            if ($action) {
+              if (isset($confirmation['projectId'])) {
+                // check if action is true or false
+                $callback = $action == 'approve' ? $confirmation['callbackYes'] : $confirmation['callbackNo'];
 
-              // fire appropriate callback
-              if (is_callable($callback)) {
-                // update receipt message & then optional redirect
+                // fire appropriate callback
+                if (is_callable($callback)) {
+                  // update receipt message & then optional redirect
 
-                $returned = call_user_func_array($callback, array($confirmation['projectId']));
+                  $returned = call_user_func_array($callback, array($confirmation['projectId']));
 
-                Confirmations::Update($confirmationId, [
-                    'callbackResponse' => json_encode($returned),
-                    'processed' => true,
-                    'confirmed' => ($action == 'approve')
-                  ]
-                );
+                  Confirmations::Update($confirmationId, [
+                      'callbackResponse' => json_encode($returned),
+                      'processed' => true,
+                      'confirmed' => ($action == 'approve')
+                    ]
+                  );
 
-                if ($confirmation['redirect']) {
-                  if (strpos($confirmation['redirect'], '{confirmationId}')) {
-                    $confirmation['redirect'] = str_replace('{confirmationId}', (string)$confirmationId, $confirmation['redirect']);
+                  $pageData['confirmation'] = $confirmation;
+                  if ($confirmation['redirect']) {
+                    if (strpos($confirmation['redirect'], '{confirmationId}')) {
+                      $confirmation['redirect'] = str_replace('{confirmationId}', (string)$confirmationId, $confirmation['redirect']);
+                    }
+                    redirect($confirmation['redirect']);
                   }
-                  redirect($confirmation['redirect']);
+
+                  $defaultMsg = 'Thank you, your submission has been received.';
+                  $pageData['receiptMessage'] = isset($confirmation['receiptMessage']) ? $confirmation['receiptMessage'] : $defaultMsg;
+
+                } else {
+                  $errors[] = 'ERROR024: An error has occurred while attempting to process your request; Callback invalid.';
                 }
-
-                $defaultMsg = 'Thank you, your submission has been received.';
-                $pageData['receiptMessage'] = isset($confirmation['receiptMessage']) ? $confirmation['receiptMessage'] : $defaultMsg;
-
               } else {
-                $errors[] = 'ERROR024: An error has occurred while attempting to process your request; Callback invalid.';
+                $errors[] = 'ERROR025: An error has occurred while attempting to process your request; Project ID invalid.';
               }
             } else {
-              $errors[] = 'ERROR025: An error has occurred while attempting to process your request; Project ID invalid.';
+                $errors[] = $noActionMessage;
             }
           } else {
-              $errors[] = $noActionMessage;
+            $errors[] = 'ERROR026: An error has occurred while attempting to process your request; Payload invalid.';
           }
-        } else {
-          $errors[] = 'ERROR026: An error has occurred while attempting to process your request; Payload invalid.';
         }
-
-
-
-
-      }
       } else {
         $errors[] = 'Confirmation could not be found. Please ask your administrator for help.';
       }

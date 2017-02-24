@@ -2045,6 +2045,12 @@ span.checkbox {
     .client-view .task.show-description .description {
       display: inline-block; }
 
+.create-template-form.error {
+  border-color: #682917; }
+
+.create-template-form .message-box.success a {
+  color: #159215; }
+
 .workflow.entry {
   position: relative;
   min-height: 82px; }
@@ -2188,8 +2194,8 @@ span.checkbox {
         color: rgba(147, 8, 16, 0.42); }
 
 .entities-list.widget {
-  float: right;
-  width: 38%; }
+  width: 100%;
+  margin-bottom: 20px; }
   .entities-list.widget .form-group {
     margin-bottom: 10px; }
   .entities-list.widget .entities {
@@ -2210,9 +2216,13 @@ span.checkbox {
     .entities-list.widget .type-form .set-default-link {
       color: #4992d0; }
 
-.meta-list.widget {
+.template-sidebar {
   float: right;
   width: 38%; }
+
+.meta-list.widget {
+  width: 100%;
+  margin-bottom: 20px; }
 
 .create-job-form {
   max-width: 480px;

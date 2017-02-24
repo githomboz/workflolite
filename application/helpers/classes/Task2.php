@@ -54,12 +54,20 @@ class Task2
     }
   }
 
-  public function runPostRoutines(){
-
-  }
-
-  public function queueTriggers(){
-
+  public function runPostRoutines($taskName){
+    $logger = new WFLogger(__METHOD__, __FILE__);
+    $logger->setLine(__LINE__)->addDebug('Entering ...');
+    // Check db for any methods listening for "task-completed"
+    // Check if org function exists
+    $orgSlug = 'bytion';
+    $taskFunctionName = '_' . $orgSlug . str_replace(' ', '', $taskName);
+    if(is_callable($taskFunctionName)){
+      $logger->setLine(__LINE__)->addDebug('Preparing to call function `'.$taskFunctionName.'`');
+      return call_user_func_array($taskFunctionName, [$this->project->id()]);
+    } else {
+      $logger->setLine(__LINE__)->addDebug('No callable function `'.$taskFunctionName.'`');
+    }
+    $logger->setLine(__LINE__)->addDebug('Exiting ...');
   }
 
   /**
@@ -135,7 +143,7 @@ class Task2
     return $this->update();
   }
 
-  public function complete(){
+  public function complete($runPostRoutines = true){
     $logger = new WFLogger(__METHOD__, __FILE__);
     $logger->setLine(__LINE__)->addDebug('Entering ...');
     $now = new MongoDate();
@@ -145,8 +153,7 @@ class Task2
     );
     if(empty($this->_current['startDate'])) $update['startDate'] = $now;
     $this->_current = array_merge($this->_current, $update);
-    $this->runPostRoutines();
-    $this->queueTriggers();
+    if($runPostRoutines) $this->runPostRoutines($this->getValue('name'));
     $logger->setLine(__LINE__)->addDebug('Exiting ...');
     return $this->update();
   }

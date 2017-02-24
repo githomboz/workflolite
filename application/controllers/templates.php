@@ -283,10 +283,49 @@ class Templates extends Users_Controller {
 
   public function archive(){
     $this->preCollapseSidePanel = true;
-    $this->pageTitle = 'Template Management';
+    $this->pageTitle = 'Workflow Templates';
     $this->navSelected = 'templates';
     $this->innerNavSelected = 'overview';
-    $this->view($this->navSelected . '-overview');
+
+    $data = [
+      'formClass' => 'default',
+      'formSubmitted' => false,
+      'formSuccess' => false
+    ];
+
+    if($post = $this->input->post()){
+      $data['formSubmitted'] = true;
+      $errorClass = 'error';
+
+      foreach(['name','group','noun','organizationId'] as $field){
+        if(trim((string) $post[$field]) === '') $data['formClass'] = $errorClass;
+      }
+
+      $id = null;
+      if($data['formClass'] != $errorClass){
+        $add = [
+          'roles' => [],
+          'taskTemplates' => [],
+          'accessibility' => [],
+          'metaFields' => [],
+          'availStatuses' => Project::GetDefaultStatuses(),
+          'versionData' => ['v1' => []],
+          'version' => 1,
+          'status' => 'active'
+        ];
+
+        $post = array_merge($post, $add);
+        $post['organizationId'] = _id($post['organizationId']);
+        $id = Template::Create($post);
+        if($id) {
+          $data['formSuccess'] = true;
+        }
+      }
+
+    }
+
+
+    $this->view($this->navSelected . '-overview', $data);
 
   }
 
@@ -302,12 +341,41 @@ class Templates extends Users_Controller {
       if($form_submitted['success'] && $form_submitted['success']['projectId'] instanceof MongoId){
         redirect(site_url('projects/create?created='.$form_submitted['success']['projectId'].'&name='.$form_submitted['success']['name']));
       }
+      // Handle failure in form data
     }
+
+    $projectId = $this->input->get('created');
+    $projectName = $this->input->get('name');
+    $templateId = $this->input->get('template');
+
+    $data['pageState'] = [
+      'formSubmitted' => $form_submitted,
+      'successPage' => (bool) $projectId,
+      'successPageValid' => false,
+    ];
+
+    if($templateId) $data['pageState']['templateId'] = $templateId;
+    if($projectName) $data['pageState']['projectName'] = $projectName;
+
+    // What to do if this is a success page
+    if($projectId){
+      // Confirm that project has actually been created
+      $project = Project::Get($projectId);
+      if($project->id()){
+        $data['pageState']['successPageValid'] = true;
+        // Default template id to the template id of the recently created project
+        $data['pageState']['templateId'] = (string) $project->getValue('templateId');
+        // If so, give report of success and link to new project
+        $data['pageState']['projectUrl'] = $project->getUrl();
+      }
+      // If not, report that the page is erroneous.
+    }
+
     $this->preCollapseSidePanel = true;
     $this->pageTitle = 'Start a Project';
     $this->navSelected = 'projects';
     $this->innerNavSelected = 'overview';
-    $this->view($this->navSelected . '-create');
+    $this->view($this->navSelected . '-create', $data);
   }
 
 

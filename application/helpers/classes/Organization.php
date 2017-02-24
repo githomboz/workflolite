@@ -70,9 +70,10 @@ class Organization extends WorkflowFactory
     if($this->hasId()){
       if(!empty($this->templates)) return $this->templates;
       else {
-        $templates = self::CI()->mdb->where('organizationId', $this->id())->get(Project::CollectionName());
+        $templates = self::CI()->mdb->where('organizationId', $this->id())->order_by(['dateAdded' => 'desc'])->get(Project::CollectionName());
         foreach($templates as $template) $this->templates[] = new Project($template);
-        return $this->templates;
+        if(isset($this->templates)) return $this->templates;
+        return [];
       }
     } else {
       throw new Exception('Projects can not be pulled without an _id');

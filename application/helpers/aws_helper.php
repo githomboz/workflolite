@@ -21,6 +21,7 @@ function addToDynamoDBTable($tableName, $data, $dataMap = array()){
 
   $validate = validateDynamoDbData($data, $dataMap);
 
+  $response = false;
   if($validate['isValid']){
     $response = $dynamodb->putItem(array(
       'TableName' => $tableName,
@@ -30,6 +31,13 @@ function addToDynamoDBTable($tableName, $data, $dataMap = array()){
   }
 
   $response['_item'] = $validate['validated'];
+  // @todo: add amazon request id to the return
+  $metaSet = isset($response['@metadata']);
+  $statusCodeSet = isset($response['@metadata']['statusCode']);
+  $headersSet = isset($response['@metadata']['headers']);
+  $requestIdSet = isset($response['@metadata']['headers']['x-amzn-requestid']);
+  $response['x-amzn-requestid'] = $metaSet && $headersSet && $requestIdSet ? $response['@metadata']['headers']['x-amzn-requestid'] : null;
+  $response['success'] = ($metaSet && $statusCodeSet) && $response['@metadata']['statusCode'] == 200;
 
   return $response;
 }
@@ -69,8 +77,10 @@ function validateDynamoDbData($data, $dataMap = array()){
   );
 
   foreach($data as $field => $saveData){
+    if($saveData instanceof MongoId) $saveData = (string) $saveData;
     if(is_array($saveData)){
       foreach($saveData as $dataType => $value){
+        if($value instanceof MongoId) $value = (string) $value;
         if(in_array($dataType, array('S','N','SS','NS','BOOL'))){
           if(isset($dataMap[$field])){
             $return['validated'][$field] = array($dataMap[$field] => $value);
@@ -78,7 +88,7 @@ function validateDynamoDbData($data, $dataMap = array()){
             $return['validated'][$field] = array($dataType => $value);
           }
         } else {
-          $return['validated'][$field] = array('S' => $value);
+          $return['validated'][$field] = array('S' => json_encode($value));
         }
       }
     } else {

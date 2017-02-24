@@ -38,11 +38,13 @@ class Project extends WorkflowFactory
 
   protected static $_contactsField = 'partiesInvolved';
 
-  public function __construct(array $data)
+  public function __construct($data)
   {
-    parent::__construct();
-    $this->_initialize($data);
-    $this->meta = new Meta($data['meta'], $this);
+    if(is_array($data)){
+      parent::__construct();
+      $this->_initialize($data);
+      $this->meta = new Meta($data['meta'], $this);
+    }
   }
 
   public function _initialize(array $data, $initializeMeta = false)
@@ -361,13 +363,13 @@ class Project extends WorkflowFactory
     // Merge in appropriate taskMeta
     $taskMeta = $this->getValue('taskMeta');
     $tasks = array();
-    foreach($this->taskTemplates as $i => $taskTemplate){
+    foreach((array) $this->taskTemplates as $i => $taskTemplate){
       if(isset($taskMeta[$taskTemplate['id']])) {
         $task = array_merge($taskTemplate, $taskMeta[$taskTemplate['id']]);
         // Convert to new Task() objects
         $tasks[] = new Task2($task, $this);
       } else {
-        $tasks[] = new Task2($taskTemplate, $this);
+        $tasks[] = new Task2((array) $taskTemplate, $this);
       }
     }
     // Return tasks array
@@ -384,41 +386,45 @@ class Project extends WorkflowFactory
     return empty($templateId);
   }
 
+  public static function GetDefaultStatuses(){
+    return array(
+      array(
+        'status' => 'new',
+        'displayName' => 'New',
+        'description' => 'Task has not yet been started'
+      ),
+      array(
+        'status' => 'active',
+        'displayName' => 'Active',
+        'description' => 'Task has been started'
+      ),
+      array(
+        'status' => 'skipped',
+        'displayName' => 'Skipped (N/A)',
+        'description' => 'Task has been deemed inapplicable based upon configured dependencies'
+      ),
+      array(
+        'status' => 'force_skipped',
+        'displayName' => 'Skipped',
+        'description' => 'Task has been explicitly skipped by user'
+      ),
+      array(
+        'status' => 'completed',
+        'displayName' => 'Complete',
+        'description' => 'Task is complete'
+      ),
+      array(
+        'status' => 'deleted',
+        'displayName' => 'Deleted',
+        'description' => 'Task has been removed'
+      ),
+    );
+  }
+
   public function getStatuses(){
     $statuses = $this->get('availStatuses');
     if(empty($statuses)){
-      return array(
-        array(
-          'status' => 'new',
-          'displayName' => 'New',
-          'description' => 'Task has not yet been started'
-        ),
-        array(
-          'status' => 'active',
-          'displayName' => 'Active',
-          'description' => 'Task has been started'
-        ),
-        array(
-          'status' => 'skipped',
-          'displayName' => 'Skipped (N/A)',
-          'description' => 'Task has been deemed inapplicable based upon configured dependencies'
-        ),
-        array(
-          'status' => 'force_skipped',
-          'displayName' => 'Skipped',
-          'description' => 'Task has been explicitly skipped by user'
-        ),
-        array(
-          'status' => 'completed',
-          'displayName' => 'Complete',
-          'description' => 'Task is complete'
-        ),
-        array(
-          'status' => 'deleted',
-          'displayName' => 'Deleted',
-          'description' => 'Task has been removed'
-        ),
-      );
+     return self::GetDefaultStatuses();
     } else return $statuses;
   }
 
@@ -645,7 +651,8 @@ class Project extends WorkflowFactory
   public static function Get($id){
     $record = static::LoadId($id, static::$_collection);
     $class = __CLASS__;
-    return new $class($record);
+    $object = new $class($record);
+    if($object instanceof $class) return $object;
   }
 
   public function saveAsTemplate($name, $description = "", $group = "General"){
@@ -699,7 +706,7 @@ class Project extends WorkflowFactory
       'viewableContacts' => [],
       'meta' => isset($data['meta']) ? (array) $data['meta'] : [],
       'taskMeta' => [],
-      'script' => ScriptEngine::ValidScript($data['script']) ? $data['script'] : [],
+      'script' => isset($data['script']) ? (ScriptEngine::ValidScript($data['script']) ? $data['script'] : []) : [],
       'notes' => [],
       'templateId' => isset($data['templateId']) ? (array) $data['templateId'] : null,
       'templateVersion' => isset($data['templateVersion']) ? $data['templateVersion'] : null,

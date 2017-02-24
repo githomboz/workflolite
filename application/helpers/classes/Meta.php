@@ -46,7 +46,7 @@ class Meta
 
   public function initialize($metaData){
     $this->_current = $metaData;
-    foreach($this->getMetaFieldSettings() as $i => $metaFieldSettings) {
+    foreach((array) $this->getMetaFieldSettings() as $i => $metaFieldSettings) {
       $this->registerMetaField($metaFieldSettings['slug']);
     }
     return $this;

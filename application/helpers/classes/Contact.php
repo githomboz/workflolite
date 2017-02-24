@@ -24,7 +24,10 @@ class Contact extends WorkflowFactory
   }
 
   public function getRecipientData(){
-    return array();
+    return [
+      'name' => $this->getValue('name'),
+      'email' => $this->getValue('email'),
+    ];
   }
 
   public function getEmail(){

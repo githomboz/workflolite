@@ -1,14 +1,11 @@
 <div class="client-view clearfix">
   <header>
-    <a class="cv-logo">
-      <img src="<?php echo base_url() . $this->organization->getValue("image"); ?>" />
-    </a>
   <span class="ref-id">
     Reference ID: <?php $entity = project() ? project() : job(); echo $entity->id(); ?>
   </span>
   </header>
   <section class="cv-main-body">
-    <div class="title">File Progress</div>
+    <div class="title">Project Progress</div>
     <div class="progress-bar">
       <?php
       $showableTasksGrouped = $entity->getClientViewableTasks(true);

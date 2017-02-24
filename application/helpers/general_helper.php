@@ -253,9 +253,12 @@ function _process_create_project($post){
 
     // Validate
     if($post['name'] == '') $response['errors'][] = 'Name is not set';
+    if($post['templateId'] == '') $response['errors'][] = 'Workflow is not set';
 
     // Create Records
     if(empty($response['errors'])){
+      $post['templateId'] = _id($post['templateId']);
+      $post['templateVersion'] = 1;
       $projectId = Project::Create($post);
       $response['success']['projectId'] = $projectId;
       $response['success']['name'] = $post['name'];
@@ -321,21 +324,50 @@ function _wfSimpleEmail($payload){
   );
 }
 
-function _bytionApprove_fraudReport($payload){
+function _bytionApprove_fraudReport($projectId){
   $logger = new WFLogger(__METHOD__, __FILE__);
-  $logger->setLine(__LINE__)->addDebug('Entering ...', $payload);
+  $logger->setLine(__LINE__)->addDebug('Entering ...', $projectId);
   $response = null;
 
-  if(isset($payload['projectId'])){
-    $project = Project::Get($payload['projectId']);
+  $response = _bytionValidateOrderInfo($projectId);
+
+  $logger->setLine(__LINE__)->addDebug('Exiting ...');
+  return $response;
+}
+
+function _bytionDeny_fraudReport($projectId){
+  $logger = new WFLogger(__METHOD__, __FILE__);
+  $logger->setLine(__LINE__)->addDebug('Entering ...', $projectId);
+  $response = null;
+
+  if(isset($projectId)){
+    $project = Project::Get($projectId);
     if($project){
+
+      // @todo, cancel confirmation
+      $confirmation = Confirmations::getByProjectId($project->id());
+      if($confirmation) Confirmations::SaveToDb($confirmation->id(), ['confirmed' => false, 'processed' => true]);
+
+      // @todo Get contact
+      // Add recipient info
+      $contacts = $project->getContacts();
+      $emailData = $project->payload();
+      if(isset($contacts[0])){
+        $logger->setLine(__LINE__)->addDebug('Contact found. Preparing to send "order_rejection" email');
+        $emailData['contact'] = $contacts[0]->getRecipientData();
+        email_template($emailData['contact']['email'], $emailData, 'order_rejection');
+      }
+      // Mark "Place Order" complete
+      $task2 = $project->getTaskByName('Validate Order Info');
+      $task2->error();
+
       $response = [
         'test' => 'Fraud Report',
-        'value' => 'approve',
+        'value' => 'deny',
         'success' => true
       ];
-      $project->meta()->set(['fraudApproval'=> true])->save();
-      $logger->setLine(__LINE__)->addDebug('Fraud Approval True');
+      $project->meta()->set(['fraudApproval'=> false])->save();
+      $logger->setLine(__LINE__)->addDebug('Fraud Denial True');
     } else {
       $logger->setLine(__LINE__)->addError('Project is invalid');
     }
@@ -351,21 +383,59 @@ function _bytionApprove_fraudReport($payload){
   );
 }
 
-function _bytionDeny_fraudReport($payload){
+function _bytionValidateOrderInfo($projectId){
   $logger = new WFLogger(__METHOD__, __FILE__);
-  $logger->setLine(__LINE__)->addDebug('Entering ...', $payload);
+  $logger->setLine(__LINE__)->addDebug('Entering ...', $projectId);
   $response = null;
 
-  if(isset($payload['projectId'])){
-    $project = Project::Get($payload['projectId']);
+  if(isset($projectId)){
+    $project = Project::Get($projectId);
     if($project){
-      $response = [
-        'test' => 'Fraud Report',
-        'value' => 'deny',
-        'success' => true
-      ];
-      $project->meta()->set(['fraudApproval'=> false])->save();
-      $logger->setLine(__LINE__)->addDebug('Fraud Denial True');
+
+      $task1 = $project->getTaskByName('Validate Order Info');
+      $logger->setLine(__LINE__)->addDebug('Task instance of Task2', $task1 instanceof Task2);
+      $isComplete = $task1->isComplete();
+      $isError = $task1->isErrored();
+      $logger->setLine(__LINE__)->addDebug('Task isComplete', $isComplete);
+      $logger->setLine(__LINE__)->addDebug('Task isError', $isError);
+      if(!$isComplete && !$isError){
+
+        $metaArray = $project->getRawMeta();
+        // Set fraudReportApproval to true
+        $metaArray['fraudReportApproved'] = true;
+        $project->meta()->set('meta', $metaArray)->save('meta');
+        // Mark "Validate Order Info" complete
+        // Send email to customer w/ cancellation link
+        CI()->load->helper('communications');
+
+        // @todo, cancel confirmation
+        $confirmation = Confirmations::getByProjectId($project->id());
+        if($confirmation) Confirmations::SaveToDb($confirmation->id(), ['confirmed' => true, 'processed' => true]);
+
+        // @todo Get contact
+        // Add recipient info
+        $contacts = $project->getContacts();
+        $emailData = $project->payload();
+        if(isset($contacts[0])){
+          $logger->setLine(__LINE__)->addDebug('Contact found. Preparing to send "order_received" email');
+          $emailData['contact'] = $contacts[0]->getRecipientData();
+          email_template($emailData['contact']['email'], $emailData, 'order_received');
+        }
+        // Mark "Place Order" complete
+        $task1->complete(false);
+        $task2 = $project->getTaskByName('Place Order');
+        $task2->complete();
+
+        $response = [ // Not used anywhere yet
+          'test' => 'Fraud Report',
+          'value' => 'approve',
+          'success' => true
+        ];
+        $project->meta()->set(['fraudApproval'=> true])->save();
+        $logger->setLine(__LINE__)->addDebug('Fraud Approval True');
+      } else {
+        $logger->setLine(__LINE__)->addDebug('Task status is not complete or error', $task1->getValue('status'));
+      }
     } else {
       $logger->setLine(__LINE__)->addError('Project is invalid');
     }

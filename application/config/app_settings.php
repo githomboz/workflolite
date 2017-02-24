@@ -81,11 +81,19 @@ $config['email_senders'] = array(
   ),
   'confirmations' => array(
     'from' => 'no-reply@ourteam.com',
-    'name' => 'Our Team',
+    'name' => 'WFAutoConfirmer',
     //'subject' => 'Write in a subject',
     //'message' => 'Write in a message',
     'subject_template' => APPPATH.'views/templates/email_confirmations_subject.php',
     'message_template' => APPPATH.'views/templates/email_confirmations_message.php',
+  ),
+  'order_received' => array(
+    'from' => 'fulfillment@ourteam.com',
+    'name' => 'Our Fulfillment Team',
+    //'subject' => 'Write in a subject',
+    //'message' => 'Write in a message',
+    'subject_template' => APPPATH.'views/templates/email_order_received_subject.php',
+    'message_template' => APPPATH.'views/templates/email_order_received_message.php',
   ),
 );
 
@@ -317,7 +325,28 @@ $config['mongo_schema'] = array(
     'callbackNo',
     'callbackResponse',
     'confirmed',
+    'payload',
     'processed'
+  ),
+  'subscribers' => array(
+    'dateAdded',
+    'topic',
+    'callback',
+    'callbackContext',
+    'organizationId',
+    'topicExactMatch',
+    'requiredFields',
+    'active'
+  ),
+  'events' => array(
+    'dateAdded',
+    'topic',
+    'payload',
+    'organization',
+    'reference',
+    'ledger', // List of subscribers and their responses
+    'logs',
+    'dynamoResponse' // Reponse after saving to Mongo
   ),
   'settings' => array(
     'group',

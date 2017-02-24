@@ -26,8 +26,8 @@
          data-display_details='<?php echo json_encode($this->template->displayDetails()); ?>'
     >
 
-    <?php $jobs = $this->template->getProjects();
-    foreach($jobs as $job) include 'widgets/_project-milestones-include.php'?>
+    <?php $projects = $this->template->getProjects();
+    foreach($projects as $project) include 'widgets/_project-milestones-include.php'?>
 
       </div>
   </div><!--/.main-mid-section-inner-->

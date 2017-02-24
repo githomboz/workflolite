@@ -12,6 +12,7 @@ function loggerBulk($message, $data = null, $type = 'debug', array $context = nu
 require_once 'classes/WFLogger.php';
 require_once 'classes/WFInterface.php';
 require_once 'classes/WFClientInterface.php';
+require_once 'classes/WFEvents.php';
 require_once 'classes/Workflo.php';
 require_once 'classes/Webhooks.php';
 require_once 'classes/core/WFRequestParser.php';
@@ -24,6 +25,7 @@ $CI->Workflo = new Workflo();
 function Workflo(){
   return CI()->Workflo;
 }
+require_once 'orgs/Bytion_RequestParser.php';
 require_once 'orgs/Bytion_SuperClass.php';
 
 require_once 'classes/Confirmations.php';

@@ -23,7 +23,7 @@
 
       <h2 class="workflow-name"><?php //echo $workflow->getValue('name'); ?></h2>
 
-    <?php foreach(organization()->getProjects() as $j => $job) include 'widgets/_project-milestones-include.php'; ?>
+    <?php foreach(organization()->getProjects() as $j => $project) include 'widgets/_project-milestones-include.php'; ?>
 
     </div>
 

@@ -249,6 +249,82 @@ function run_script_required_fields(){
   return array('logs');
 }
 
+function slingshot(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $logger = new WFLogger('/api/v1/webhooks/slingshot', __FILE__);
+  $logger->setLine(__LINE__)->addDebug('Entering ...', $data);
+
+  // Validate Event Id
+  $event = WFEvents::GetEventById($data['eventId']);
+  $logger->setLine(__LINE__)->addDebug('Event returned', $event);
+  if(!empty($event) && isset($event['payload'])){
+    // Validate Callback
+    CI()->load->helper('workflow');
+    $logger->setLine(__LINE__)->addDebug('is_callable`'.$data['callback'].'`', is_callable($data['callback']));
+    if(is_callable($data['callback'])){
+      // Validate Payload
+      if(isset($data['payload'])){
+
+        $logger->setLine(__LINE__)->addDebug('Preparing to call callback `'.$data['callback'].'`');
+        // Run Callback
+        $result = call_user_func_array($data['callback'], [$data['payload']]);
+
+        if(WFClientInterface::Valid_WFResponse($result)){
+
+          if(!$result['errors']){
+
+            // Merge Logs
+            $logger->merge($result['logger']);
+
+            // Add "ledgerUpdate" flag to response
+            $response['response']['ledgerUpdated'] = false;
+            // Add to ledger to response
+            $response['response']['ledger'] = [
+              'dateTime' => new MongoDate(),
+              'callback' => $data['callback'],
+              'response' => $result['response'],
+              'success' => isset($result['response']['success']) && $result['response']['success'] === true
+            ];
+
+            $response['response']['logs'] = $logger->getLogsArray();
+            $response['response']['success'] = true;
+
+          } else {
+            $logger->setScope('slingshot -> ' . $data['callback'])->setLine(__LINE__)->addError('Errors occurred in callback');
+          }
+        } else {
+          $logger->setScope('slingshot -> ' . $data['callback'])->setLine(__LINE__)->addError('Invalid response', $result);
+        }
+      } else {
+        $logger->setLine(__LINE__)->addError('Invalid payload provided', $data['payload']);
+      }
+    } else {
+      $logger->setLine(__LINE__)->addError('Invalid callback provided', $data['callback']);
+    }
+  } else {
+    $logger->setLine(__LINE__)->addError('Invalid event id provided', $data['eventId']);
+  }
+
+  $response['recordCount'] = 1;
+  $logger->setLine(__LINE__)->addDebug('Exiting ...');
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function slingshot_args_map(){
+  return array('eventId','callback', 'payload');
+}
+
+// Field names of fields required
+function slingshot_required_fields(){
+  return array('eventId','callback', 'payload');
+}
+
+
 
 
 

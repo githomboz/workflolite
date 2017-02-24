@@ -145,7 +145,7 @@ class Template extends WorkflowFactory
   }
 
   public function getProjects(){
-    $projects = self::CI()->mdb->where('templateId', $this->id())->get(Project::CollectionName());
+    $projects = self::CI()->mdb->where('templateId', $this->id())->order_by(['dateAdded' => 'desc'])->get(Project::CollectionName());
     foreach($projects as $i => $project) $projects[$i] = new Project($project);
     return $projects;
   }

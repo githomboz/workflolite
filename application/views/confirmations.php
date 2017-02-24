@@ -3,28 +3,7 @@
 
 
         <?php
-
-        if(Bytion_SC()->getLibBySlug('RequestParser')){
-//            var_dump(Bytion_RP()->Router([
-//                'orgId' => '57feb50722deda011868dd60',
-//              'topic' => 'orders-added',
-//              'orderType' => 'twitter-order',
-//              'orderCount' => '2500',
-//              'twitterHandle' => '@jahdy1',
-//              'customer' => [
-//                'name' => 'Ashley Lancelot',
-//                'email' => 'ash@spotflare.com',
-//                'ipAddress' => '127.0.0.1',
-//                'country' => 'NG'
-//              ],
-//            ], 'orders-added'));
-
-            //var_dump(WFSocialUtilitiesTwitter::SimpleValidate(['twitterHandle'=>'jahdy1']));
-            //var_dump(WFSocialUtilities::FraudAnalysis(['email'=>'jahdy@spotflare.com']));
-            $project = Project::Get('5894f9072394097e05004637');
-            var_dump($project->getTaskByName('Validate Twitter Handle'));
-            //Bytion_SC()->_('RequestParser')->Validate([]);
-        }
+        //var_dump($confirmation, $isProcessed, $errors, $noActionMessage);
 
         if(isset($errors) && isset($noActionMessage) && in_array($noActionMessage, $errors)) {
             $index = array_search($noActionMessage, $errors);
@@ -39,9 +18,9 @@
 
         if(isset($isProcessed)) {
             if($isProcessed) {?>
-                <h1><i class="fa fa-exclamation-circle"></i> Oops! You're too late.</h1>
+                <h1><i class="fa fa-exclamation-circle"></i> Thank you for your input.</h1>
 
-                <p>This confirmation has already been processed.</p>
+                <p>This confirmation has been processed.</p>
             <?php }
         } elseif(empty($errors) && isset($action) && !$action){ ?>
             <h1><i class="fa fa-check-circle"></i> Review & Approve Information</h1>
@@ -78,6 +57,8 @@
         <br />
         <br />
         <a href="?action=deny" class="btn btn-style"><i class="fa fa-times"></i> Deny</a>
+        <?php } else { ?>
+
         <?php } ?>
 
     </div>

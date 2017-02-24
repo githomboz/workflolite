@@ -1288,6 +1288,16 @@ $tasklist_height : 36px;
   }
 }
 
+.create-template-form {
+  &.error {
+    border-color: #682917;
+  }
+
+  .message-box.success a {
+    color: #159215;
+  }
+}
+
 .workflow.entry {
   position: relative;
   min-height: 82px;
@@ -1522,8 +1532,8 @@ $tasklist_height : 36px;
 }
 
 .entities-list.widget {
-  float: right;
-  width: 38%;
+  width: 100%;
+  margin-bottom: 20px;
 
   .form-group {
     margin-bottom: $padding;
@@ -1559,9 +1569,14 @@ $tasklist_height : 36px;
   }
 }
 
-.meta-list.widget {
+.template-sidebar {
   float: right;
   width: 38%
+}
+
+.meta-list.widget {
+  width: 100%;
+  margin-bottom: 20px;
 }
 
 .create-job-form {
