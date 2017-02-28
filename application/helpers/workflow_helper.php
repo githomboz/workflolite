@@ -29,6 +29,7 @@ require_once 'orgs/Bytion_RequestParser.php';
 require_once 'orgs/Bytion_SuperClass.php';
 
 require_once 'classes/Confirmations.php';
+require_once 'classes/utilities/WFSimpleForm.php';
 require_once 'classes/utilities/WFAction.php';
 require_once 'classes/utilities/WFDependencies.php';
 require_once 'classes/Task.php';

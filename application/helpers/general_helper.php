@@ -18,6 +18,15 @@ function isNullValue($value){
   return $value instanceof NullValue;
 }
 
+function json_decode_cs($json, $associativeArray = false){
+  $return = [
+    '_orig' => $json,
+    '_decode' => @json_decode($json, $associativeArray),
+  ];
+  $return['_valid'] = !($return['_decode'] === null && json_last_error() !== JSON_ERROR_NONE);
+  return $return;
+}
+
 function orgSetting($key, $value = null, $default = null){
   if(isset($value) || $value instanceof NullValue){
     // Set

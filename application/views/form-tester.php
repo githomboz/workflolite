@@ -9,9 +9,21 @@
         padding: 20px;
         border-radius: 10px;
       }
-      pre {
+      pre.json {
         float: left;
-        width: 50%;
+        width: 34%;
+      }
+      pre.html {
+        float: left;
+        width: 30%;
+        border-left: 1px solid #999;
+        border-right: 1px solid #999;
+        display: none;
+      }
+      .form-container {
+        float: right;
+        width: 34%;
+        /*display: none;*/
       }
     </style>
 
@@ -167,8 +179,12 @@
 
     foreach($forms as $form){
       echo '<div class="form-viewer clearfix">';
-      echo '<pre>'.$form.'</pre>';
-      echo '<div class="">'. '[FORM]' .'</div>';
+      echo '<pre class="json">'.$form.'</pre>';
+      $processedForm = WFSimpleForm::RenderForm($form);
+      echo '<pre class="html">';
+      echo htmlspecialchars($processedForm['response']['data']);
+      echo '</pre>';
+      echo '<div class="form-container">' . $processedForm['response']['data'] . '</div>';
       echo '</div><!--/form-viewer-->';
     }
     ;?>
