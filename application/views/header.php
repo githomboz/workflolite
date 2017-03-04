@@ -33,6 +33,7 @@
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-migrate-3.0.0.min.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-ui.min.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/alertify.min.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/handlebars-v4.0.5.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_API.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_CSSOverride.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_MessageBox.js"></script>

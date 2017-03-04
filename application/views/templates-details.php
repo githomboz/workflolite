@@ -46,7 +46,10 @@
         </span> </h2>
     </div>
 
-    <?php //var_dump() ?>
+    <?php require_once 'widgets/_triggers-popout.php'; ?>
+
+
+
 
     <div class="templates-list widget">
       <h2>Task Templates: <span class="taskCount">(<?php echo template()->taskCount(); ?>)</span>  <a href="#" class="js-add-task-template-btn">+ Add Task</a> </h2>
