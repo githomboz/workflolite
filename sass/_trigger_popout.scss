@@ -394,23 +394,33 @@ $_deep_red : rgba(147, 8, 16, 0.9);
             }
           }
 
-
-          .viewport.payload {
+          .viewport {
             display: none;
 
             &.active {
               display: block;
             }
 
-            h3 {
-              line-height: 30px;
-              font-size: 16px;
-              color: $_dark_text;
+            &.payload, &.activate {
+
+
+              h3 {
+                line-height: 30px;
+                font-size: 16px;
+                color: $_dark_text;
+              }
+
+              p {
+                line-height: 1.3em;
+                margin-bottom: 1em;
+              }
+
+              .btn.submit {
+                text-align: center;
+              }
+
             }
 
-            p {
-              line-height: 1.3em;
-            }
 
           }
 

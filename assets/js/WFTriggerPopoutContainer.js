@@ -6,7 +6,8 @@ var TriggerTestContainer = (function () {
             /**
              * Options [triggerTestTab, formManageTab, marketplaceTab]
              */
-            viewport: 'triggerTestTab',
+            viewport: 'triggerTestTab', //
+            activeTab : 'triggerTestTab', // Currently active tab
             title : null,
             titleIcon : null
         },
@@ -25,7 +26,10 @@ var TriggerTestContainer = (function () {
     }
 
     function _registerModule(module, tabName) {
-        modules.push({tab: tabName, module: module});
+        var added = false, earlyCount = modules.length, newCount = null;
+        newCount = modules.push({tab: tabName, module: module});
+        if(newCount > earlyCount) added = true;
+        if(added) console.log('Module `' + tabName + '` has been registered');
         var found = 0;
         for (var i in modules) {
             if (_getTabs().indexOf(modules[i].tab) >= 0) found++;
@@ -120,6 +124,7 @@ var TriggerTestContainer = (function () {
 
     function _setViewport(viewport) {
         if (viewport) _setOptions({viewport: viewport});
+        //currentState.activeTab = viewport;
         _render();
     }
 

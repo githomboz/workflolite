@@ -66,8 +66,16 @@
       </section><!--/.info-box-->
     </div>
     <div class="panel-2 clearfix">
-      <h2><span class="type">Lambda</span>: <span class="lambda-name">USPS Pickup Request</span></h2>
+      <h2><span class="type">Lambda</span>: <span class="name">USPS Pickup Request</span></h2>
       <a href="#" class="toggle-payload">Payload Structure</a>
+      <div class="viewport activate">
+        <header>
+          <h3>Activate Trigger</h3>
+          <p>Activate the <span class="trigger-name">{{triggerName}}</span> trigger to access and configuration the trigger
+            as well as adding a completion test.</p>
+        </header>
+        <a href="#" class="btn submit btn-deactivate"><i class="fa fa-power-off"></i> Activate Trigger</a>
+      </div><!--/.viewport.payload-->
       <div class="viewport payload">
         <header>
           <h3>Payload Structure</h3>
@@ -79,21 +87,21 @@
       </div><!--/.viewport.payload-->
       <div class="viewport tabs active">
         <ul class="tab-nav clearfix">
-          <li class="nav-item active">
+          <li class="nav-item active" data-tab="config">
             <a href="#"><i class="fa fa-check-square-o"></i> Configuration Options</a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item" data-tab="test">
             <a href="#"><i class="fa fa-check-square-o"></i> Task Completion Test</a>
           </li>
-          <li class="nav-item admin">
+          <li class="nav-item admin" data-tab="admin">
             <a href="#"><i class="fa fa-check-square-o"></i> [ Admin Only ]</a>
           </li>
         </ul>
         <div class="tabs-container boxed">
-          <div class="tab-content active" >
+          <div class="tab-content tab-config active" data-tab="config" >
             <div class="data-input-module">
               <header>
-                <h4>Configuration Options [ <a href="#">-help</a> ]</h4>
+                <h4>Configuration Options <span class="help-btn"> [ <a href="#">-help</a> ]</span></h4>
                 <span class="input-format"><a href="#">Classic</a> <a href="#" class="active">JSON</a></span>
               </header>
               <div class="help">
@@ -106,10 +114,10 @@
               </footer>
             </div><!--/.data-input-module-->
           </div><!--/.tab-content-->
-          <div class="tab-content" >
+          <div class="tab-content tab-test" data-tab="test" >
             <div class="data-input-module">
               <header>
-                <h4>Configuration Options [ <a href="#">-help</a> ]</h4>
+                <h4>Task Completion Test <span class="help-btn"> [ <a href="#">-help</a> ]</span></h4>
                 <span class="input-format"><a href="#">Classic</a> <a href="#" class="active">JSON</a></span>
               </header>
               <div class="help">
@@ -122,7 +130,7 @@
               </footer>
             </div><!--/.data-input-module-->
           </div><!--/.tab-content-->
-          <div class="tab-content">
+          <div class="tab-content tab-admin" data-tab="admin">
             Admin Fields for updating trigger data
           </div><!--/.tab-content-->
         </div><!--/.tabs-container-->

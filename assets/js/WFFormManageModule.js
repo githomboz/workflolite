@@ -1,6 +1,7 @@
 var FormManagemeModule = (function () {
 
     var
+        activeTab = false,
         tabName = 'formManageTab',
         parsedHTML = null, // Most recent parsed html
 
@@ -26,7 +27,13 @@ var FormManagemeModule = (function () {
 
     function _handleMainTabChange(topic, mainTabOptions) {
         console.log(mainTabOptions, tabName);
-        if (mainTabOptions.viewport == tabName) _activate();
+        if (mainTabOptions.viewport == tabName) {
+            if(!activeTab){
+                _activate();
+            }
+        } else {
+            if(activeTab) _deactivate();
+        }
     }
 
     function _cacheDom() {
@@ -34,6 +41,7 @@ var FormManagemeModule = (function () {
 
     function _activate(options) {
         if (options) _setOptions(options);
+        activeTab = true;
         // Register Listeners
         // Activate Modules
         // Render
@@ -44,9 +52,12 @@ var FormManagemeModule = (function () {
 
     function _deactivate(options) {
         if (options) _setOptions(options);
+        activeTab = false;
         // UnRegister Listeners
+        _unRegisterEarlyListeners();
         // DeActivate Modules
         // UnRender (unnecessary)
+        console.log(tabName + ' de-activated');
     }
 
     function _getHTML(options) {

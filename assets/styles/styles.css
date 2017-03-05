@@ -3299,15 +3299,18 @@ span.checkbox {
         .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.tabs > footer button.submit {
           float: right;
           padding: 0 10px; }
-      .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.payload {
+      .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport {
         display: none; }
-        .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.payload.active {
+        .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.active {
           display: block; }
-        .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.payload h3 {
+        .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.payload h3, .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.activate h3 {
           line-height: 30px;
           font-size: 16px;
           color: rgba(34, 34, 34, 0.9); }
-        .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.payload p {
-          line-height: 1.3em; }
+        .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.payload p, .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.activate p {
+          line-height: 1.3em;
+          margin-bottom: 1em; }
+        .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.payload .btn.submit, .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.activate .btn.submit {
+          text-align: center; }
 
 /*# sourceMappingURL=styles.css.map */
