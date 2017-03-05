@@ -7,7 +7,6 @@ var TriggerTestContainer = (function () {
              * Options [triggerTestTab, formManageTab, marketplaceTab]
              */
             viewport: 'triggerTestTab', //
-            activeTab : 'triggerTestTab', // Currently active tab
             title : null,
             titleIcon : null
         },

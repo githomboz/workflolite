@@ -182,14 +182,6 @@ var TriggerTestModule = (function () {
         } else {
             if(activeTab) _deactivate();
         }
-        // Works if you comment out activeTab in _active and _deactivate
-        // if (mainTabOptions.viewport == tabName) {
-        //     if(!activeTab){
-        //         _activate();
-        //     }
-        // } else {
-        //     if(activeTab) _deactivate();
-        // }
     }
 
     function _cacheDom() {

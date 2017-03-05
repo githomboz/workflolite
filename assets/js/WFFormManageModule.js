@@ -54,7 +54,7 @@ var FormManagemeModule = (function () {
         if (options) _setOptions(options);
         activeTab = false;
         // UnRegister Listeners
-        _unRegisterEarlyListeners();
+        _unRegisterListeners();
         // DeActivate Modules
         // UnRender (unnecessary)
         console.log(tabName + ' de-activated');
