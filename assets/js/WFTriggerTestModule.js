@@ -76,6 +76,7 @@ var TriggerTestModule = (function () {
     function _loadPanel2Data(_data){
         var
             defaults = {
+                blankPanel : true,
                 triggerActive : true,
                 type : '{{triggerType}}',
                 name : '{{triggerName}}',
@@ -85,20 +86,22 @@ var TriggerTestModule = (function () {
                 config : {
                     help : null,
                     helpActive : false,
-                    data : {},
-                    current : {},
-                    isSaved : false,
-                    // Data is valid
-                    isValidated : false,
-                    // Data has b
-                    isVerified : false,
-                    // Data is complete
-                    isComplete : true
+                    saveEndpoint : null, // api url to post changes to
+                    data : {}, // input data
+                    current : {}, // updated input data
+                    isSaved : false, // data == current
+                    isValidated : false, // Data is valid
+                    isComplete : false // Data form is complete
                 },
                 test : {
                     help: null,
                     helpActive : false,
-                    data : {}
+                    saveEndpoint : null, // api url to post changes to
+                    data : {}, // input data
+                    current : {}, // updated input data
+                    isSaved : true, // data == current
+                    isValidated : true, // Data is valid
+                    isComplete : true // Data form is complete
                 }
 
             },
@@ -106,71 +109,191 @@ var TriggerTestModule = (function () {
             $panel2 = $(".panel-2");
         $.extend(data, defaults, _data);
 
-        if(data.triggerActive){
-            _setActiveTab(data.activeTab);
-            // Set trigger name
-            $panel2.find("h2 > .name").html(data.name);
-            // Set trigger type
-            $panel2.find("h2 > .type").html(data.type);
-            // Set payload
-            if(data.payload) {
-                $panel2.find(".viewport.payload .code").html(data.payload);
-            }
-
-            var $togglePayloadBTN = $(".toggle-payload");
-            if(data.payload){
-                console.log(data.payload);
-                $togglePayloadBTN.show();
-                if(data.payloadActive){
-                    $panel2.find(".viewport.payload .code").html(data.payload);
-                    $panel2.find(".viewport").removeClass('active');
-                    $panel2.find(".viewport.payload").addClass('active');
-                } else {
-                    $panel2.find(".viewport").removeClass('active');
-                    $panel2.find(".viewport.tabs").addClass('active');
-                }
-            } else {
-                $togglePayloadBTN.hide();
-            }
-
-            // Set help
-            var tabs = ['config','test'], tabContent = {};
-
-            for(var i in tabs){
-                var thisTab = tabs[i];
-                tabContent[thisTab] = {
-                    $tab : $(".tab-content[data-tab=" + thisTab + "]")
-                };
-
-                tabContent[thisTab]['$helpBtnWrap'] = tabContent[thisTab].$tab.find('.help-btn');
-                tabContent[thisTab]['$helpBtn'] = tabContent[thisTab].$helpBtnWrap.find('a');
-                tabContent[thisTab]['$helpContent'] = tabContent[thisTab].$tab.find('.help');
-
-                if(data[thisTab].helpActive){
-                    tabContent[thisTab]['$helpContent'].show();
-                } else {
-                    tabContent[thisTab]['$helpContent'].hide();
-                }
-
-                if(data[thisTab].help){
-                    var helpHTML = data[thisTab].help;
-                    tabContent[thisTab]['$helpContent'].html(helpHTML);
-                    tabContent[thisTab]['$helpBtnWrap'].show();
-                } else {
-                    tabContent[thisTab]['$helpBtnWrap'].hide();
-                }
-            }
-
+        var $togglePayloadBTN = $(".toggle-payload");
+        var $activateViewport = $panel2.find(".viewport.activate");
+        var $tabsViewport = $panel2.find(".viewport.tabs");
+        if(data.blankPanel){
+            $panel2.hide();
         } else {
-            var $activateViewport = $panel2.find(".viewport.activate");
+            $panel2.show();
             $panel2.find(".viewport").removeClass('active');
-            $activateViewport.addClass('active');
+            if(data.triggerActive){
+                $panel2.find(".viewport").removeClass('active');
+                $tabsViewport.addClass('active');
+                //_setActiveTab(data.activeTab);
+                // Set trigger name
+                $panel2.find("h2 > .name").html(data.name);
+                // Set trigger type
+                $panel2.find("h2 > .type").html(data.type);
+                // Set payload
+                if(data.payload) {
+                    $panel2.find(".viewport.payload .code").html(data.payload);
+                }
+
+                if(data.payload){
+                    $togglePayloadBTN.show();
+                    if(data.payloadActive){
+                        $panel2.find(".viewport.payload .code").html(data.payload);
+                        $panel2.find(".viewport").removeClass('active');
+                        $panel2.find(".viewport.payload").addClass('active');
+                    } else {
+                        $panel2.find(".viewport").removeClass('active');
+                        $panel2.find(".viewport.tabs").addClass('active');
+                    }
+                } else {
+                    $togglePayloadBTN.hide();
+                }
+
+                // Set help
+                var tabs = ['config','test'], tabContent = {};
+
+                for(var i in tabs){
+                    var thisTab = tabs[i];
+                    tabContent[thisTab] = {
+                        $tab : $(".tab-content[data-tab=" + thisTab + "]")
+                    };
+
+                    tabContent[thisTab]['$helpBtnWrap'] = tabContent[thisTab].$tab.find('.help-btn');
+                    tabContent[thisTab]['$helpBtn'] = tabContent[thisTab].$helpBtnWrap.find('a');
+                    tabContent[thisTab]['$helpContent'] = tabContent[thisTab].$tab.find('.help');
+                    tabContent[thisTab]['$saveBtn'] = tabContent[thisTab].$tab.find('.save-btn');
+                    tabContent[thisTab]['$validated'] = tabContent[thisTab].$tab.find('.validated');
+                    tabContent[thisTab]['$navItem'] = $(".nav-item[data-tab=" + tabs[i] +"]");
+
+                    if(data[thisTab].helpActive) {
+                        tabContent[thisTab]['$helpContent'].show();
+                    } else {
+                        tabContent[thisTab]['$helpContent'].hide();
+                    }
+
+                    if(data[thisTab].help) {
+                        var helpHTML = data[thisTab].help;
+                        tabContent[thisTab]['$helpContent'].html(helpHTML);
+                        tabContent[thisTab]['$helpBtnWrap'].show();
+                    } else {
+                        tabContent[thisTab]['$helpBtnWrap'].hide();
+                    }
+
+                    // Set Nav
+                    if(data[thisTab].isComplete) {
+                        tabContent[thisTab]['$navItem'].addClass('isComplete');
+                    }
+
+                    // Set Saved
+                    var
+                        addClass = data[thisTab].isSaved ? 'saved' : '',
+                        saveHTML = '<i class="fa fa-save"></i> ' + (data[thisTab].isSaved ? 'Saved' : 'Save');
+                    tabContent[thisTab]['$saveBtn'].addClass(addClass).html(saveHTML);
+
+                    // Set validated
+                    addClass = data[thisTab].isValidated ? 'saved' : '';
+                    saveHTML = '<i class="fa fa-check"></i> ' + (data[thisTab].isValidated ? 'Validated' : 'Validate');
+                    tabContent[thisTab]['$validated'].addClass(addClass).html(saveHTML);
+
+                }
+
+            } else {
+                $panel2.find("h2 > .name").html(data.name);
+                $togglePayloadBTN.hide();
+                $panel2.find(".viewport").removeClass('active');
+                $activateViewport.addClass('active');
+            }
+
         }
 
-        // Set config
+        console.log('_loadPanel2Data finised running', data);
+
         // Set completion test
         // Set is valid
         // Set view mode
+    }
+
+    function _loadPanel1Data(_data){
+        var defaults = {
+            },
+            data = {},
+            $panel1 = $(".panel-1");
+        $.extend(data, defaults, _data);
+
+    }
+
+    function _drawPanel1List(_data){
+        var defaults = {
+                triggers : [
+                    {
+                        type : 'lambda',
+                        callback : 'Bernies::RequestPickUp',
+                        name : 'Bernie\'s Deliveries \\ Request Pickup',
+                        description : 'Bernie\'s RESTful API trigger',
+                        category : 'Mail & Deliveries',
+                        tags : ['mail','shipping','deliveries'],
+                        author : 'Bernies DevShop',
+                        authorUrl : 'http://www.bernies-deliveries.com/support',
+                        averageExecution : 1500,
+                        registered : true, // whether this trigger is available to this organization / user
+                        active : false,
+                        registeredUsers : 154138,
+                        developerRating : {
+                            support : 9.5,
+                            development : 8.3
+                        },
+                        config: {
+                            help: ''
+                        },
+                        test: {
+                        },
+                        payload : {}
+                    },
+                    {
+                        type : 'lambda',
+                        callback : 'USPS::RequestPickUp',
+                        name : 'United States Postal Service \\ Request Pickup',
+                        description : '<p>Make an API request to the United States Postal Service to pick up a package on a specific day.</p> <p>Contains a robust completion test.</p>',
+                        category : 'Mail & Deliveries',
+                        tags : ['deliveries','mail  ','shipping','USPS'],
+                        author : 'Team Workflo',
+                        averageExecution : 1500,
+                        registered : true, // whether this trigger is available to this organization / user
+                        active : false,
+                        registeredUsers : 154138,
+                        developerRating : {
+                            support : 9.5,
+                            development : 8.3
+                        },
+                        config: {
+                            help: ''
+                        },
+                        test: {
+                        },
+                        payload : {}
+                    }
+                ],
+                infoBox : {
+                    classes : 'trigger-description',
+                    template : '#infoBox-triggerStyle',
+                    data : {},
+                    content : null
+                }
+            },
+            data = {},
+            $panel1 = $(".panel-1");
+        $.extend(data, defaults, _data);
+        var output = _drawPanel1List();
+        output += _drawPanel1InfoBox(data.infoBox);
+        return output;
+    }
+
+    function _drawPanel1InfoBox(_data){
+        var defaults = {
+            },
+            data = {},
+            $panel1 = $(".panel-1");
+        $.extend(data, defaults, _data);
+
+        var source = $(data.template).html(),
+            template = Handlebars.compile(source);
+
+        return template(data);
     }
 
     function _handleMainTabChange(topic, mainTabOptions) {
@@ -226,6 +349,7 @@ var TriggerTestModule = (function () {
         _getHTML(currentState);
         TriggerTestContainer.setTitle(currentState.title, currentState.titleIcon);
         TriggerTestContainer.dom("mainBody").$.html(parsedHTML);
+        _loadPanel2Data({blankPanel: true});
     }
 
     function _setOptions(options) {
@@ -244,6 +368,7 @@ var TriggerTestModule = (function () {
         unRegisterListeners         : _unRegisterListeners,
         activate                    : _activate,
         deactivate                  : _deactivate,
+        loadPanel1Data             : _loadPanel1Data,
         loadPanel2Data             : _loadPanel2Data
     }
 })();

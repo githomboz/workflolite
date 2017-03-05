@@ -162,10 +162,10 @@ $_deep_red : rgba(147, 8, 16, 0.9);
             width: 55%;
             float: right;
             background: $_info_bg;
-            min-height: $_popout_height;
+            min-height: 380px;
             position: relative;
 
-            &.lambda-description {
+            &.trigger-description {
               padding: 36px 10px 46px;
 
               .type {
@@ -186,7 +186,7 @@ $_deep_red : rgba(147, 8, 16, 0.9);
                 font-size: 16px;
                 line-height: 1.3em;
                 color: $_dark_text;
-                font-weight: bold;
+                font-weight: normal;
                 margin-bottom: .5em;
               }
 
@@ -287,7 +287,7 @@ $_deep_red : rgba(147, 8, 16, 0.9);
                 }
               }
 
-              &.active {
+              &.isComplete {
                 .fa-check-square-o {
                   color: $success_green;
                 }
@@ -348,6 +348,14 @@ $_deep_red : rgba(147, 8, 16, 0.9);
               padding: 10px;
               margin-bottom: 10px;
               font-size: 12px;
+              display: none;
+              line-height: 1.3em;
+              max-height: 150px;
+              overflow: scroll;
+
+              p {
+                margin-bottom: 1em;
+              }
             }
 
             textarea {
@@ -356,14 +364,27 @@ $_deep_red : rgba(147, 8, 16, 0.9);
               font-size: 1em;
               line-height: 1.3em;
               margin-bottom: 10px;
+              height: 120px;
+              max-height: 120px;
+              max-width: 100%;
             }
 
             footer {
               position: relative;
 
               .validated {
-                color: $success_green;
+                color: $_med_text;
                 float: left;
+                cursor: pointer;
+
+                .fa-check {
+                  color: $success_green;
+                }
+
+                &.saved  {
+                  color: $success_green;
+                  cursor: default;
+                }
               }
 
               .save-btn {
@@ -372,6 +393,10 @@ $_deep_red : rgba(147, 8, 16, 0.9);
 
                 .fa-save {
                   color: $success_green;
+                }
+
+                &.saved .fa-save {
+                  color: $_med_text;
                 }
               }
 

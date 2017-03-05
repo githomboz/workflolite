@@ -44,25 +44,7 @@
           </ul>
         </div><!--/.results-list-->
       </section>
-      <section class="info-box lambda-description">
-        <span class="type">[ Lambda Function ]</span>
-        <span class="category">Mail &amp; Deliveries</span>
-        <h3>USPS Pickup Request</h3>
-        <div class="content">
-          <p>Make an API request to the United States Postal Service to pick up a package on a specific day.</p>
-          <p>Contains a robust completion test.</p>
-        </div>
-        <div class="meta">
-          <ul>
-            <li><em>Tags: </em><a href="#">USPS</a>, <a href="#">shipping</a></li>
-            <li><em>Developer: </em><a href="#">Team Workflo</a></li>
-            <li><em>Completion Test: </em> true</li>
-            <li><em>Average Usage: </em> 6 seconds</li>
-          </ul>
-        </div><!--/.meta-->
-        <div class="fixed-pane">
-          <a href="#"><i class="fa fa-ban"></i> Un-register Lambda</a>
-        </div>
+      <section class="info-box trigger-description">
       </section><!--/.info-box-->
     </div>
     <div class="panel-2 clearfix">
@@ -70,9 +52,8 @@
       <a href="#" class="toggle-payload">Payload Structure</a>
       <div class="viewport activate">
         <header>
-          <h3>Activate Trigger</h3>
-          <p>Activate the <span class="trigger-name">{{triggerName}}</span> trigger to access and configuration the trigger
-            as well as adding a completion test.</p>
+          <p>Activate the <span class="trigger-name">{{triggerName}}</span> trigger to access and configure the trigger
+            as well as adding a completion test. </p>
         </header>
         <a href="#" class="btn submit btn-deactivate"><i class="fa fa-power-off"></i> Activate Trigger</a>
       </div><!--/.viewport.payload-->
@@ -87,7 +68,7 @@
       </div><!--/.viewport.payload-->
       <div class="viewport tabs active">
         <ul class="tab-nav clearfix">
-          <li class="nav-item active" data-tab="config">
+          <li class="nav-item" data-tab="config">
             <a href="#"><i class="fa fa-check-square-o"></i> Configuration Options</a>
           </li>
           <li class="nav-item" data-tab="test">
@@ -109,8 +90,8 @@
               </div>
               <textarea></textarea>
               <footer class="clearfix">
-                <span class="validated"><i class="fa fa-check"></i> Validated</span>
-                <a href="#" class="save-btn"><i class="fa fa-save"></i> Saved</a>
+                <span class="validated"><i class="fa fa-check"></i> Validate</span>
+                <a href="#" class="save-btn"><i class="fa fa-save"></i> Save</a>
               </footer>
             </div><!--/.data-input-module-->
           </div><!--/.tab-content-->
@@ -121,12 +102,19 @@
                 <span class="input-format"><a href="#">Classic</a> <a href="#" class="active">JSON</a></span>
               </header>
               <div class="help">
-                Help Area
+                <p>Set up a completion test to teach the system to self check whether or not a given task is complete.</p>
+                <p>Check whether or not meta variables are set, or that they are valid based upon pre-installed
+                  custom, or system validation routines.</p>
+                <pre>
+                  {
+
+                  }
+                </pre>
               </div>
               <textarea></textarea>
               <footer class="clearfix">
-                <span class="validated"><i class="fa fa-check"></i> Validated</span>
-                <a href="#"  class="save-btn"><i class="fa fa-save"></i> Saved</a>
+                <span class="validated"><i class="fa fa-check"></i> Validate</span>
+                <a href="#"  class="save-btn"><i class="fa fa-save"></i> Save</a>
               </footer>
             </div><!--/.data-input-module-->
           </div><!--/.tab-content-->

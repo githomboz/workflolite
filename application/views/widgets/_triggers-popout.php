@@ -34,6 +34,30 @@ $fileName = APPPATH.'views/widgets/_triggers-popout-'.$popout.'.php';
   Marketplace
 </script>
 
+<script id="infoBox-triggerStyle" type="text/x-handlebars-template">
+  <span class="type">{{type}}</span>
+    <span class="category">{{category}}</span>
+    <h3>{{name}}</h3>
+  <div class="content">
+    {{description}}
+  </div>
+  <div class="meta">
+    <ul>
+    <li><em>Tags: </em>
+      {{#each tags}}
+      <a href="#">{{this}}</a>,
+      {{/each}}
+    </li>
+    <li><em>Developer: </em><a href="#">Team Workflo</a></li>
+  <li><em>Completion Test: </em> true</li>
+  <li><em>Average Usage: </em> 6 seconds</li>
+  </ul>
+  </div><!--/.meta-->
+  <div class="fixed-pane">
+    <a href="#"><i class="fa fa-ban"></i> Un-register Lambda</a>
+  </div>
+</script>
+
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/WFTriggerPopoutContainer.js"></script>
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/WFTriggerTestModule.js"></script>
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/WFFormManageModule.js"></script>

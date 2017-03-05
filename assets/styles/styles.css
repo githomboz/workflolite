@@ -3156,39 +3156,39 @@ span.checkbox {
         width: 55%;
         float: right;
         background: #e5e5e5;
-        min-height: 300px;
+        min-height: 380px;
         position: relative; }
-        .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.lambda-description {
+        .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.trigger-description {
           padding: 36px 10px 46px; }
-          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.lambda-description .type {
+          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.trigger-description .type {
             font-size: 12px;
             position: absolute;
             top: 10px;
             left: 10px; }
-          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.lambda-description .category {
+          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.trigger-description .category {
             font-size: 12px;
             position: absolute;
             top: 10px;
             right: 10px; }
-          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.lambda-description h3 {
+          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.trigger-description h3 {
             font-size: 16px;
             line-height: 1.3em;
             color: rgba(34, 34, 34, 0.9);
-            font-weight: bold;
+            font-weight: normal;
             margin-bottom: .5em; }
-          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.lambda-description .content {
+          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.trigger-description .content {
             line-height: 1.3em;
             min-height: 180px;
             overflow: scroll; }
-            .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.lambda-description .content p {
+            .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.trigger-description .content p {
               margin-bottom: 1em; }
-          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.lambda-description .meta {
+          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.trigger-description .meta {
             line-height: 1.3em; }
-            .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.lambda-description .meta li {
+            .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.trigger-description .meta li {
               margin-bottom: .3em; }
-            .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.lambda-description .meta a {
+            .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.trigger-description .meta a {
               color: #4992d0; }
-          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.lambda-description .fixed-pane {
+          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.trigger-description .fixed-pane {
             position: absolute;
             bottom: 10px;
             left: 3.5%;
@@ -3196,7 +3196,7 @@ span.checkbox {
             border-top: 1px solid rgba(152, 151, 151, 0.93);
             width: 93%;
             margin: 0 auto; }
-            .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.lambda-description .fixed-pane a {
+            .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-1 .info-box.trigger-description .fixed-pane a {
               color: rgba(147, 8, 16, 0.9); }
     .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 {
       width: 49.5%;
@@ -3235,7 +3235,7 @@ span.checkbox {
             top: 1px; }
         .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .tab-nav .nav-item.admin a {
           color: rgba(147, 8, 16, 0.9); }
-        .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .tab-nav .nav-item.active .fa-check-square-o {
+        .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .tab-nav .nav-item.isComplete .fa-check-square-o {
           color: #159215; }
       .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .tabs-container {
         background: #d7d7d9;
@@ -3273,23 +3273,40 @@ span.checkbox {
           background: #e5e5e5;
           padding: 10px;
           margin-bottom: 10px;
-          font-size: 12px; }
+          font-size: 12px;
+          display: none;
+          line-height: 1.3em;
+          max-height: 150px;
+          overflow: scroll; }
+          .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .data-input-module .help p {
+            margin-bottom: 1em; }
         .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .data-input-module textarea {
           padding: 10px;
           width: 100%;
           font-size: 1em;
           line-height: 1.3em;
-          margin-bottom: 10px; }
+          margin-bottom: 10px;
+          height: 120px;
+          max-height: 120px;
+          max-width: 100%; }
         .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .data-input-module footer {
           position: relative; }
           .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .data-input-module footer .validated {
-            color: #159215;
-            float: left; }
+            color: #6c6c6c;
+            float: left;
+            cursor: pointer; }
+            .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .data-input-module footer .validated .fa-check {
+              color: #159215; }
+            .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .data-input-module footer .validated.saved {
+              color: #159215;
+              cursor: default; }
           .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .data-input-module footer .save-btn {
             float: right;
             color: #6c6c6c; }
             .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .data-input-module footer .save-btn .fa-save {
               color: #159215; }
+            .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .data-input-module footer .save-btn.saved .fa-save {
+              color: #6c6c6c; }
       .trigger-test-popout .main-inner-body .triggers-popout-main .body-inner .panel-2 .viewport.tabs > footer {
         position: relative;
         line-height: 30px; }
