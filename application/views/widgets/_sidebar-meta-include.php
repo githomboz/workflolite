@@ -14,6 +14,9 @@
 
   ?>
   <div class="job-meta cs-job-meta <?php if(!$hideMeta) echo 'show-all';?>">
+    <script class="metadata-script">
+      var _METADATA = <?php echo json_encode($entity->getMetaArray())?>;
+    </script>
     <?php
     foreach($metaRecords as $key => $meta){
       $metaSettings = template()->getMetaSettings($key);
@@ -115,7 +118,7 @@
     valueChange = $metaContainer.attr('data-saved') != JSON.stringify(post.value);
 
     function handleSaveError(error){
-      alertify.alert(error);
+      alertify.alert('Error', error);
     }
 
     if(valueChange){
@@ -175,7 +178,7 @@
   $(document).on('click', '.meta-type-form.array .fa-minus-circle', function(){
     var $btn = $(this), $group = $btn.parents('.array-group'), $metaTypeForm = $group.parents('.meta-type-form');
 
-    alertify.confirm('Are you sure you want to remove this item from the array?', function(){
+    alertify.confirm('Confirm', 'Are you sure you want to remove this item from the array?', function(){
       $group.hide();
       alertify.notify('Item removed');
     }, function(){});
@@ -212,7 +215,7 @@
         addNewArrayItem();
       }
     } else {
-      alertify.alert('Invalid array key provided');
+      alertify.alert('Error', 'Invalid array key provided');
     }
 
 //    console.log(getArrayData($metaTypeForm.data('slug')), $metaTypeForm.find('.array-list').html());

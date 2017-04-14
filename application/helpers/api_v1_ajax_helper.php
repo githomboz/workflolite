@@ -562,7 +562,27 @@ function wf_logger_required_fields(){
   return array();
 }
 
+function update_task_template(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
+  if(!isset($data['version'])) $data['version'] = 1;
+  $saved = Template::UpdateTaskTemplate($data['templateId'], $data['taskTemplateId'], $data['updates'], $data['version']);
+  $response['response']['saved'] = $saved;//WFLogger::Read((array) CI()->input->get());
+  $response['recordCount'] = 0;//WFLogger::Read((array) CI()->input->get(), true);
+  return $response;
+}
 
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function update_task_template_args_map(){
+  return array('templateId','taskTemplateId','updates');
+}
+
+// Field names of fields required
+function update_task_template_required_fields(){
+  return array('templateId','taskTemplateId','updates');
+}
 
 

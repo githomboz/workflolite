@@ -356,14 +356,32 @@ class Project extends WorkflowFactory
       // If template, get template taskTemplates
       $templateId = $this->getValue('templateId');
       $this->currentTemplate = Template::cacheGet($templateId, $this->getValue('templateVersion'));
+      $versionData = null;
+      $versionNumber = 1;
       if($this->currentTemplate){
         $this->taskTemplates = $this->currentTemplate->getValue('taskTemplates');
+        $versionData = $this->currentTemplate->getValue('versionData');
+        $versionNumber = $this->currentTemplate->version();
       }
     }
     // Merge in appropriate taskMeta
     $taskMeta = $this->getValue('taskMeta');
     $tasks = array();
+    //var_dump($taskMeta, $versionData, $versionNumber);
+
     foreach((array) $this->taskTemplates as $i => $taskTemplate){
+      // Add in version data
+      $vNum = 'v' . $versionNumber;
+      if(isset($versionData[$vNum])){
+        if(isset($versionData[$vNum]['taskTemplateChanges'])){
+          if(isset($versionData[$vNum]['taskTemplateChanges'][$taskTemplate['id']])){
+            $changes = $versionData[$vNum]['taskTemplateChanges'][$taskTemplate['id']];
+            //var_dump($changes);
+            $taskTemplate = array_merge($taskTemplate, $changes);
+          }
+        }
+      }
+
       if(isset($taskMeta[$taskTemplate['id']])) {
         $task = array_merge($taskTemplate, $taskMeta[$taskTemplate['id']]);
         // Convert to new Task() objects
@@ -578,6 +596,30 @@ class Project extends WorkflowFactory
   
   public function getMeta(){
     return $this->meta->getAll();
+  }
+
+  public function getMetaArray(){
+    $meta = $this->meta->getAll();
+    $unset = ['html','hide','multiLine','validation'];
+    foreach($meta as $slug => $metaData){
+      foreach($unset as $field){
+        if(key_exists($field, $meta[$slug])) {
+          unset($meta[$slug][$field]);
+        }
+      }
+      if($metaData['value']->ok()){
+        $meta[$slug]['value'] = $metaData['value']->get();
+      } else {
+        $meta[$slug]['value'] = null;
+      }
+
+      if($meta[$slug]['type'] == 'date' && isset($meta[$slug]['_']) && strtotime($meta[$slug]['value'])){
+        $meta[$slug]['formatted'] = date($meta[$slug]['_'], strtotime($meta[$slug]['value']));
+      } else {
+        $meta[$slug]['formatted'] = null;
+      }
+    }
+    return $meta;
   }
 
   public function getRawMeta(){

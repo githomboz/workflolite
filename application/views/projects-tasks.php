@@ -13,8 +13,6 @@
         ;?>
 
 
-
-
         <div class="inner-nav-btns">
             <a href="#" class="btn js-main-add-task-btn"><i class="fa fa-plus"></i> Add a Task</a>
         </div>
@@ -208,7 +206,7 @@
                 type : _CS_Get_Entity()
             });
         } else {
-            alertify.alert('You must enter a comment to save')
+            alertify.alert('Invalid Action Taken', 'You must enter a comment to save');
         }
     });
 
@@ -372,5 +370,191 @@
         $modalContainer.addClass('active');
         $modalContainer.find('.dialog').addClass('options-not-active');
     });
+
+    if(!alertify.triggerUILoad){
+        //define a new dialog
+        alertify.dialog('triggerUILoad',function factory(){
+
+            return {
+                main:function(message){
+                    this.message = message;
+
+                },
+                setup:function(){
+                    return {
+                        buttons:[{text: "cool!", key:27/*Esc*/}],
+                        focus: { element:0 }
+                    };
+                },
+                prepare:function(){
+                    this.setContent(this.message);
+                }
+            }
+        });
+    }
+
+    function _handleTaskBindedTrigger(e){
+        //e.preventDefault();
+        _triggerBoxOpen();
+        return false;
+    }
+
+    $(document).on('click', '.task-name.has-trigger', _handleTaskBindedTrigger);
+
+    $(document).on('click', function(event){
+        event.preventDefault();
+        if (!$(event.target).closest('.binded-trigger-box').length) {
+            _triggerBoxClose();
+        }
+    });
+
+    function _triggerBoxOpen(){
+        console.log('trigger box opened');
+        $(".binded-trigger-box-overlay").addClass('show');
+        //alertify.triggerUILoad('<h1 class="trigger-title">This is a trigger</h1><p>Triggers are automatically bound to a task and can be any of the following:</p><ul><li>a form</li><li>lambda (automatic function)</li><li>a dialog box with a simple messaage</li><li>an html page</li></ul>');
+        $(document).on('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
+        $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+    }
+
+    function _triggerBoxClose(){
+        console.log('trigger box closed');
+        $(".binded-trigger-box-overlay").removeClass('show');
+        $(document).off('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
+        $(document).off('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+    }
+
+    function _handleTriggerBoxNavClick(e){
+        e.preventDefault();
+        var $this = $(this);
+        var $activeSlide = $(".tabbed-content.show");
+        var activeSlideName = $activeSlide.data('slide');
+        var clickedSlide = $this.attr('rel');
+        if(activeSlideName != clickedSlide){
+            _activateTriggerBoxSlide(clickedSlide);
+        }
+        _setTriggerBoxOverlayData();
+
+    }
+
+    function _setTriggerBoxOverlayData(data, opts){
+        var
+          data = data || {},
+          errors = [],
+          requiredFields = ['projectName','templateName','deadline','logoSrc','taskNumber','taskCount','projectId','elapsedTime'];
+        for(var i in requiredFields) {
+            if(typeof data[requiredFields[i]] == 'undefined') errors.push(requiredFields[i]);
+        }
+        if(errors.length <= 0){
+            var $innerHead = $(".binded-trigger-box .inner-head");
+            if(typeof data.logoSrc != 'undefined') {
+                $innerHead.find('.thumb').html('<img src="' + data.logoSrc + '" />');
+            } else {
+                $innerHead.find('.thumb').hide();
+            }
+            if(typeof data.projectName != 'undefined') $innerHead.find('h2').html(data.projectName);
+        }
+    }
+
+    function _activateTriggerBoxSlide(slide){
+        // activate clicked slide
+        $(".tabbed-content.show").removeClass('show');
+        $(".tabbed-content." + slide).addClass('show');
+        // activate slide button
+        $(".tabbed-nav .item").removeClass('selected');
+        $(".tabbed-nav .item a[rel=" + slide + "]").parents('.item').addClass('selected');
+    }
+
+    var _metadata_data = {
+        listSelected : false,
+        selectedEntry : null,
+        selectedData : null,
+        listChanged : true //(typeof _METADATA != 'undefined')
+    };
+
+    var $metadataTab = $('.tabbed-content.metadata');
+
+    function _metadataEntrySelected(e){
+        e.preventDefault();
+        var
+          $entry = $(this),
+          slug = $entry.data('slug');
+
+        // Mark list as selected
+        _metadata_data.listSelected = true;
+        // Mark current entry as selected
+        _metadata_data.selectedEntry = slug;
+        _metadata_data.selectedData = _METADATA[slug];
+        // Run Render
+        _renderMetaDataTabbedContent();
+        return false;
+    }
+
+    function _renderMetaDataTabbedContent(){
+        var $entries = $('.binded-trigger-box .tabbed-content .entries');
+        // Render list
+        if(_metadata_data.listChanged){
+            var html = '';
+            for(var _slug in _METADATA){
+                html += '<div class="entry clearfix" data-slug="' + _METADATA[_slug].slug + '">' + "\n";
+                html += "\t" + '<span class="key">' + _METADATA[_slug].field + '</span>' + "\n";
+                html += "\t" + '<span class="value">';
+                switch(_METADATA[_slug].type){
+                    case 'address':
+                    case 'array':
+                        break;
+                    default:
+                        html += _METADATA[_slug].formatted || _METADATA[_slug].value;
+                        break;
+                }
+                html += '</span>' + "\n";
+                html += "\t" + '<i class="fa fa-chevron-right"></i>' + "\n";
+                html += '</div>' + "\n";
+            }
+
+            $entries.html(html);
+
+            // Reset listChanged
+            _metadata_data.listChanged = false;
+        }
+
+        //console.log($entries.html());
+
+        // Set list selected class
+        if(_metadata_data.listSelected) {
+            $entries.addClass('selected');
+        } else {
+            $entries.removeClass('selected');
+        }
+
+        // Set entry selected
+        if(_metadata_data.selectedEntry){
+            $entries.find('.entry').removeClass('selected');
+            var $entry = $entries.find('[data-slug='+_metadata_data.selectedEntry+']');
+            $entry.addClass('selected');
+        } else {
+            $entries.find('.entry').removeClass('selected');
+        }
+
+        // Render Details
+        _renderMetaDataTabbedContent_Details();
+    }
+
+    function _renderMetaDataTabbedContent_Details(){
+        var $details = $('.column-details');
+        $details.find('h2').html(_metadata_data.selectedData.field);
+        $details.find('.meta-entry.slug .val').html('project.' + _metadata_data.selectedData.slug);
+        $details.find('.meta-entry.type .val').html(_metadata_data.selectedData.type.capitalize());
+        $details.find('.meta-entry.value .val').html(_metadata_data.selectedData.value);
+        if(_metadata_data.selectedData.formatted){
+            $details.find('.meta-entry.formatted').addClass('show');
+            $details.find('.meta-entry.formatted .val').html(_metadata_data.selectedData.formatted);
+        } else {
+            $details.find('.meta-entry.formatted').removeClass('show');
+            $details.find('.meta-entry.formatted .val').html('');
+        }
+    }
+
+
+
 
 </script>

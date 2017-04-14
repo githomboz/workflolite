@@ -69,6 +69,30 @@ class Templates extends Users_Controller {
     }
   }
 
+  public static function UpdateTaskTemplate($templateId, $taskTemplateId, $data, $version = 1){
+    $template = Template::Get($templateId);
+    $errors = [];
+    if($template){
+      $taskTemplate = $template->getTaskTemplate($taskTemplateId);
+
+      $updatedData = $template->getTaskTemplateDiff($data);
+      if (!empty($updatedData)) {
+        // Data updated
+        $updates = array(
+          'taskTemplateChanges' => array(
+            (string)$taskTemplate->id() => $updatedData
+          )
+        );
+        $template->applyUpdates($updates, $version);
+        return true;
+      }
+
+    } else {
+      $errors[] = 'Invalid template id provided';
+    }
+    return false;
+  }
+
   private function _processUpdateTaskForm(){
     $formErrors = array();
     $formData = null;

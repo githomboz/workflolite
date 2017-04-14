@@ -17,31 +17,6 @@
       <section class="list-column">
         <p class="list-context">Search results for "mail"</p>
         <div class="results-list">
-          <ul>
-            <li class="category">Mail Deliveries</li>
-            <li class="option">Bernies Deliveries</li>
-            <li class="option">FedEx Shipping</li>
-            <li class="option">UPS (United Parcel Service)</li>
-            <li class="option active">USPS (United States Postal Service)</li>
-            <li class="option">Western Delivery</li>
-            <li class="option">Bernies Deliveries</li>
-            <li class="option">FedEx Shipping</li>
-            <li class="option">UPS (United Parcel Service)</li>
-            <li class="option">USPS (United States Postal Service)</li>
-            <li class="option">Western Delivery</li>
-            <li class="category">Mail Utilities</li>
-            <li class="option">Label Printer</li>
-            <li class="option">FedEx Shipping</li>
-            <li class="option">UPS (United Parcel Service)</li>
-            <li class="option">USPS (United States Postal Service)</li>
-            <li class="option">Western Delivery</li>
-            <li class="category">Mail Deliveries</li>
-            <li class="option">Bernies Deliveries</li>
-            <li class="option">FedEx Shipping</li>
-            <li class="option">UPS (United Parcel Service)</li>
-            <li class="option">USPS (United States Postal Service)</li>
-            <li class="option">Western Delivery</li>
-          </ul>
         </div><!--/.results-list-->
       </section>
       <section class="info-box trigger-description">
@@ -55,7 +30,7 @@
           <p>Activate the <span class="trigger-name">{{triggerName}}</span> trigger to access and configure the trigger
             as well as adding a completion test. </p>
         </header>
-        <a href="#" class="btn submit btn-deactivate"><i class="fa fa-power-off"></i> Activate Trigger</a>
+        <a href="#" class="btn submit btn-activate"><i class="fa fa-power-off"></i> Activate Trigger</a>
       </div><!--/.viewport.payload-->
       <div class="viewport payload">
         <header>
@@ -66,7 +41,7 @@
           <pre><?php echo json_encode([]); ?></pre>
         </div>
       </div><!--/.viewport.payload-->
-      <div class="viewport tabs active">
+      <div class="viewport tabs active" data-trigger_id="">
         <ul class="tab-nav clearfix">
           <li class="nav-item" data-tab="config">
             <a href="#"><i class="fa fa-check-square-o"></i> Configuration Options</a>

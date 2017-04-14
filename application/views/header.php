@@ -109,6 +109,8 @@
 <?php //var_dump(Template::Get('58379c3ebb222601208817fa')) ?>
 <?php //var_dump(Project::Get('58385d60bb222601208817fc')) ?>
 
+<?php if(load_before_content()) echo load_before_content(); ?>
+
 <div id="main-wrap" class="clearfix <?php if(isset($this->page_class)) { if(is_array($this->page_class)) echo join(' ', $this->page_class); else if(is_string($this->page_class)) echo $this->page_class; } ?>">
 
   <?php if(show_sidebar()) { ?>

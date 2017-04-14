@@ -100,6 +100,28 @@ var TriggerTestContainer = (function () {
     function _setupListeners() {
         // Nav
         $(document).on('click', _dom("navContainer").selector + ' a', _handleNavClick);
+        $(document).on('click', _handleOutsideClickTriggerPopout);
+    }
+
+    function _destroyListeners(){
+        $(document).off('click', _dom("navContainer").selector + ' a', _handleNavClick);
+        // @todo: unbind when closing this container
+        $(document).off('click', _handleOutsideClickTriggerPopout);
+
+    }
+
+    function _handleOutsideClickTriggerPopout(e) {
+        var popout = $(".popoverlay"),
+            popoutVisible = popout.is(':visible'),
+            $target = $(e.target),
+            closePopout = $target.is('.popoverlay');
+
+        if (!$target.closest('.trigger-test-popout').length) {
+            if(popoutVisible && closePopout) {
+                popout.hide();
+                //$(document).off('click', _handleOutsideClickTriggerPopout);
+            }
+        }
     }
 
     function _handleNavClick(e) {
@@ -130,6 +152,7 @@ var TriggerTestContainer = (function () {
     function _render(options) {
         if (options) _setOptions(options);
         PubSub.publish('popoutChange.activeTab', currentState);
+        $(document).on('click', _handleOutsideClickTriggerPopout);
         _updateActiveNavItem();
     }
 
@@ -140,7 +163,13 @@ var TriggerTestContainer = (function () {
 
     function _destroy() {
         // .remove()
+        $(".popoverlay").addClass('hide');
+        _destroyListeners();
         // unbind early listeners
+        for(var i in modules){
+            if(modules[i].tab == currentState.viewport) modules[i].module.deactivate();
+        }
+
         // unbind all listeners
     }
 

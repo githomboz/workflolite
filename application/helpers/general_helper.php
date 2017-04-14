@@ -459,3 +459,39 @@ function _bytionValidateOrderInfo($projectId){
     'errors' => !empty($logs['errors'])
   );
 }
+
+function load_before_content($content = null, $order = null){
+  $CI =& get_instance();
+  if(!isset($CI->load_before_content)) {
+    $CI->load_before_content = [];
+  }
+  // Get target index number
+  $index = get_target_index($CI->load_before_content, $order);
+  // Add content to array
+  if($content) $CI->load_before_content[$index] = $content;
+  if(isset($CI->load_before_content) && !empty($CI->load_before_content)) return join('', $CI->load_before_content);
+}
+
+function get_target_index($array, $targetIndex = null){
+  // if not array, return false
+  if(!is_array($array)) return false;
+  // if array empty, return 0
+  if(empty($array)) return 0;
+  // if no target index, get the highest index, increment by one, and return
+  if(is_null($targetIndex)) {
+    $index = max(array_keys($array));
+    return ++$index;
+  }
+  // If target index
+  if($targetIndex){
+    if(!isset($array[$targetIndex])) return $targetIndex;
+    // If target index is already set, find next available index after it and return
+    $index = $targetIndex;
+    while(isset($array[$index])){
+      $index++;
+    }
+    return $index;
+    // If target index not set, return index
+
+  }
+}

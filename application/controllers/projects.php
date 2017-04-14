@@ -18,6 +18,7 @@ class Projects extends Users_Controller {
       if(isset($this->project) && $this->project){
         if($this->project->loadOrganization()->getValue('organization')->getValue('_id') == UserSession::value('organizationId')){
           $this->project->loadTemplate();
+          if($slug == 'tasks') load_before_content(get_include(APPPATH.'/views/widgets/_binded-trigger-box.php'));
           $this->template = $this->project->getValue('template');
           $successfullPosts = array();
           $AddTask = _process_add_task($this->input->post(), $this->project);

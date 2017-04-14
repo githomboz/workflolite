@@ -17,7 +17,7 @@
         <div class="content"><?php echo $this->messageBox['content'] ?></div>
       </div>
     <?php } ?>
-    <form method="post">
+    <form method="post" class="clearfix">
       <?php //var_dump($template); ?>
       <div class="aside">
         <input type="hidden" name="formData" />
@@ -27,6 +27,28 @@
         <div class="form-input"><input type="checkbox" class="milestone" id="milestoneField-<?php echo $template->id() ?>" <?php if($template->getValue('milestone') == true) echo 'checked="checked"' ?> /> <label for="milestoneField-<?php echo $template->id() ?>">Is this a milestone?</label></div>
         <div class="form-input"><input type="checkbox" class="clientView" id="clientViewField-<?php echo $template->id() ?>" <?php if($template->getValue('clientView') == true) echo 'checked="checked"' ?>/> <label for="clientViewField-<?php echo $template->id() ?>">Display in client portal?</label></div>
         <button type="submit" class="btn submit js-update-task-template-btn"><i class="fa fa-save"></i> Update</button>
+        <div class="trigger-setup">
+          <h3>Bind Trigger & Test</h3>
+          <p class="bind-links">
+            <span class="classic-show">classic &nbsp;|&nbsp;</span>
+            <span class="classic-hide"><a href="#" class="classic-trigger-setup">classic</a> &nbsp;|&nbsp;</span>
+            <a href="#" class="beta-trigger-setup">beta</a>
+          </p>
+          <div class="trigger-input">
+            <div class="classic-links">
+              <a href="#" class="save-btn"><i class="fa fa-save"></i> Save</a> &nbsp; &nbsp;
+              <a href="#" class="close-btn"><i class="fa fa-close"></i> Close</a>
+            </div>
+            <textarea class="classic-trigger-input">
+{ "trigger" : {
+    "triggerId" : "",
+    "type": "lambda",
+    "callback": ""
+  }
+}
+            </textarea>
+          </div>
+        </div>
       </div>
       <div class="form-group">
         <label for="field-taskGroup-<?php echo $template->id() ?>">Group Label: </label>

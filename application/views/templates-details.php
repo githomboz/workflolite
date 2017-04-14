@@ -46,10 +46,9 @@
         </span> </h2>
     </div>
 
-    <?php require_once 'widgets/_triggers-popout.php'; ?>
-
-
-
+    <div class="popoverlay" style="display: none">
+      <?php require_once 'widgets/_triggers-popout.php'; ?>
+    </div>
 
     <div class="templates-list widget">
       <h2>Task Templates: <span class="taskCount">(<?php echo template()->taskCount(); ?>)</span>  <a href="#" class="js-add-task-template-btn">+ Add Task</a> </h2>
@@ -488,7 +487,7 @@
       $template.find('[name=templateId]').val(_CS_Get_Template_ID());
       $template.find('form').submit();
     } else {
-      alertify.alert('No updates made to this task template.');
+      alertify.alert('FYI...', 'No updates made to this task template.');
     }
   });
 
@@ -522,7 +521,7 @@
       $template.find('[name=templateId]').val(_CS_Get_Template_ID());
       $template.find('form').submit();
     } else {
-      alertify.alert('No updates made to this task template.');
+      alertify.alert('FYI...', 'No updates made to this task template.');
     }
   });
 
@@ -530,6 +529,109 @@
     $(".templates-list h2 .taskCount").text('(' + count + ')');
   }
 
+  function _registerListeners(){
+    $(document).on('click', '.classic-trigger-setup', _handleClassicTriggerSetupClick);
+    $(document).on('click', '.beta-trigger-setup', _handleBetaTriggerSetupClick);
+    $(document).on('click', '.classic-links .close-btn', _handleClassicTriggerCloseClick);
+    $(document).on('click', '.classic-links .save-btn', _handleClassicTriggerSaveClick);
+  }
+
+  _registerListeners();
+
+  function _jsonParse(json){
+    var post;
+    try {
+      post = JSON.parse(json);
+    }
+    catch (e) {
+      console.error(e);
+    }
+    if(typeof post === 'object') return post;
+    return false;
+  }
+
+  function _handleClassicTriggerSaveClick(e){
+    e.preventDefault();
+    var $el = $(this),
+      $triggerSetup = $el.parents('.trigger-setup'),
+      $textarea = $triggerSetup.find('textarea'),
+      $templateEntryDiv = $el.parents('.template.entry'),
+      taskTemplateId = $templateEntryDiv.data('tasktemplate');
+
+    var post = _jsonParse($textarea.val());
+
+    if(post){
+      var add = {};
+      // Add templateId, taskTemplateId, and updates
+      add.taskTemplateId = taskTemplateId;
+      add.templateId = _CS_Get_Template_ID();
+      add.updates = {
+        id : taskTemplateId
+      };
+      if(typeof post.trigger != 'undefined') add.updates.trigger = post.trigger;
+      console.log(add);
+
+      CS_API.call('/ajax/update_task_template',
+        function(){
+          $el.removeClass('error').addClass('dark-text');
+          $el.html('<i class="fa fa-spin fa-spinner"></i> Saving');
+          $textarea.removeClass('error');
+        },
+        function(data){
+          if(data.errors === false){
+            $el.removeClass('dark-text');
+            $el.html('<i class="fa fa-save"></i> Save');
+          } else {
+            _handleClassicSaveError($el);
+          }
+        },
+        function(){
+          _handleClassicSaveError($el);
+        },
+        add,
+        {
+          method: 'POST',
+          preferCache : false
+        }
+      );
+
+    } else {
+      _handleClassicSaveError($el);
+    }
+
+    //$triggerSetup.removeClass('classic-mode');
+  }
+
+  function _handleClassicSaveError($el){
+      var $triggerSetup = $el.parents('.trigger-setup'),
+          $textarea = $triggerSetup.find('textarea');
+
+    $el.removeClass('dark-text').addClass('error');
+    $el.html('<i class="fa fa-refresh"></i> Retry');
+    $textarea.addClass('error');
+  }
+
+  function _handleClassicTriggerCloseClick(e){
+    e.preventDefault();
+    var $el = $(this),
+      $triggerSetup = $el.parents('.trigger-setup');
+
+    $triggerSetup.removeClass('classic-mode');
+  }
+
+  function _handleClassicTriggerSetupClick(e){
+    e.preventDefault();
+    var $el = $(this),
+      $triggerSetup = $el.parents('.trigger-setup');
+
+    $triggerSetup.addClass('classic-mode');
+  }
+
+  function _handleBetaTriggerSetupClick(e){
+    e.preventDefault();
+    var popover = $(".popoverlay");
+    popover.show();
+  }
 
   PubSub.subscribe('_details_taskTemplateCountChanged', _htmlUpdateTaskTemplateCount);
 

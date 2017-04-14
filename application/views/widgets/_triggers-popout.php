@@ -34,12 +34,16 @@ $fileName = APPPATH.'views/widgets/_triggers-popout-'.$popout.'.php';
   Marketplace
 </script>
 
+<script id="listEntries" type="text/x-handlebars-template">
+  {"0":{"id":"nslkdfn","type":"lambda","callback":"Bernies::RequestPickUp","name":"Bernie's Deliveries / Request Pickup","description":"Bernie's RESTful API trigger","category":"Mail & Deliveries","tags":["mail","shipping","deliveries"],"author":"Bernies DevShop","authorUrl":"http://www.bernies-deliveries.com/support","averageExecution":1500,"registered":true,"active":false,"registeredUsers":154138,"developerRating":{"support":9.5,"development":8.3},"config":{"help":""},"test":{},"payload":{}},"1":{"id":"fgd4dfs","type":"lambda","callback":"USPS::RequestPickUp","name":"United States Postal Service / Request Pickup","description":"<p>Make an API request to the United States Postal Service to pick up a package on a specific day.</p> <p>Contains a robust completion test.</p>","category":"Mail & Deliveries","tags":["deliveries","mail  ","shipping","USPS"],"author":"Team Workflo","averageExecution":6500,"registered":true,"active":false,"registeredUsers":154138,"developerRating":{"support":9.5,"development":8.3},"config":{"help":""},"test":{},"payload":{}}}
+</script>
+
 <script id="infoBox-triggerStyle" type="text/x-handlebars-template">
   <span class="type">{{type}}</span>
     <span class="category">{{category}}</span>
     <h3>{{name}}</h3>
   <div class="content">
-    {{description}}
+    {{{description}}}
   </div>
   <div class="meta">
     <ul>
@@ -48,13 +52,13 @@ $fileName = APPPATH.'views/widgets/_triggers-popout-'.$popout.'.php';
       <a href="#">{{this}}</a>,
       {{/each}}
     </li>
-    <li><em>Developer: </em><a href="#">Team Workflo</a></li>
-  <li><em>Completion Test: </em> true</li>
-  <li><em>Average Usage: </em> 6 seconds</li>
+      <li><em>Developer: </em>{{tryLink url=authorUrl text=author}}</li>
+  <li><em>Completion Test: </em>{{hasTest}}</li>
+  <li><em>Average Usage: </em>{{avgExec milliseconds=averageExecution}}</li>
   </ul>
   </div><!--/.meta-->
   <div class="fixed-pane">
-    <a href="#"><i class="fa fa-ban"></i> Un-register Lambda</a>
+    {{registerBtn active=active}}
   </div>
 </script>
 

@@ -1,0 +1,429 @@
+$txtInnerColor : #fff;
+$txtLightGray : #afaeae;
+$mainBGGray : #666;
+$innerButtonBlue : #96bdd2;
+$innerButtonGray : #383838;
+$normalBtnGray : #555;
+$tabGray : darken($normalBtnGray, 5%);
+$inactiveBtnGray : rgba($tabGray, .3);
+$inactiveBtnColor : #8a969c;
+$lightGreen : #92f38b;
+$inactiveBtnBG : #848484;
+$inactiveBtnText : darken($normalBtnGray, 5%);
+$overLayBG : rgba(0, 0, 0, .5);
+
+
+.binded-trigger-box-overlay {
+  position: absolute;
+  z-index: 100;
+  height: 92%;
+  padding-top: 4%;
+  width: 100%;
+  display: none;
+
+  &.show {
+    display: block;
+  }
+}
+
+
+.binded-trigger-box {
+  position: relative;
+  background: $mainBGGray;
+  color: $txtInnerColor;
+  width: 80%;
+  height: 518px;
+  min-width: 776px;
+  margin: 0 auto 0;
+  border-radius: 4px;
+  padding: 0;
+  border-color: $normalBtnGray;
+  box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, .2);
+  
+  a {
+    color: $innerButtonBlue;
+  }
+
+  .inner-head {
+    padding: $padding;
+    position: relative;
+    
+    .titles {
+      float: left;
+
+      h2 {
+        font-size: 20px;
+        margin-bottom: .3em;
+        line-height: 1.3em;
+      }
+
+      h3 {
+        font-size: 14px;
+        color: $txtLightGray;
+        line-height: 1.3em;
+      }
+
+    }
+
+    .upper-settings {
+      position: absolute;
+      top: $padding;
+      right: $padding;
+
+      .deadline-txt {
+        font-size: 14px;
+        color: $txtLightGray;
+
+        .date {
+          color: $txtInnerColor;
+          margin-right: $padding;
+        }
+      }
+
+      .fa-cog {
+        cursor: pointer;
+      }
+    }
+
+    .lower-settings {
+      position: absolute;
+      top: 36px;
+      right: $padding;
+      font-size: 14px;
+      line-height: 26px;
+
+      .time-tracker-btn {
+        background: $innerButtonBlue;
+        color: $innerButtonGray;
+        padding: 4px 8px;
+        margin-left: $padding;
+        border-radius: 4px;
+      }
+    }
+  }
+
+  .mid-section {
+    padding: $padding;
+  }
+
+  .tabbed-nav {
+    float: left;
+    width: 50 + $padding;
+    position: relative;
+    top: $padding;
+
+    li {
+      border-radius: 4px;
+      overflow: hidden;
+      width: 50px;
+      height: 50px;
+      text-align: center;
+      background: $inactiveBtnGray;
+      margin-bottom: $padding;
+      position: relative;
+
+      &.item {
+        background: $normalBtnGray;
+
+        &:hover {
+          background: darken($normalBtnGray, 2%);
+        }
+      }
+
+      &.item.selected {
+        border-radius: 4px 0 0 4px;
+        padding-right: $padding;
+        width: 50px + $padding;
+        background: $tabGray;
+
+        a {
+          cursor: default;
+          pointer-events: none;
+        }
+
+        &:hover {
+          background: $tabGray;
+        }
+      }
+
+      a {
+        font-size: 24px;
+        color: $inactiveBtnColor;
+        display: block;
+        height: 50px;
+        line-height: 50px;
+        width: 50px;
+        cursor: default;
+        pointer-events: none;
+      }
+
+      &.item a {
+        color: $innerButtonBlue;
+        cursor: pointer;
+        pointer-events: auto;
+      }
+    }
+  }
+
+  .tabbed-content-container {
+    float: left;
+    background: $tabGray;
+    border-radius: 4px;
+    width: 92%;
+    min-width: 694px;
+  }
+
+  .tabbed-content {
+    padding: $padding;
+    min-height: 370px;
+    margin-bottom: 0;
+  }
+
+  .action-btns {
+    text-align: right;
+    padding: 0;
+    position: relative;
+    right: $padding;
+
+    button {
+      text-align: center;
+      line-height: 46px;
+      padding: 0 $paddingLarge;
+      border: none;
+      border-radius: 4px;
+      color: $lightGreen;
+      background: $normalBtnGray;
+      margin: 0;
+      margin-left: $padding - 2;
+
+      &:hover {
+        background: darken($normalBtnGray, 2%);
+      }
+
+      &.inverse {
+        background: $lightGreen;
+        color: $normalBtnGray;
+
+        &:hover {
+          background: darken($lightGreen, 5%);
+          color: darken($normalBtnGray, 5%);
+        }
+      }
+
+      &.inactive {
+        cursor: default;
+        pointer-events: none;
+        background: $inactiveBtnBG;
+        color: $inactiveBtnText;
+      }
+
+    }
+  }
+}
+
+.binded-trigger-box {
+
+  .tabbed-content {
+    position: relative;
+    display: none;
+
+    &.show {
+      display: block;
+    }
+
+    h1 {
+      font-size: 24px;
+      line-height: 1.3em;
+      margin: 0 0 .5em 0;
+    }
+
+    code {
+      line-height: 1.4em;
+      margin-bottom: 1.5em;
+    }
+
+    p {
+      line-height: 1.3em;
+      margin-bottom: 1.5em;
+    }
+
+    .entries {
+      height: 293px;
+      overflow: scroll;
+      padding-bottom: 3em;
+
+      .entry {
+        line-height: 3em;
+        height: 3em;
+        display: block;
+        float: left;
+        width: 100%;
+        position: relative;
+        cursor: pointer;
+        overflow: hidden;
+
+        &:nth-child(odd){
+         background: rgba(255,255,255, .04);
+        }
+
+        .fa-chevron-right {
+          display: none;
+          position: absolute;
+          right: $padding;
+          top: 0;
+          line-height: 3em;
+        }
+
+      }
+
+      &.selected {
+        .entry {
+          opacity: .3;
+
+          &:nth-child(odd){
+            background: rgba(255,255,255, .1);
+          }
+
+          &.selected {
+            opacity: 1;
+            pointer-events: none;
+            cursor: default;
+
+            .fa-chevron-right {
+              display: block;
+            }
+          }
+        }
+      }
+
+    }
+
+    &.tasks {
+      .status-info {
+        position: absolute;
+        top: $padding;
+        right: $padding;
+        color: $txtLightGray;
+
+        .status {
+          color: $txtInnerColor;
+        }
+      }
+    }
+
+    .meta-fields {
+      font-size: 14px;
+
+      .head-links {
+        padding-bottom: $padding;
+        border-bottom: 1px solid #3c3c3c;
+        box-shadow: 0px 4px 3px -2px rgba(0, 0, 0, .3);
+      }
+
+      .key {
+        display: block;
+        width: 28.5%;
+        float: left;
+        padding-left: 1.5%;
+      }
+
+      .value {
+        display: block;
+        width: 70%;
+        float: left;
+      }
+    }
+
+    .tab-form {
+      background: $mainBGGray;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      margin: 0;
+      padding: 1%;
+      position: absolute;
+      z-index: 10;
+      border-radius: 6px 6px 0 0;
+      box-shadow: 0px -6px 8px 0px rgba(0, 0, 0, .1);
+    }
+
+    &.metadata {
+      padding-bottom: 0;
+
+      .column-list {
+        width: 72%;
+        float: left;
+        position: relative;
+
+        .tab-form {
+
+          input {
+            font-size: 14px;
+            height: 24px;
+            border: 1px solid rgba(0, 0, 0, .5);
+            border-radius: 5px;
+            margin-right: 2px;
+          }
+
+          select {
+            font-size: 14px;
+            border: 1px solid rgba(0, 0, 0, .5);
+            border-radius: 5px;
+            margin-right: 2px;
+          }
+
+          button {
+            font-size: 12px;
+            text-align: center;
+            height: 24px;
+            border: 1px solid rgba(0, 0, 0, .5);
+            padding: 0 $padding;
+            border-radius: 5px;
+            position: relative;
+            top: -1px;
+
+          }
+        }
+      }
+
+      .column-details {
+        width: 27%;
+        float: right;
+        position: relative;
+        top: -42px;
+        height: 318px;
+
+        h2 {
+          margin-bottom: 1em;
+        }
+
+        .meta-meta {
+          font-size: 14px;
+          line-height: 1.3;
+
+          .meta-entry {
+            margin-bottom: .5em;
+            display: none;
+
+            &.show {
+              display: block;
+            }
+          }
+
+          .meta-key {
+            color: rgba(255, 255, 255, .6);
+          }
+        }
+
+        form {
+
+          button {
+            position: absolute;
+            bottom: -33px;
+            left: 1px;
+          }
+        }
+      }
+    }
+  }
+}

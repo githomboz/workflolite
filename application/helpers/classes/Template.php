@@ -545,6 +545,32 @@ class Template extends WorkflowFactory
     }
   }
 
+  public static function UpdateTaskTemplate($templateId, $taskTemplateId, $data, $version = 1){
+    $template = Template::Get($templateId);
+    $errors = [];
+    if($template){
+      $taskTemplate = $template->getTaskTemplate($taskTemplateId);
+
+      $updatedData = $template->getTaskTemplateDiff($data);
+      // var_dump($taskTemplate, $updatedData, $data);
+      if (!empty($updatedData)) {
+        // Data updated
+        $updates = array(
+          'taskTemplateChanges' => array(
+            (string)$taskTemplate->id() => $updatedData
+          )
+        );
+        // var_dump($updates);
+        $template->applyUpdates($updates, $version);
+        return true;
+      }
+
+    } else {
+      $errors[] = 'Invalid template id provided';
+    }
+    return false;
+  }
+
   public function applyUpdates(array $updates, $version = null){
     foreach($updates as $key => $value) {
       $this->_updates[$key] = $value; // More efficient saving method

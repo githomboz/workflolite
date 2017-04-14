@@ -898,6 +898,11 @@ $tasklist_height : 36px;
       left: 50px;
       min-width: 290px;
 
+      .task-name.has-trigger {
+        cursor: pointer;
+        position: relative;
+      }
+
       a.fa-pencil {
         margin-left: 4px;
       }
@@ -1455,8 +1460,107 @@ $tasklist_height : 36px;
           width: 36%;
           float: right;
 
+          .btn.submit {
+            margin-bottom: $padding;
+          }
+
           .form-input {
             margin-bottom: $padding;
+          }
+
+          .trigger-setup {
+            text-align: center;
+            position: relative;
+
+            h3 {
+              line-height: 1.4em;
+              font-weight: bold;
+              margin-bottom: .3em;
+            }
+
+            .bind-links {
+              font-size: 12px;
+              margin-bottom: 1em;
+
+              a {
+                color: $button_blue;
+
+                &:hover {
+                  color: darken($button_blue, 20%);
+                }
+
+              }
+            }
+
+            .classic-links {
+              display: none;
+            }
+
+            .trigger-input {
+              display: none;
+
+              textarea {
+                text-align: left;
+                width: 100%;
+                max-width: 100%;
+                height: 150px;
+                max-height: 150px;
+                border: 1px solid darken($sidepanel_bg, 10%);
+
+                &.error {
+                  border: 1px solid darken($error_red, 0%);
+                }
+              }
+            }
+
+            .classic-show {
+              display: none;
+            }
+
+            &.classic-mode {
+
+              .classic-show {
+                display: inline-block;
+              }
+
+              .classic-hide {
+                display: none;
+              }
+
+              .bind-links {
+                text-align: left;
+              }
+
+              .classic-links {
+                font-size: 12px;
+                display: block;
+                position: absolute;
+                right: 0px;
+                top: 27px;
+
+                a {
+                  color: $button_blue;
+
+                  &:hover {
+                    color: darken($button_blue, 10%);
+                  }
+
+                  &.dark-text {
+                    color: $gray-dark;
+                  }
+
+                  &.error {
+                    color: $redDark;
+                  }
+
+                }
+              }
+
+              .trigger-input {
+                display: block;
+              }
+            }
+
           }
         }
 
@@ -1695,3 +1799,6 @@ $tasklist_height : 36px;
   }
 }
 
+.ajs-content h1.trigger-title {
+
+}

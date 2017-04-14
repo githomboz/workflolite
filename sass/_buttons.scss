@@ -89,9 +89,13 @@
 
   }
 
-  &.disabled {
-    color: $sidepanel_color_light;
+  &.disabled, &[disabled=disabled] {
+    color: lighten($sidepanel_color_light, 15%);
     background: $sidepanel_bg;
+
+    &:hover {
+      background: $sidepanel_bg;
+    }
 
     .fa {
       color: inherit;
