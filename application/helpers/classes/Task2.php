@@ -259,6 +259,18 @@ class Task2
     return self::GetStatusText($this->getValue('status'));
   }
 
+  /**
+   * Returns json block to script tag to js use primarily
+   */
+  public function getTaskData(){
+    return [
+      'taskId' => $this->id(),
+      'sortOrder' => $this->getValue('sortOrder'),
+      'trigger' => $this->getValue('trigger'),
+      'description' => $this->getValue('description')
+    ];
+  }
+
   private function _mergeTemplateToTask(TaskTemplate2 $template){
     $template = $template->getCurrent();
 

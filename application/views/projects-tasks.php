@@ -44,10 +44,13 @@
             <button type="submit" class="btn submit"><i class="fa fa-plus"></i> Add Task</button>
         </form>
 
-        <?php //var_dump($this->input->post()) ?>
+        <?php //var_dump($this->project) ?>
 
         <div class="tasklist">
-
+            <script class="projectData">
+                var _PROJECT = <?php echo json_encode($this->project->getProjectData()) ?>;
+                var _TASK_JSON = [];
+            </script>
             <?php
             //var_dump($showableTasksGrouped);
             foreach($showableTasksGrouped as $taskGroup => $tasks) { ?>
@@ -393,9 +396,24 @@
         });
     }
 
+    console.log(_TASK_JSON);
+
+    function _getTaskDataById(id){
+        for(var i in _TASK_JSON){
+            if(typeof _TASK_JSON[i].id != 'undefined' && _TASK_JSON[i].id == id){
+                return _TASK_JSON[i];
+            }
+        }
+        return false;
+    }
+
     function _handleTaskBindedTrigger(e){
-        //e.preventDefault();
-        _triggerBoxOpen();
+        e.preventDefault();
+        var $this = $(this),
+          $task = $this.parents('.task-style'),
+          taskId = $task.data('task_id');
+
+        _triggerBoxOpen(_PROJECT, taskId);
         return false;
     }
 
@@ -408,19 +426,29 @@
         }
     });
 
-    function _triggerBoxOpen(){
-        console.log('trigger box opened');
-        $(".binded-trigger-box-overlay").addClass('show');
-        //alertify.triggerUILoad('<h1 class="trigger-title">This is a trigger</h1><p>Triggers are automatically bound to a task and can be any of the following:</p><ul><li>a form</li><li>lambda (automatic function)</li><li>a dialog box with a simple messaage</li><li>an html page</li></ul>');
-        $(document).on('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
-        $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+    function _triggerBoxOpen(projectData, taskId){
+        //console.log('trigger box opened');
+
+        var task = _getTaskDataById(taskId);
+        //console.log(task);
+        if(task){
+            $(".binded-trigger-box-overlay").addClass('show');
+            //alertify.triggerUILoad('<h1 class="trigger-title">This is a trigger</h1><p>Triggers are automatically bound to a task and can be any of the following:</p><ul><li>a form</li><li>lambda (automatic function)</li><li>a dialog box with a simple messaage</li><li>an html page</li></ul>');
+            $(document).on('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
+            $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+            _renderTriggerBoxProjectAndTaskData(projectData, task);
+            _renderMetaDataTabbedContent();
+        }
     }
 
     function _triggerBoxClose(){
-        console.log('trigger box closed');
-        $(".binded-trigger-box-overlay").removeClass('show');
-        $(document).off('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
-        $(document).off('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+        var $overlay = $(".binded-trigger-box-overlay");
+        if($overlay.is('.show')){
+            //console.log('trigger box closed');
+            $overlay.removeClass('show');
+            $(document).off('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
+            $(document).off('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+        }
     }
 
     function _handleTriggerBoxNavClick(e){
@@ -433,7 +461,6 @@
             _activateTriggerBoxSlide(clickedSlide);
         }
         _setTriggerBoxOverlayData();
-
     }
 
     function _setTriggerBoxOverlayData(data, opts){
@@ -464,11 +491,56 @@
         $(".tabbed-nav .item a[rel=" + slide + "]").parents('.item').addClass('selected');
     }
 
+    var _BoxTriggerSettings = {
+        showTaskCount : true,
+        showTimer : false,
+        elapsedTime : null,
+        settingsDropdown : []
+    };
+
+    function _renderTriggerBoxProjectAndTaskData(projectData, taskData){
+        //console.log(projectData, taskData);
+        var $triggerBox = $('.binded-trigger-box');
+        $triggerBox.find('header .titles h2').html(projectData.projectName);
+        $triggerBox.find('header .titles h3').html(projectData.templateName);
+        var $headerContent = $triggerBox.find('header .upper-settings');
+        if(typeof projectData.projectCompletionDateString == 'string') {
+            $headerContent.find('.deadline-txt').show();
+            $headerContent.find('.date').html(projectData.projectCompletionDateString);
+        } else {
+            $headerContent.find('.deadline-txt').hide();
+        }
+
+        var $lowerHeader = $(".lower-settings"),
+          $taskCountText = $lowerHeader.find('.task-count-txt');
+
+        // Show/hide task counts
+        if(_BoxTriggerSettings.showTaskCount
+          && taskData.data.sortOrder
+          && _TASK_JSON.length > 0){
+            $taskCountText.find('.task-num').html(taskData.data.sortOrder);
+            $taskCountText.find('.task-count').html(_TASK_JSON.length);
+            $taskCountText.show();
+        } else {
+            $taskCountText.hide();
+        }
+
+        // Show/hide timer
+        if(_BoxTriggerSettings.showTimer){
+            if(!_BoxTriggerSettings.elapsedTime) _BoxTriggerSettings.elapsedTime = 0;
+            $lowerHeader.find('.time-tracker-btn').show();
+        } else {
+            $lowerHeader.find('.time-tracker-btn').hide();
+        }
+        return false;
+    }
+
     var _metadata_data = {
         listSelected : false,
         selectedEntry : null,
         selectedData : null,
-        listChanged : true //(typeof _METADATA != 'undefined')
+        listChanged : true, //(typeof _METADATA != 'undefined')
+        editMode : false
     };
 
     var $metadataTab = $('.tabbed-content.metadata');
@@ -496,15 +568,23 @@
             var html = '';
             for(var _slug in _METADATA){
                 html += '<div class="entry clearfix" data-slug="' + _METADATA[_slug].slug + '">' + "\n";
-                html += "\t" + '<span class="key">' + _METADATA[_slug].field + '</span>' + "\n";
-                html += "\t" + '<span class="value">';
-                switch(_METADATA[_slug].type){
-                    case 'address':
-                    case 'array':
-                        break;
-                    default:
-                        html += _METADATA[_slug].formatted || _METADATA[_slug].value;
-                        break;
+                html += "\t" + '<span class="key truncate">' + _METADATA[_slug].field + '</span>' + "\n";
+                html += "\t" + '<span class="value truncate">';
+                var value = _METADATA[_slug].formatted || _METADATA[_slug].value;
+                if(value != null){
+                    switch(_METADATA[_slug].type){
+                        case 'address':
+                            html += value;
+                            break;
+                        case 'array':
+                          html += JSON.stringify(value);
+                            break;
+                        default:
+                            html += value;
+                            break;
+                    }
+                } else {
+                    html += '[ value not set ]';
                 }
                 html += '</span>' + "\n";
                 html += "\t" + '<i class="fa fa-chevron-right"></i>' + "\n";
@@ -541,16 +621,36 @@
 
     function _renderMetaDataTabbedContent_Details(){
         var $details = $('.column-details');
-        $details.find('h2').html(_metadata_data.selectedData.field);
-        $details.find('.meta-entry.slug .val').html('project.' + _metadata_data.selectedData.slug);
-        $details.find('.meta-entry.type .val').html(_metadata_data.selectedData.type.capitalize());
-        $details.find('.meta-entry.value .val').html(_metadata_data.selectedData.value);
-        if(_metadata_data.selectedData.formatted){
-            $details.find('.meta-entry.formatted').addClass('show');
-            $details.find('.meta-entry.formatted .val').html(_metadata_data.selectedData.formatted);
+        if(_metadata_data.selectedData){
+            $details.find('h2').html(_metadata_data.selectedData.field);
+            $details.find('.meta-entry.slug .val').html('project.' + _metadata_data.selectedData.slug);
+            $details.find('.meta-entry.type .val').html(_metadata_data.selectedData.type.capitalize());
+            switch(_metadata_data.selectedData.type){
+                case 'array':
+                case 'address':
+                    $details.find('.meta-entry.value .val').html('<pre>' + JSON.stringify(_metadata_data.selectedData.value, undefined, 2) + '</pre>');
+                    break;
+                default:
+                    $details.find('.meta-entry.value .val').html(_metadata_data.selectedData.value);
+                    break;
+            }
+            if(_metadata_data.selectedData.formatted){
+                $details.find('.meta-entry.formatted').addClass('show');
+                $details.find('.meta-entry.formatted .val').html(_metadata_data.selectedData.formatted);
+            } else {
+                $details.find('.meta-entry.formatted').removeClass('show');
+                $details.find('.meta-entry.formatted .val').html('');
+            }
+            if(_metadata_data.selectedData.format){
+                $details.find('.meta-entry.format').addClass('show');
+                $details.find('.meta-entry.format .val').html(_metadata_data.selectedData.format);
+            } else {
+                $details.find('.meta-entry.format').removeClass('show');
+                $details.find('.meta-entry.format .val').html('');
+            }
+            $details.find('.inner-details').addClass('show');
         } else {
-            $details.find('.meta-entry.formatted').removeClass('show');
-            $details.find('.meta-entry.formatted .val').html('');
+            $details.find('.inner-details').removeClass('show');
         }
     }
 

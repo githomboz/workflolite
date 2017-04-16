@@ -3593,8 +3593,7 @@ span.checkbox {
       float: left;
       width: 100%;
       position: relative;
-      cursor: pointer;
-      overflow: hidden; }
+      cursor: pointer; }
       .binded-trigger-box .tabbed-content .entries .entry:nth-child(odd) {
         background: rgba(255, 255, 255, 0.04); }
       .binded-trigger-box .tabbed-content .entries .entry .fa-chevron-right {
@@ -3629,9 +3628,10 @@ span.checkbox {
               box-shadow: 0px 4px 3px -2px rgba(0, 0, 0, 0.3); }
     .binded-trigger-box .tabbed-content .meta-fields .key {
       display: block;
-      width: 28.5%;
+      width: 27%;
       float: left;
-      padding-left: 1.5%; }
+      padding-left: 1.5%;
+      padding-right: 1.5%; }
     .binded-trigger-box .tabbed-content .meta-fields .value {
       display: block;
       width: 70%;
@@ -3684,6 +3684,10 @@ span.checkbox {
       position: relative;
       top: -42px;
       height: 318px; }
+      .binded-trigger-box .tabbed-content.metadata .column-details .inner-details {
+        display: none; }
+        .binded-trigger-box .tabbed-content.metadata .column-details .inner-details.show {
+          display: block; }
       .binded-trigger-box .tabbed-content.metadata .column-details h2 {
         margin-bottom: 1em; }
       .binded-trigger-box .tabbed-content.metadata .column-details .meta-meta {
@@ -3696,6 +3700,10 @@ span.checkbox {
             display: block; }
         .binded-trigger-box .tabbed-content.metadata .column-details .meta-meta .meta-key {
           color: rgba(255, 255, 255, 0.6); }
+        .binded-trigger-box .tabbed-content.metadata .column-details .meta-meta .meta-value .val pre {
+          width: 100%;
+          max-height: 150px;
+          overflow: scroll; }
       .binded-trigger-box .tabbed-content.metadata .column-details form button {
         position: absolute;
         bottom: -33px;

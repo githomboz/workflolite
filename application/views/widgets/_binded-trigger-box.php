@@ -50,46 +50,6 @@
                 <a href="#" class="value value-sort-btn">Value &nbsp; <i class="fa fa-caret-down"></i></a>
               </div>
               <div class="entries clearfix">
-                <div class="entry clearfix" data-slug="fileNumber">
-                  <span class="key">File Number</span>
-                  <span class="value">jnbpa-3921</span>
-                  <i class="fa fa-chevron-right"></i>
-                </div>
-                <div class="entry clearfix" data-slug="fileReceived">
-                  <span class="key">File Received</span>
-                  <span class="value">8/26/2016</span>
-                  <i class="fa fa-chevron-right"></i>
-                </div>
-                <div class="entry clearfix" data-slug="commitmentDue">
-                  <span class="key">Commitment Due Date</span>
-                  <span class="value">9/10/2016</span>
-                  <i class="fa fa-chevron-right"></i>
-                </div>
-                <div class="entry clearfix" data-slug="closingDate">
-                  <span class="key">Closing Date</span>
-                  <span class="value">10/24/2016</span>
-                  <i class="fa fa-chevron-right"></i>
-                </div>
-                <div class="entry clearfix" data-slug="propertyAddress">
-                  <span class="key">Property Address</span>
-                  <span class="value">3881 SW Alice Street, Port St Lucie, FL 34953</span>
-                  <i class="fa fa-chevron-right"></i>
-                </div>
-                <div class="entry clearfix" data-slug="lender">
-                  <span class="key">Lender</span>
-                  <span class="value">Well Fargo</span>
-                  <i class="fa fa-chevron-right"></i>
-                </div>
-                <div class="entry clearfix" data-slug="lastInspector">
-                  <span class="key">Last Inspector</span>
-                  <span class="value">Jesus Bayona</span>
-                  <i class="fa fa-chevron-right"></i>
-                </div>
-                <div class="entry clearfix" data-slug="lastInspectorEmail">
-                  <span class="key">Last Inspector Email</span>
-                  <span class="value">jbayona@jmbhomeinspections.com</span>
-                  <i class="fa fa-chevron-right"></i>
-                </div>
               </div>
             </div><!--/.meta-fields-->
             <form class="tab-form clearfix">
@@ -97,42 +57,49 @@
               <select>
                 <option>Select Type</option>
                 <option>String</option>
+                <option>URL</option>
                 <option>Date</option>
+                <option>Number</option>
                 <option>Boolean</option>
+                <option>Phone</option>
+                <option>Text</option>
                 <option>Array</option>
                 <option>Address</option>
+                <option>Twitter Handle</option>
               </select>
               <button type="submit"><i class="fa fa-plus"></i> Add Key</button>
             </form>
           </div><!--/.column-list-->
           <div class="column-details">
-            <h2>Closing Date</h2>
-            <ul class="meta-meta">
-              <li class="meta-entry slug show">
-                <span class="meta-key">Slug: </span>
-                <span class="meta-value"><span class="val">job.closingDate</span> <a href="#" class="fa fa-info-circle"></a></span>
-              </li>
-              <li class="meta-entry type show">
-                <span class="meta-key">Type: </span>
-                <span class="meta-value"><span class="val">Date</span> <a href="#" class="fa fa-info-circle"></a></span>
-              </li>
-              <li class="meta-entry format">
-                <span class="meta-key">Format: </span>
-                <span class="meta-value"><span class="val">m/d/Y</span> <a href="#" class="fa fa-info-circle"></a></span>
-              </li>
-              <li class="meta-entry value show">
-                <span class="meta-key">Value: </span>
-                <span class="meta-value"><span class="val">10/24/2016</span> <a href="#" class="fa fa-pencil"></a> </span>
-              </li>
-              <li class="meta-entry formatted">
-                <span class="meta-key">Formatted: </span>
-                <span class="meta-value"><span class="val">10/24/2016</span></span>
-              </li>
-            </ul>
-            <form>
-              <button class="btn-style btn submit" type="submit" disabled="disabled">Submit</button>
-            </form>
-          </div>
+            <div class="inner-details">
+              <h2>Closing Date</h2>
+              <ul class="meta-meta">
+                <li class="meta-entry slug show">
+                  <span class="meta-key">Slug: </span>
+                  <span class="meta-value"><span class="val"></span> <a href="#" class="fa fa-info-circle"></a></span>
+                </li>
+                <li class="meta-entry type show">
+                  <span class="meta-key">Type: </span>
+                  <span class="meta-value"><span class="val"></span> <a href="#" class="fa fa-info-circle"></a></span>
+                </li>
+                <li class="meta-entry format">
+                  <span class="meta-key">Format: </span>
+                  <span class="meta-value"><span class="val"></span> <a href="#" class="fa fa-info-circle"></a></span>
+                </li>
+                <li class="meta-entry formatted">
+                  <span class="meta-key">Formatted: </span>
+                  <span class="meta-value"><span class="val"></span></span>
+                </li>
+                <li class="meta-entry value show">
+                  <span class="meta-key">Value: </span>
+                  <span class="meta-value"><span class="val"></span> <a href="#" class="fa fa-pencil"></a> </span>
+                </li>
+              </ul>
+              <form>
+                <button class="btn-style btn submit" type="submit" disabled="disabled">Submit</button>
+              </form>
+            </div><!--/.inner-details-->
+          </div><!--/.column-details-->
         </section>
       </div><!--/.tabbed-content-container-->
     </div><!--/.mid-section-->

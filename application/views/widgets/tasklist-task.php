@@ -11,7 +11,14 @@
 
 <div class="task-style task-<?php echo $task->id(); ?> <?php echo $task->isComplete() ? 'completed' : ''?> <?php echo $task->isStarted() ? 'started' : ''?> <?php echo $task->isErrored() ? 'errors' : ''?>"
      data-task_id="<?php echo $task->id(); ?>"
+     data-sort_order="<?php echo $task->getValue('sortOrder') ?>"
 >
+  <script>
+    _TASK_JSON.push({
+      id : '<?php echo $task->id(); ?>',
+      data : <?php echo json_encode($task->getTaskData()); ?>
+    });
+  </script>
   <div class="task-settings-widget bubble">
     <form method="post" class="clearfix">
       <div class="field"><label>Est. Completion (hrs): </label> <span class="form-field"><input type="text" placeholder="Ex. 2.5" /></span></div>

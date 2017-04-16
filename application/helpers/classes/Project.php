@@ -396,6 +396,20 @@ class Project extends WorkflowFactory
   }
 
   /**
+   * Returns json block to script tag to js use primarily
+   */
+  public function getProjectData(){
+    $return = [
+      'projectName' => $this->getValue('name'),
+      'templateName' => $this->template->getValue('name'),
+      'projectCompletionDate' => $this->getValue('dueDate') instanceof MongoDate ? $this->getValue('dueDate')->sec : null,
+      'taskCount' => 0,
+    ];
+    $return['projectCompletionDateString'] = $return['projectCompletionDate'] ? date('m/d/Y', $return['projectCompletionDate']) : null;
+    return $return;
+  }
+
+  /**
    * Whether or not this is a custom project or based upon a template
    * @return bool
    */
@@ -609,15 +623,30 @@ class Project extends WorkflowFactory
       }
       if($metaData['value']->ok()){
         $meta[$slug]['value'] = $metaData['value']->get();
+        switch ($meta[$slug]['type']){
+          case 'datetime':
+          case 'date':
+            if(isset($meta[$slug]['_']) && strtotime($meta[$slug]['value'])){
+              $meta[$slug]['formatted'] = date($meta[$slug]['_'], strtotime($meta[$slug]['value']));
+              $meta[$slug]['format'] = $meta[$slug]['_'];
+              unset($meta[$slug]['_']);
+            }
+            break;
+          case 'address':
+            $meta[$slug]['formatted'] = $meta[$slug]['value']['street'] . ', ';
+            $meta[$slug]['formatted'] .= $meta[$slug]['value']['city'] . ', ';
+            $meta[$slug]['formatted'] .= $meta[$slug]['value']['state'] . ' ';
+            $meta[$slug]['formatted'] .= $meta[$slug]['value']['zip'];
+            break;
+          default:
+            break;
+        }
       } else {
         $meta[$slug]['value'] = null;
+        if(!isset($meta[$slug]['format'])) $meta[$slug]['format'] = null;
+        if(!isset($meta[$slug]['formatted'])) $meta[$slug]['formatted'] = null;
       }
 
-      if($meta[$slug]['type'] == 'date' && isset($meta[$slug]['_']) && strtotime($meta[$slug]['value'])){
-        $meta[$slug]['formatted'] = date($meta[$slug]['_'], strtotime($meta[$slug]['value']));
-      } else {
-        $meta[$slug]['formatted'] = null;
-      }
     }
     return $meta;
   }
