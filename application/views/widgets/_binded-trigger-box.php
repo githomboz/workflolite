@@ -40,6 +40,8 @@
           <p>Enter in the title number</p>
           <input type="text" />
           <button class="btn-style">Submit</button>
+
+          <pre></pre>
         </section>
         <section class="tabbed-content metadata clearfix" data-slide="metadata">
           <h1>Project Metadata</h1>

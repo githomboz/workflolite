@@ -420,7 +420,6 @@
     $(document).on('click', '.task-name.has-trigger', _handleTaskBindedTrigger);
 
     $(document).on('click', function(event){
-        event.preventDefault();
         if (!$(event.target).closest('.binded-trigger-box').length) {
             _triggerBoxClose();
         }
@@ -437,6 +436,7 @@
             $(document).on('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
             $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
             _renderTriggerBoxProjectAndTaskData(projectData, task);
+            _renderTaskTabbedContent(task);
             _renderMetaDataTabbedContent();
         }
     }
@@ -545,6 +545,11 @@
 
     var $metadataTab = $('.tabbed-content.metadata');
 
+    function _renderTaskTabbedContent(task){
+        var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
+        $taskTab.find('pre').html(JSON.stringify(task, undefined, 2));
+    }
+
     function _metadataEntrySelected(e){
         e.preventDefault();
         var
@@ -562,7 +567,7 @@
     }
 
     function _renderMetaDataTabbedContent(){
-        var $entries = $('.binded-trigger-box .tabbed-content .entries');
+        var $entries = $('.binded-trigger-box .tabbed-content.metadata .entries');
         // Render list
         if(_metadata_data.listChanged){
             var html = '';
