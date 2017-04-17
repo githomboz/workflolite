@@ -308,6 +308,26 @@ $overLayBG : rgba(0, 0, 0, .5);
           color: $txtInnerColor;
         }
       }
+
+      .task-trigger {
+        float: left;
+        width: 60%;
+      }
+
+      .task-data-block {
+        float: right;
+        width: 38%;
+
+        a  {
+          display: block;
+        }
+
+        pre {
+          margin-top: $padding;
+          overflow: scroll;
+          max-height: 320px;
+        }
+      }
     }
 
     .meta-fields {

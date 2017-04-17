@@ -396,7 +396,7 @@
         });
     }
 
-    console.log(_TASK_JSON);
+    //console.log(_TASK_JSON);
 
     function _getTaskDataById(id){
         for(var i in _TASK_JSON){
@@ -435,6 +435,7 @@
             //alertify.triggerUILoad('<h1 class="trigger-title">This is a trigger</h1><p>Triggers are automatically bound to a task and can be any of the following:</p><ul><li>a form</li><li>lambda (automatic function)</li><li>a dialog box with a simple messaage</li><li>an html page</li></ul>');
             $(document).on('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
             $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+            $(document).on('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
             _renderTriggerBoxProjectAndTaskData(projectData, task);
             _renderTaskTabbedContent(task);
             _renderMetaDataTabbedContent();
@@ -448,7 +449,16 @@
             $overlay.removeClass('show');
             $(document).off('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
             $(document).off('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+            $(document).off('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
         }
+    }
+
+    function _handleTriggerBoxPreviewData(e){
+        e.preventDefault();
+        var $el = $(e.target),
+          $dataBlock = $el.parents('.task-data-block'),
+          $pre = $dataBlock.find('pre');
+        $pre.toggle();
     }
 
     function _handleTriggerBoxNavClick(e){

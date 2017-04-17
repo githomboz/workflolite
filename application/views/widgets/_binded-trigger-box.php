@@ -31,17 +31,22 @@
       <div class="tabbed-content-container clearfix">
         <section class="tabbed-content tasks clearfix show" data-slide="tasks">
           <span class="status-info">Status: <span class="status">New</span></span>
-          <h1>Open File: Title Search / Commitment</h1>
-          <p>Access <a href="#">http://www.westpalmbeachtitles.com/search</a> and look for details on the property at:</p>
-          <code>
-            1484 SW Alzer Rd,<br />
-            Palm Beach Gardens, FL 33411
-          </code>
-          <p>Enter in the title number</p>
-          <input type="text" />
-          <button class="btn-style">Submit</button>
+          <div class="task-trigger">
+            <h1>Open File: Title Search / Commitment</h1>
+            <p>Access <a href="#">http://www.westpalmbeachtitles.com/search</a> and look for details on the property at:</p>
+            <code>
+              1484 SW Alzer Rd,<br />
+              Palm Beach Gardens, FL 33411
+            </code>
+            <p>Enter in the title number</p>
+            <input type="text" />
+            <button class="btn-style">Submit</button>
+          </div><!--/task-trigger-->
 
-          <pre></pre>
+          <div class="task-data-block">
+            <a href="#"><i class="fa fa-search"></i> Preview Data</a>
+            <pre style="display: none"></pre>
+          </div><!--/task-data-block-->
         </section>
         <section class="tabbed-content metadata clearfix" data-slide="metadata">
           <h1>Project Metadata</h1>

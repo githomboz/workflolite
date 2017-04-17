@@ -3619,6 +3619,18 @@ span.checkbox {
     color: #afaeae; }
     .binded-trigger-box .tabbed-content.tasks .status-info .status {
       color: #fff; }
+  .binded-trigger-box .tabbed-content.tasks .task-trigger {
+    float: left;
+    width: 60%; }
+  .binded-trigger-box .tabbed-content.tasks .task-data-block {
+    float: right;
+    width: 38%; }
+    .binded-trigger-box .tabbed-content.tasks .task-data-block a {
+      display: block; }
+    .binded-trigger-box .tabbed-content.tasks .task-data-block pre {
+      margin-top: 10px;
+      overflow: scroll;
+      max-height: 320px; }
   .binded-trigger-box .tabbed-content .meta-fields {
     font-size: 14px; }
     .binded-trigger-box .tabbed-content .meta-fields .head-links {
