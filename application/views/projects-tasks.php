@@ -485,15 +485,15 @@
           function(){
               // beforeSend
               _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'checking');
+              if(_LAMBDA_PROGRESS == 1){
+                  $lambdaStartBtn.addClass('clicked');
+                  $lambdaStartBtn.html('<i class="fa fa-spin fa-spinner"></i> Running Lambda');
+              }
           },
           function(data){
               // success
               if(data.errors == false){
                   _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'done');
-                  if(_LAMBDA_PROGRESS == 1){
-                      $lambdaStartBtn.addClass('clicked');
-                      $lambdaStartBtn.html('<i class="fa fa-spin fa-spinner"></i> Running Lambda');
-                  }
                   if(_LAMBDA_PROGRESS < 6){
                       PubSub.publish('queueNextRunLambdaStep', data.response);
                   }
