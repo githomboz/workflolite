@@ -3720,6 +3720,9 @@ span.checkbox {
         -webkit-border-radius: 3px;
                 border-radius: 3px;
         margin-bottom: .5em; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .lambda-start-btn.complete {
+          background: #afaeae;
+          pointer-events: none; }
       .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .lambda-steps {
         line-height: 1.8em;
         color: #afaeae;

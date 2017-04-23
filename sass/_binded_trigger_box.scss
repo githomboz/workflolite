@@ -455,6 +455,11 @@ $overLayBG : rgba(0, 0, 0, .5);
             padding: 0 $padding;
             border: none;
             border-radius: 3px;margin-bottom: .5em;
+
+            &.complete {
+              background: $txtLightGray;
+              pointer-events: none;
+            }
           }
 
           .lambda-steps {

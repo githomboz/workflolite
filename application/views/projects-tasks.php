@@ -458,53 +458,73 @@
         }
     }
 
-    var _LAMBDA_PROGRESS = null;
+    var _LAMBDA_PROGRESS = 0;
 
     function _handleRunLambdaBtnClick(e){
         e.preventDefault();
-        $this = $(this);
+        var $this = $(this);
         console.log(_LAMBDA_PROGRESS);
         if(!_LAMBDA_PROGRESS){
             // Start ajax jumps
-            var post = {
-                projectId : _CS_Get_Project_ID(),
-                taskTemplateId : $this.parents('.dynamic-content').attr('data-task_template_id'),
-                routine : 'validate_lambda_callback'
-            };
-            _LAMBDA_PROGRESS = 1;
-
-            CS_API.call('ajax/run_lambda_routines',
-              function(){
-                  // beforeSend
-                  _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'checking');
-              },
-              function(data){
-                  // success
-                  if(data.errors == false){
-                      _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'done');
-                      //PubSub.publish('taskChange.taskComplete', data.response);
-                  } else {
-                      alertify.error(data.errors[0]);
-                  }
-              },
-              function(){
-                  // error
-                  alertify.error('Error', 'An error has occurred.');
-              },
-              post,
-              {
-                  method: 'POST',
-                  preferCache : false
-              }
-            );
-
+            _executeRunLambdaAjaxCalls()
         }
+    }
+
+    PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
+
+    function _executeRunLambdaAjaxCalls(topic, payload){
+        _LAMBDA_PROGRESS++;
+        var post = {
+            projectId : _CS_Get_Project_ID(),
+            taskTemplateId : $('.dynamic-content').attr('data-task_template_id'),
+            routine : 'step-' + _LAMBDA_PROGRESS
+        };
+        var $lambdaStartBtn = $('.lambda-start-btn');
+
+        CS_API.call('ajax/run_lambda_routines',
+          function(){
+              // beforeSend
+              _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'checking');
+          },
+          function(data){
+              // success
+              if(data.errors == false){
+                  _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'done');
+                  if(_LAMBDA_PROGRESS == 1){
+                      $lambdaStartBtn.addClass('clicked');
+                      $lambdaStartBtn.html('<i class="fa fa-spin fa-spinner"></i> Running Lambda');
+                  }
+                  if(_LAMBDA_PROGRESS < 6){
+                      PubSub.publish('queueNextRunLambdaStep', data.response);
+                  }
+                  if(_LAMBDA_PROGRESS == 6) {
+                      $lambdaStartBtn.removeClass('clicked').addClass('complete');
+                      $lambdaStartBtn.html('<i class="fa fa-bolt"></i> Ran Lambda');
+                  }
+              } else {
+                  alertify.error(data.errors[0]);
+              }
+          },
+          function(){
+              // error
+              alertify.error('Error', 'An error has occurred.');
+          },
+          post,
+          {
+              method: 'POST',
+              preferCache : false
+          }
+        );
     }
 
     function _renderLambdaRoutineUIChanges(stepNum, progress){
         var $steps = $('.dynamic-content .lambda-steps'),
         $step = $steps.find('[data-step=' + stepNum + ']'),
         textData = {
+            0 : {
+              verb : "analyze",
+              noun : "Dependencies"
+            },
             1 : {
               verb : "validate",
               noun : "Lambda Callback"
@@ -587,12 +607,14 @@
         function(){
           // beforeSend
             $this.parents('.dynamic-content-overlay').addClass('checking');
+            _renderLambdaRoutineUIChanges(0, 'checking');
         },
         function(data){
           // success
           if(data.errors == false){
               $this.parents('.dynamic-content-overlay').removeClass('checking').addClass('checked');
               $tabbedContent.find('.lock-status').removeClass('fa-lock').addClass('fa-unlock');
+              _renderLambdaRoutineUIChanges(0, 'done');
               //PubSub.publish('taskChange.taskComplete', data.response);
           } else {
               alertify.error(data.errors[0]);
@@ -890,6 +912,7 @@
                     html += '<button class="lambda-start-btn"><i class="fa fa-bolt"></i> Run Lambda</button>'
                 }
                 html += '<ul class="lambda-steps">';
+                html += '<li data-step="0"><i class="fa fa-square-o"></i> Analyze Dependencies</li>';
                 html += '<li data-step="1"><i class="fa fa-square-o"></i> Validate Lambda Callback</li>';
                 html += '<li data-step="2"><i class="fa fa-square-o"></i> Validate Payload </li>';
                 html += '<li data-step="3"><i class="fa fa-square-o"></i> Validate Settings </li>';
