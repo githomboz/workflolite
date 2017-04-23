@@ -520,6 +520,50 @@ class Template extends WorkflowFactory
     return false;
   }
 
+  public function addSetting($key, $value = null){
+    if(!empty($key)){
+      $settings = (array) $this->getValue('settings');
+      echo $key;
+      $settings[$key] = $value;
+      $this->clearUpdates();
+      $this->applyUpdates(array('settings' => $settings));
+      return true;
+    }
+    return false;
+  }
+
+  public function setSettings(array $settings){
+    $this->clearUpdates();
+    $this->applyUpdates(array('settings' => $settings));
+    return true;
+  }
+
+  public function removeSetting($key){
+    $settings = (array) $this->getValue('settings');
+    if(isset($settings[$key])){
+      unset($settings[$key]);
+      $this->clearUpdates();
+      $this->applyUpdates(array('settings' => $settings));
+      return true;
+    }
+    return false;
+  }
+
+  public static function AddTemplateSetting($templateId, $key, $value = null){
+    $template = Template::Get($templateId);
+    if($template) return $template->addSetting($key, $value);
+  }
+
+  public static function SetTemplateSettings($templateId, $settings){
+    $template = Template::Get($templateId);
+    if($template) return $template->setSettings($settings);
+  }
+
+  public static function RemoveTemplateSetting($templateId, $key){
+    $template = Template::Get($templateId);
+    if($template) return $template->removeSetting($key);
+  }
+
   public function removeTaskTemplate($taskTemplateId){
     if(!empty($taskTemplateId)){
       $versionData = $this->getValue('versionData');
@@ -571,6 +615,45 @@ class Template extends WorkflowFactory
     return false;
   }
 
+  /**
+   * A copy of UpdateTaskTemplate that modifies data and type casts as this data is being saved from the
+   * json save method of the classic trigger textarea form.
+   *
+   * @param $templateId
+   * @param $taskTemplateId
+   * @param $data
+   * @param int $version
+   * @return bool
+   */
+  public static function UpdateTaskTemplateParsed($templateId, $taskTemplateId, $data, $version = 1){
+    $template = Template::Get($templateId);
+    $errors = [];
+    if($template){
+      $taskTemplate = $template->getTaskTemplate($taskTemplateId);
+
+      // Transform data if necessary
+      $data['dependenciesOKTimeStamp'] = is_numeric($data['dependenciesOKTimeStamp']) && (int) $data['dependenciesOKTimeStamp'] > 0 ? (int) $data['dependenciesOKTimeStamp'] : false;
+
+      $updatedData = $template->getTaskTemplateDiff($data);
+      // var_dump($taskTemplate, $updatedData, $data);
+      if (!empty($updatedData)) {
+        // Data updated
+        $updates = array(
+          'taskTemplateChanges' => array(
+            (string)$taskTemplate->id() => $updatedData
+          )
+        );
+        // var_dump($updates);
+        $template->applyUpdates($updates, $version);
+        return true;
+      }
+
+    } else {
+      $errors[] = 'Invalid template id provided';
+    }
+    return false;
+  }
+
   public function applyUpdates(array $updates, $version = null){
     foreach($updates as $key => $value) {
       $this->_updates[$key] = $value; // More efficient saving method
@@ -597,7 +680,7 @@ class Template extends WorkflowFactory
 
       // Handle an attempt to save fields that should not be stored inside versionData field
       $fieldDataToSave = array();
-      $fieldsNotToSaveInVersionData = array('versionData','version','taskTemplates');
+      $fieldsNotToSaveInVersionData = array('versionData','version','taskTemplates','settings');
 
       foreach($fieldsNotToSaveInVersionData as $field){
         $fieldDataToSave[$field] = false;
@@ -620,8 +703,6 @@ class Template extends WorkflowFactory
       $return['updates'] = $this->_updates;
 
       $return['state'] = $this->stateCheck();
-
-      //var_dump($return);
 
       // Save
       if($this->saveMode) $save = self::SaveToDb($this->id(), $this->getUpdates());

@@ -404,6 +404,9 @@ class Project extends WorkflowFactory
       'templateName' => $this->template->getValue('name'),
       'projectCompletionDate' => $this->getValue('dueDate') instanceof MongoDate ? $this->getValue('dueDate')->sec : null,
       'taskCount' => 0,
+      'template' => [
+        'settings' => $this->template->getValue('settings')
+      ]
     ];
     $return['projectCompletionDateString'] = $return['projectCompletionDate'] ? date('m/d/Y', $return['projectCompletionDate']) : null;
     return $return;

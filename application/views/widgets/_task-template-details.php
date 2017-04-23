@@ -39,14 +39,24 @@
               <a href="#" class="save-btn"><i class="fa fa-save"></i> Save</a> &nbsp; &nbsp;
               <a href="#" class="close-btn"><i class="fa fa-close"></i> Close</a>
             </div>
-            <textarea class="classic-trigger-input">
-{ "trigger" : {
+            <?php $defaultText = '{ "trigger" : {
     "triggerId" : "",
     "type": "lambda",
-    "callback": ""
-  }
-}
-            </textarea>
+    "settings": {}
+  },
+  "dependencies" : {},
+  "completionTests" : {}            
+}';
+
+            $jsonData = [
+              'trigger' => $template->getValue('trigger'),
+              'dependencies' => $template->getValue('dependencies'),
+              'dependenciesOKTimeStamp' => $template->getValue('dependenciesOKTimeStamp') ? $template->getValue('dependenciesOKTimeStamp') : false,
+              'completionTests' => $template->getValue('completionTests')
+            ];
+            ?>
+            <textarea class="classic-trigger-input <?php $triggerSet = $template->getValue('trigger'); if(empty($triggerSet)) echo 'unsaved'; ?>">
+<?php echo empty($triggerSet) ? $defaultText : json_encode($jsonData) ?></textarea>
           </div>
         </div>
       </div>

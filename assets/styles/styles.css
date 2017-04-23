@@ -2180,6 +2180,8 @@ span.checkbox {
               height: 150px;
               max-height: 150px;
               border: 1px solid #d9d9d9; }
+              .templates-list .template.entry .entry.form .aside .trigger-setup .trigger-input textarea.unsaved {
+                color: #8e8e8e; }
               .templates-list .template.entry .entry.form .aside .trigger-setup .trigger-input textarea.error {
                 border: 1px solid rgba(147, 8, 16, 0.42); }
           .templates-list .template.entry .entry.form .aside .trigger-setup .classic-show {
@@ -2418,7 +2420,11 @@ span.checkbox {
       color: inherit; }
   .btn.disabled, .btn[disabled=disabled] {
     color: #a5a5a5;
-    background: #f2f2f2; }
+    background: #f2f2f2;
+    cursor: default;
+    pointer-events: none; }
+    .btn.disabled.v2, .btn[disabled=disabled].v2 {
+      background: #d9d9d9; }
     .btn.disabled:hover, .btn[disabled=disabled]:hover {
       background: #f2f2f2; }
     .btn.disabled .fa, .btn[disabled=disabled] .fa {
@@ -3418,10 +3424,10 @@ span.checkbox {
           text-align: center; }
 
 .binded-trigger-box-overlay {
-  position: absolute;
+  position: fixed;
   z-index: 100;
   height: 92%;
-  padding-top: 4%;
+  padding-top: 0.5%;
   width: 100%;
   display: none; }
   .binded-trigger-box-overlay.show {
@@ -3621,7 +3627,124 @@ span.checkbox {
       color: #fff; }
   .binded-trigger-box .tabbed-content.tasks .task-trigger {
     float: left;
-    width: 60%; }
+    width: 60%;
+    height: 350px;
+    padding-bottom: 18px; }
+    .binded-trigger-box .tabbed-content.tasks .task-trigger .trigger-type {
+      margin-bottom: 10px;
+      color: #7b7b7b;
+      line-height: 1.3em; }
+      .binded-trigger-box .tabbed-content.tasks .task-trigger .trigger-type .trigger-type-name {
+        color: #bdbdbd; }
+      .binded-trigger-box .tabbed-content.tasks .task-trigger .trigger-type .trigger-type-desc {
+        color: #fff; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .trigger-type .trigger-type-desc .false-btn {
+          background: rgba(146, 243, 139, 0.68);
+          color: #444;
+          -webkit-border-radius: 3px;
+                  border-radius: 3px;
+          padding: 0 4px;
+          font-size: 12px;
+          position: relative;
+          top: -2px; }
+    .binded-trigger-box .tabbed-content.tasks .task-trigger .group {
+      color: #bdbdbd; }
+    .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links {
+      position: absolute;
+      bottom: 10px;
+      left: 10px; }
+      .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .ajax-response {
+        color: #fff; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .ajax-response .fa {
+          color: #dde69a; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .ajax-response.success {
+          color: #92f38b; }
+          .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .ajax-response.success .fa {
+            color: #3be92f; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .ajax-response.error {
+          color: #b8928e; }
+          .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .ajax-response.error .fa {
+            color: #b8464d; }
+    .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content {
+      position: relative; }
+      .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: rgba(72, 72, 72, 0.9);
+        top: 0;
+        left: 0;
+        z-index: 10; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .br {
+          display: block;
+          margin-bottom: .8em; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .explanation {
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 14px; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .dependency-list {
+          background: #484848;
+          float: right;
+          width: 50%; }
+          .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .dependency-list ol {
+            font-size: 12px;
+            line-height: 1.3em;
+            list-style-type: decimal;
+            list-style-position: inside;
+            list-style: decimal;
+            padding-left: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            display: none; }
+            .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .dependency-list ol li {
+              margin-bottom: .5em;
+              list-style: decimal; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .check-dependencies-btn {
+          color: #92f38b; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .checking-text {
+          display: none; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay.checking ol {
+          display: block; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay.checking .explanation {
+          display: none; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay.checking .check-dependencies-btn {
+          display: none; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay.checking .checking-text {
+          display: block; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay.checked {
+          display: none; }
+      .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .lambda-start-btn {
+        background: #92f38b;
+        color: #444;
+        line-height: 1.5em;
+        padding: 0 10px;
+        border: none;
+        -webkit-border-radius: 3px;
+                border-radius: 3px;
+        margin-bottom: .5em; }
+      .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .lambda-steps {
+        line-height: 1.8em;
+        color: #afaeae;
+        font-size: 14px;
+        position: relative;
+        left: 1px; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .lambda-steps .done {
+          color: #92f38b;
+          font-style: italic; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .lambda-steps .fa {
+          margin-right: 5px;
+          color: #fff; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .lambda-steps .fa {
+          margin-right: 5px;
+          color: #fff; }
+    .binded-trigger-box .tabbed-content.tasks .task-trigger .completion-test-btn {
+      color: #ffd04c; }
+      .binded-trigger-box .tabbed-content.tasks .task-trigger .completion-test-btn .fa-heartbeat {
+        color: rgba(255, 53, 65, 0.4); }
+  .binded-trigger-box .tabbed-content.tasks[data-status=completed] .completion-test-btn {
+    pointer-events: none;
+    cursor: default;
+    color: rgba(204, 204, 204, 0.37); }
+    .binded-trigger-box .tabbed-content.tasks[data-status=completed] .completion-test-btn .fa-heartbeat {
+      color: #ff3541; }
   .binded-trigger-box .tabbed-content.tasks .task-data-block {
     float: right;
     width: 38%; }
@@ -3630,7 +3753,11 @@ span.checkbox {
     .binded-trigger-box .tabbed-content.tasks .task-data-block pre {
       margin-top: 10px;
       overflow: scroll;
-      max-height: 320px; }
+      height: 324px;
+      font-size: 12px;
+      font-weight: 100;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.04); }
   .binded-trigger-box .tabbed-content .meta-fields {
     font-size: 14px; }
     .binded-trigger-box .tabbed-content .meta-fields .head-links {

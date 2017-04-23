@@ -5,16 +5,16 @@
 
       </div>
       <div class="titles">
-        <h2>Duffley home sale</h2>
-        <h3>Real Estate Title Clearing</h3>
+        <h2></h2>
+        <h3></h3>
       </div>
       <div class="upper-settings">
-        <span class="deadline-txt">Complete by <span class="date">May 14, 2017</span> </span>
+        <span class="deadline-txt">Complete by <span class="date"></span> </span>
         <i class="fa fa-cog"></i>
       </div>
       <div class="lower-settings">
-        <span class="task-count-txt">Task #<span class="task-num">13</span> of <span class="task-count">27</span></span>
-        <span class="time-tracker-btn"><i class="fa fa-pause-circle"></i> 00:12:57</span>
+        <span class="task-count-txt">Project Task #<span class="task-num"></span> of <span class="task-count"></span></span>
+        <span class="time-tracker-btn"><i class="fa fa-pause-circle"></i> 00:00:00</span>
       </div>
     </header>
     <div class="mid-section clearfix">
@@ -29,27 +29,27 @@
         </ul>
       </nav>
       <div class="tabbed-content-container clearfix">
-        <section class="tabbed-content tasks clearfix show" data-slide="tasks">
-          <span class="status-info">Status: <span class="status">New</span></span>
+        <section class="tabbed-content tasks clearfix show" data-status="completed" data-slide="tasks">
+          <span class="status-info">Status: <span class="status"></span></span>
           <div class="task-trigger">
-            <h1>Open File: Title Search / Commitment</h1>
-            <p>Access <a href="#">http://www.westpalmbeachtitles.com/search</a> and look for details on the property at:</p>
-            <code>
-              1484 SW Alzer Rd,<br />
-              Palm Beach Gardens, FL 33411
-            </code>
-            <p>Enter in the title number</p>
-            <input type="text" />
-            <button class="btn-style">Submit</button>
+            <div class="trigger-type"><span class="trigger-type-name"></span> | <span class="trigger-type-desc"></span></div>
+            <h1>#<span class="num"></span>) <span class="group"></span>: <span class="icon"></span> <span class="name"></span></h1>
+            <div class="description"></div>
+            <div class="instructions"></div>
+            <div class="dynamic-content" data-task_template_id=""></div>
+            <div class="bottom-links">
+              <a href="#" class="completion-test-btn"><i class="fa fa-heartbeat"></i><span class="info-data"> Run completion tests</span></a>
+              <span class="ajax-response success">[ <i class="fa fa-check"></i> Success | <a href="#" class="completion-test-report-btn">Report</a> ]</span>
+            </div>
           </div><!--/task-trigger-->
 
           <div class="task-data-block">
-            <a href="#"><i class="fa fa-search"></i> Preview Data</a>
-            <pre style="display: none"></pre>
+            <a href="#"><i class="fa fa-search"></i> Toggle Raw</a>
+            <pre></pre>
           </div><!--/task-data-block-->
         </section>
         <section class="tabbed-content metadata clearfix" data-slide="metadata">
-          <h1>Project Metadata</h1>
+          <h1>Job Metadata</h1>
           <div class="column-list">
             <div class="meta-fields">
               <div class="head-links clearfix">

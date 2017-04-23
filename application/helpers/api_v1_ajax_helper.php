@@ -585,4 +585,119 @@ function update_task_template_required_fields(){
   return array('templateId','taskTemplateId','updates');
 }
 
+function update_task_template_block(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  if(!isset($data['version'])) $data['version'] = 1;
+  $saved = Template::UpdateTaskTemplateParsed($data['templateId'], $data['taskTemplateId'], $data['updates'], $data['version']);
+  $response['response']['saved'] = $saved;//WFLogger::Read((array) CI()->input->get());
+  $response['recordCount'] = 0;//WFLogger::Read((array) CI()->input->get(), true);
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function update_task_template_block_args_map(){
+  return array('templateId','taskTemplateId','updates');
+}
+
+// Field names of fields required
+function update_task_template_block_required_fields(){
+  return array('templateId','taskTemplateId','updates');
+}
+
+function update_template_settings(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  // Do type cast if necessary
+  if(isset($data['typeCasts'])){
+    foreach($data['settings'] as $k => $v){
+      if(isset($data['typeCasts'][$k])){
+        switch($data['typeCasts'][$k]){
+          case 'bool':
+          case 'boolean':
+            if(strtolower($v) === 'true') $v = true;
+            if(strtolower($v) === 'false') $v = false;
+          $data['settings'][$k] = (bool) $v;
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }
+  $saved = Template::SetTemplateSettings($data['templateId'], $data['settings']);
+  //var_dump($data);
+  $response['response']['saved'] = $saved;
+  $response['recordCount'] = 0;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function update_template_settings_args_map(){
+  return array('templateId','settings','typeCasts');
+}
+
+// Field names of fields required
+function update_template_settings_required_fields(){
+  return array('templateId','settings');
+}
+
+function sample_task_data(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $response['response'] = Task2::SampleTaskSetup();
+  $response['recordCount'] = 0;
+  return $response;
+}
+
+function check_task_dependencies(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $response['response']['saved'] = true;
+  $response['recordCount'] = 0;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function check_task_dependencies_args_map(){
+  return array('projectId','taskTemplateId');
+}
+
+// Field names of fields required
+function check_task_dependencies_required_fields(){
+  return array('projectId','taskTemplateId');
+}
+
+function run_lambda_routines(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $response['response']['saved'] = true;
+  $response['recordCount'] = 0;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function run_lambda_routines_args_map(){
+  return array('projectId','taskTemplateId', 'routine');
+}
+
+// Field names of fields required
+function run_lambda_routines_required_fields(){
+  return array('projectId','taskTemplateId', 'routine');
+}
 

@@ -1508,6 +1508,10 @@ $tasklist_height : 36px;
                 max-height: 150px;
                 border: 1px solid darken($sidepanel_bg, 10%);
 
+                &.unsaved {
+                  color: #8e8e8e;
+                }
+
                 &.error {
                   border: 1px solid darken($error_red, 0%);
                 }

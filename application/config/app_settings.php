@@ -167,6 +167,7 @@ $config['mongo_schema'] = array(
     'availStatuses', // statuses available to all project tasks
     'accessibility', // Who has access to use this template
     'metaFields', // Fields that are needed for job completion
+    'settings',
     'versionData', // updated fields and their values mapped to a version number
     'version' // the current version of this template
   ),

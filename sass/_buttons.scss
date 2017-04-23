@@ -92,6 +92,12 @@
   &.disabled, &[disabled=disabled] {
     color: lighten($sidepanel_color_light, 15%);
     background: $sidepanel_bg;
+    cursor: default;
+    pointer-events: none;
+
+    &.v2 {
+      background: darken($sidepanel_bg, 10%);
+    }
 
     &:hover {
       background: $sidepanel_bg;

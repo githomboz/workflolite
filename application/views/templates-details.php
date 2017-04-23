@@ -175,6 +175,17 @@
         </div>
       </div><!--/.widget-->
 
+      <div class="settings-list entities-list widget">
+        <h2>Workflow Settings: </h2>
+        <?php $settings = template()->getValue('settings') ?>
+        <form method="post" id="workflow-settings-form" class="boxed sidepanel-bg">
+          <div class="form-group">
+            <input type="checkbox" id="autoRunField" name="autoRun" <?php echo $settings['autoRun'] ? 'checked="checked"' : '' ?> /> <label for="autoRunField">Run lambda functions automatically</label>
+          </div>
+          <button class="btn submit v2"><i class="fa fa-save"></i> Save</button>
+        </form>
+      </div><!--/.widget-->
+
     </div><!--/.template-sidebar-->
 
 
@@ -544,7 +555,7 @@
       post = JSON.parse(json);
     }
     catch (e) {
-      console.error(e);
+      console.error('BJL; JSON Parse Error: ', e);
     }
     if(typeof post === 'object') return post;
     return false;
@@ -569,9 +580,12 @@
         id : taskTemplateId
       };
       if(typeof post.trigger != 'undefined') add.updates.trigger = post.trigger;
-      console.log(add);
+      if(typeof post.dependencies != 'undefined') add.updates.dependencies = post.dependencies;
+      if(typeof post.completionTest != 'undefined') add.updates.completionTest = post.completionTest;
+      if(typeof post.dependenciesOKTimeStamp != 'undefined') add.updates.dependenciesOKTimeStamp = post.dependenciesOKTimeStamp;
+      //console.log(add);
 
-      CS_API.call('/ajax/update_task_template',
+      CS_API.call('/ajax/update_task_template_block',
         function(){
           $el.removeClass('error').addClass('dark-text');
           $el.html('<i class="fa fa-spin fa-spinner"></i> Saving');
@@ -580,6 +594,7 @@
         function(data){
           if(data.errors === false){
             $el.removeClass('dark-text');
+            $textarea.removeClass('unsaved');
             $el.html('<i class="fa fa-save"></i> Save');
           } else {
             _handleClassicSaveError($el);
@@ -634,5 +649,62 @@
   }
 
   PubSub.subscribe('_details_taskTemplateCountChanged', _htmlUpdateTaskTemplateCount);
+
+  $(document).on('click', '#workflow-settings-form button', _handleWorkflowSettingsSaveBtn);
+
+  function _handleWorkflowSettingsSaveBtn(e){
+    e.preventDefault();
+    var $this = $(this),
+      $form = $this.parents('form'),
+      formData = $form.serializeArray(),
+      post = {
+        templateId : _CS_Get_Template_ID(),
+        settings : {},
+        typeCasts : {}
+      };
+
+    for(var i in formData){
+      if(typeof post.settings[formData[i].name] == 'undefined') post.settings[formData[i].name] = formData[i].value;
+    }
+
+    // Get checkboxes and set them to true or false based on their presence in the values array
+    $form.find("input[type=checkbox]").each(function(i, item){
+      var name = $(item).attr('name');
+      post.settings[name] = typeof post.settings[name] != 'undefined';
+      post.typeCasts[name] = 'bool';
+    });
+
+    //console.log(formData, post);
+
+    CS_API.call('/ajax/update_template_settings',
+      function(){
+        $this.html('<i class="fa fa-spin fa-spinner"></i> Saving');
+      },
+      function(data){
+        if(data.errors === false){
+          $this.html('<i class="fa fa-save"></i> Save');
+        } else {
+          $this.addClass('disabled').html('<i class="fa fa-warning"></i> Error Occurred');
+        }
+      },
+      function(){
+        $this.addClass('disabled').html('<i class="fa fa-warning"></i> Error Occurred');
+      },
+      post,
+      {
+        method: 'POST',
+        preferCache : false
+      }
+    );
+
+    return false;
+
+  }
+
+  function _pollUpdateProjectData(){
+    // Find out if the current project data
+    // Update _PROJECT variable
+    // Update necessary fields based upon any state changes
+  }
 
 </script>

@@ -112,6 +112,31 @@ class Task2
     return $this;
   }
 
+  /**
+   * Check if a valid competion test exists
+   */
+  public function validCompletionTest(){
+    // Check if completion test exists
+    if($this->getValue('completionTest')){
+
+    }
+    // If completion test exists
+    // Check if valid
+    // Return true only if a valid text exists
+  }
+
+  /**
+   * Performs valid completion test and stores response
+   */
+  public function performCompletionTest(){
+    // Check if completion test exists
+    // If completion test exists
+    // Validate and perform completion test
+    // save response
+    // return response
+    // return null if no tests exist
+  }
+
   public function getStartDate($format = 'l, F j, Y h:i:s'){
     if($date = $this->getValue('startDate')){
       return date($format, $date->sec);
@@ -263,12 +288,25 @@ class Task2
    * Returns json block to script tag to js use primarily
    */
   public function getTaskData(){
-    return [
+    $return = [
       'taskId' => $this->id(),
+      'taskGroup' => $this->getValue('taskGroup'),
+      'taskName' => $this->getValue('name'),
       'sortOrder' => $this->getValue('sortOrder'),
       'trigger' => $this->getValue('trigger'),
-      'description' => $this->getValue('description')
+      'dependencies' => $this->getValue('dependencies'),
+      'dependenciesOKTimeStamp' => false,
+      'status' => $this->getValue('status'),
+      'description' => $this->getValue('description'),
+      'instructions' => $this->getValue('instructions'),
+      'startDate' => $this->getValue('startDate'),
+      'completeDate' => $this->getValue('completeDate'),
+      'estimatedTime' => $this->getValue('estimatedTime'),
+      'completionReport' => $this->getValue('completionReport'),
     ];
+
+    $return['dependenciesOKTimeStamp'] = $this->getValue('dependenciesOKTimeStamp') ? $this->getValue('dependenciesOKTimeStamp') : false;
+    return $return;
   }
 
   private function _mergeTemplateToTask(TaskTemplate2 $template){
@@ -285,6 +323,89 @@ class Task2
     // Merge template into current
     $this->_current = array_merge($template, $this->_current);
 
+  }
+
+  public static function SampleTaskSetup(){
+    $return = [
+      'trigger' => [
+        'triggerId' => '',
+        'type' => 'lambda',
+        'settings' => []
+      ],
+      'dependencies' => [
+        [
+          'callback' => 'WF::MetaDataIsSet',
+          'paramsMap' => [
+            [
+              'type' => 'metaData',
+              'value' => 'job.propertyAddress',
+            ],
+          ],
+          'assertion' => [
+            '_eq' => true
+          ],
+        ],
+        [
+          'callback' => 'WF::MetaDataIsSet',
+          'paramsMap' => [
+            [
+              'type' => 'metaData',
+              'value' => 'job.fileNumber',
+            ],
+          ],
+          'assertion' => [
+            '_eq' => true
+          ],
+        ],
+        [
+          'callback' => 'WF::DistanceFromToLimit',
+          'paramsMap' => [
+            [
+              'type' => 'orgData',
+              'value' => 'org.primaryAddress',
+              'formatCallback' => 'WF::AddressToString'
+            ],
+            [
+              'type' => 'metaData',
+              'value' => 'job.propertyAddress',
+              'formatCallback' => 'WF::AddressToString'
+            ],
+            [
+              'type' => 'value',
+              'value' => 'miles',
+            ],
+          ],
+          'assertion' => [
+            '_gt' => 2.5
+          ],
+        ],
+
+      ],
+      'dependenciesOKTimeStamp' => false,
+      'completionTests' => [
+        [
+          'callback' => 'WF::MetaDataIsSet',
+          'paramsMap' => [
+            [
+              'type' => 'metaData',
+              'value' => 'job.fileNumber',
+            ],
+          ],
+          'assertion' => [
+            '_eq' => true
+          ],
+        ],
+      ],
+      'completionReport' => [
+        'dateAdded' => new MongoDate(),
+        'testResults' => [
+          [
+            'callbackExecuted' => 'WF::MetaDataIsSet'
+          ]
+        ]
+      ]
+    ];
+    return $return;
   }
 
   private function _mergeInTemplateTriggers($template){

@@ -4,9 +4,8 @@
       <select>
         <option>Select One</option>
         <option>Lambda Function</option>
-        <option>Custom Form</option>
-        <option>Dialog</option>
-        <option>HTML Viewer</option>
+        <option>Dynamic Form</option>
+        <option>Visual Applet</option>
       </select>
       <input type="text" value="mail" />
       <button class="btn-style submit"><i class="fa fa-search"></i> Search</button>

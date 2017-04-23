@@ -12,12 +12,11 @@ $inactiveBtnBG : #848484;
 $inactiveBtnText : darken($normalBtnGray, 5%);
 $overLayBG : rgba(0, 0, 0, .5);
 
-
 .binded-trigger-box-overlay {
-  position: absolute;
+  position: fixed;
   z-index: 100;
   height: 92%;
-  padding-top: 4%;
+  padding-top: 0.5%;
   width: 100%;
   display: none;
 
@@ -312,6 +311,198 @@ $overLayBG : rgba(0, 0, 0, .5);
       .task-trigger {
         float: left;
         width: 60%;
+        height: 350px;
+        padding-bottom: $paddingLarge;
+
+        .trigger-type {
+          margin-bottom: $padding;
+          color: #7b7b7b;
+          line-height: 1.3em;
+
+          .trigger-type-name {
+            color: #bdbdbd;
+          }
+
+          .trigger-type-desc {
+            color: #fff;
+
+            .false-btn {
+              background: rgba($lightGreen, .68);
+              color: #444;
+              border-radius: 3px;
+              padding: 0 4px;
+              font-size: 12px;
+              position: relative;
+              top: -2px;
+            }
+          }
+
+        }
+
+        .group {
+          color: #bdbdbd;
+        }
+
+        .bottom-links {
+          position: absolute;
+          bottom: $padding;
+          left: $padding;
+
+          .ajax-response {
+            color: #fff;
+
+            .fa {
+              color: #dde69a;
+            }
+
+            &.success {
+              color: $lightGreen;
+
+              .fa {
+                color: darken($lightGreen, 20%);
+              }
+            }
+            &.error {
+              color: #b8928e;
+
+              .fa {
+                color: #b8464d
+              }
+            }
+          }
+        }
+
+        .dynamic-content {
+          position: relative;
+
+          .dynamic-content-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba($tabGray, .9);
+            top: 0;
+            left: 0;
+            z-index: 10;
+
+            .br {
+              display: block;
+              margin-bottom: .8em;
+            }
+
+            .explanation {
+              color: rgba(255, 255, 255, .8);
+              font-size: 14px;
+            }
+
+            .dependency-list {
+              background: $tabGray;
+              float: right;
+              width: 50%;
+
+              ol {
+                font-size: 12px;
+                line-height: 1.3em;
+                list-style-type: decimal;
+                list-style-position: inside;
+                list-style: decimal;
+                padding-left: 14px;
+                color: rgba(255, 255, 255, .7);
+                display: none;
+
+                li {
+                  margin-bottom: .5em;
+                  list-style: decimal;
+                }
+              }
+            }
+
+            .check-dependencies-btn {
+              color: $lightGreen;
+            }
+            
+            .checking-text {
+              display: none;
+            }
+
+            &.checking {
+              ol {
+                display: block;
+              }
+
+              .explanation {
+                display: none;
+              }
+
+              .check-dependencies-btn {
+                display: none;
+              }
+
+              .checking-text {
+                display: block;
+              }
+            }
+
+            &.checked {
+              display: none;
+            }
+
+          }
+
+          .lambda-start-btn {
+            background: $lightGreen;
+            color: #444;
+            line-height: 1.5em;
+            padding: 0 $padding;
+            border: none;
+            border-radius: 3px;margin-bottom: .5em;
+          }
+
+          .lambda-steps {
+            line-height: 1.8em;
+            color: $txtLightGray;
+            font-size: 14px;
+            position: relative;
+            left: 1px;
+
+            .done {
+              color: $lightGreen;
+              font-style: italic;
+            }
+
+            .fa {
+              margin-right: 5px;
+              color: #fff;
+            }
+
+            .fa {
+              margin-right: 5px;
+              color: #fff;
+            }
+          }
+
+        }
+
+        .completion-test-btn {
+          color: #ffd04c;
+
+          .fa-heartbeat {
+            color: rgba(255, 53, 65, .4);
+          }
+        }
+
+      }
+
+      &[data-status=completed] {
+        .completion-test-btn {
+          pointer-events: none;
+          cursor: default;
+          color: rgba(204,204,204,.37);
+
+          .fa-heartbeat {
+            color: rgba(255, 53, 65, 1);
+          }
+
+        }
       }
 
       .task-data-block {
@@ -325,7 +516,11 @@ $overLayBG : rgba(0, 0, 0, .5);
         pre {
           margin-top: $padding;
           overflow: scroll;
-          max-height: 320px;
+          height: 324px;
+          font-size: 12px;
+          font-weight: 100;
+          padding: $padding;
+          background: rgba(255, 255, 255, .04);
         }
       }
     }

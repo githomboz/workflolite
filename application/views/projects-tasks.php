@@ -44,8 +44,6 @@
             <button type="submit" class="btn submit"><i class="fa fa-plus"></i> Add Task</button>
         </form>
 
-        <?php //var_dump($this->project) ?>
-
         <div class="tasklist">
             <script class="projectData">
                 var _PROJECT = <?php echo json_encode($this->project->getProjectData()) ?>;
@@ -426,16 +424,19 @@
     });
 
     function _triggerBoxOpen(projectData, taskId){
-        //console.log('trigger box opened');
-
+        var $overlay = $(".binded-trigger-box-overlay");
         var task = _getTaskDataById(taskId);
-        //console.log(task);
         if(task){
-            $(".binded-trigger-box-overlay").addClass('show');
-            //alertify.triggerUILoad('<h1 class="trigger-title">This is a trigger</h1><p>Triggers are automatically bound to a task and can be any of the following:</p><ul><li>a form</li><li>lambda (automatic function)</li><li>a dialog box with a simple messaage</li><li>an html page</li></ul>');
-            $(document).on('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
-            $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
-            $(document).on('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
+            if(!$overlay.is('.show')){
+                $(".binded-trigger-box-overlay").addClass('show');
+                $(document).on('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
+                $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+                $(document).on('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
+                $(document).on('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
+                $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
+                $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
+                $(document).on('click', '.tabbed-content.tasks .lambda-start-btn', _handleRunLambdaBtnClick);
+            }
             _renderTriggerBoxProjectAndTaskData(projectData, task);
             _renderTaskTabbedContent(task);
             _renderMetaDataTabbedContent();
@@ -450,7 +451,183 @@
             $(document).off('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
             $(document).off('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
             $(document).off('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
+            $(document).off('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
+            $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
+            $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
+            $(document).off('click', '.tabbed-content.tasks .lambda-start-btn', _handleRunLambdaBtnClick);
         }
+    }
+
+    var _LAMBDA_PROGRESS = null;
+
+    function _handleRunLambdaBtnClick(e){
+        e.preventDefault();
+        $this = $(this);
+        console.log(_LAMBDA_PROGRESS);
+        if(!_LAMBDA_PROGRESS){
+            // Start ajax jumps
+            var post = {
+                projectId : _CS_Get_Project_ID(),
+                taskTemplateId : $this.parents('.dynamic-content').attr('data-task_template_id'),
+                routine : 'validate_lambda_callback'
+            };
+            _LAMBDA_PROGRESS = 1;
+
+            CS_API.call('ajax/run_lambda_routines',
+              function(){
+                  // beforeSend
+                  _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'checking');
+              },
+              function(data){
+                  // success
+                  if(data.errors == false){
+                      _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'done');
+                      //PubSub.publish('taskChange.taskComplete', data.response);
+                  } else {
+                      alertify.error(data.errors[0]);
+                  }
+              },
+              function(){
+                  // error
+                  alertify.error('Error', 'An error has occurred.');
+              },
+              post,
+              {
+                  method: 'POST',
+                  preferCache : false
+              }
+            );
+
+        }
+    }
+
+    function _renderLambdaRoutineUIChanges(stepNum, progress){
+        var $steps = $('.dynamic-content .lambda-steps'),
+        $step = $steps.find('[data-step=' + stepNum + ']'),
+        textData = {
+            1 : {
+              verb : "validate",
+              noun : "Lambda Callback"
+            },
+            2 : {
+              verb : "validate",
+              noun : "Payload"
+            },
+            3 : {
+              verb : "validate",
+              noun : "Settings"
+            },
+            4 : {
+              verb : "execute",
+              noun : "Lambda Callback"
+            },
+            5 : {
+              verb : "analyze",
+              noun : "Results"
+            },
+            6 : {
+              verb : "execute",
+              noun : "Post-Lambda Routines"
+            }
+        },
+        verbTenses = {
+          validate : {
+              do : "Validate",
+              doing : "Validating",
+              did : "Validated"
+          },
+          execute : {
+              do : "Execute",
+              doing : "Executing",
+              did : "Executed"
+          },
+          analyze : {
+              do : "Analyze",
+              doing : "Analyzing",
+              did : "Analyzed"
+          }
+        },
+          icons = {
+              do : 'fa fa-square-o',
+              doing : 'fa fa-spinner fa-spin',
+              did : 'fa fa-check-square-o'
+          },
+          icon = null;
+
+
+        switch (progress){
+            case 'checking':
+                icon = '<i class="' + icons.doing + '"></i> ';
+                $step.removeClass('done');
+                $step.html(icon + verbTenses[textData[stepNum].verb].doing + ' ' + textData[stepNum].noun);
+                break;
+            case 'done':
+                icon = '<i class="' + icons.did + '"></i> ';
+                $step.html(icon + verbTenses[textData[stepNum].verb].did + ' ' + textData[stepNum].noun);
+                $step.addClass('done');
+                break;
+            default:
+                icon = '<i class="' + icons.do + '"></i> ';
+                $step.removeClass('done');
+                $step.html(icon + verbTenses[textData[stepNum].verb].do + ' ' + textData[stepNum].noun);
+                break;
+        }
+    }
+
+    function _handleCheckDependenciesClick(e){
+        e.preventDefault();
+        var $this = $(this),
+          $tabbedContent = $this.parents('.tabbed-content'),
+          post = {
+              projectId : _CS_Get_Project_ID(),
+              taskTemplateId : $this.parents('.dynamic-content').attr('data-task_template_id')
+          };
+
+        CS_API.call('ajax/check_task_dependencies',
+        function(){
+          // beforeSend
+            $this.parents('.dynamic-content-overlay').addClass('checking');
+        },
+        function(data){
+          // success
+          if(data.errors == false){
+              $this.parents('.dynamic-content-overlay').removeClass('checking').addClass('checked');
+              $tabbedContent.find('.lock-status').removeClass('fa-lock').addClass('fa-unlock');
+              //PubSub.publish('taskChange.taskComplete', data.response);
+          } else {
+              alertify.error(data.errors[0]);
+          }
+        },
+        function(){
+          // error
+          alertify.error('Error', 'An error has occurred while checking dependencies. Please try again later.');
+        },
+        post,
+        {
+          method: 'POST',
+          preferCache : false
+        }
+        );
+
+        return false;
+    }
+
+    function _handleCheckDependencies(task){
+        // Check if dependenciesOKTimeStamp is not false
+        // Check if dependenciesOKTimeStamp is within recheckThreshold limit
+        // If necessary, recheck dependencies
+        // If dependencies ok, save dependenciesOKTimeStamp
+        // Update and publish task updates
+    }
+
+    function _handleTriggerBoxCompletionTestBtn(e){
+        e.preventDefault();
+
+    }
+
+    function _handleTriggerBoxCompletionTestReportBtn(e){
+        e.preventDefault();
+
     }
 
     function _handleTriggerBoxPreviewData(e){
@@ -554,10 +731,181 @@
     };
 
     var $metadataTab = $('.tabbed-content.metadata');
+    PubSub.subscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
 
     function _renderTaskTabbedContent(task){
         var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
+        //console.log(task.data);
+        $taskTab.find('.dynamic-content').html('Loading content ... <i class="fa fa-spin fa-spinner"></i>');
+        $taskTab.find('.dynamic-content').attr('data-task_template_id', task.data.taskId);
+        $taskTab.attr('data-status', task.data.status);
         $taskTab.find('pre').html(JSON.stringify(task, undefined, 2));
+        $taskTab.find('h1 .num').html(task.data.sortOrder);
+        $taskTab.find('h1 .group').html(task.data.taskGroup);
+        $taskTab.find('h1 .name').html(task.data.taskName);
+        $taskTab.find('.status-info .status').html(task.data.status.capitalize());
+        $taskTab.find('.description').html(task.data.description);
+        $taskTab.find('.instructions').html(task.data.instructions);
+
+        var triggerOptions = {
+            lambda : {
+                name : 'Lambda Function'
+            },
+            form : {
+                name : 'Dynamic Form',
+                desc : 'Fill out the following form to complete the task.'
+            },
+            applet : {
+                name : 'Visual Applet',
+                desc : 'Utilize custom applet to complete this task.'
+            }
+        };
+
+        var autoRun = _PROJECT.template.settings.autoRun;
+        //console.log(_PROJECT, autoRun);
+        if(autoRun){
+            triggerOptions.lambda.desc = 'This task runs automatically. No action required.';
+        } else {
+            triggerOptions.lambda.desc = 'This task will run automatically once <span class="false-btn"><i class="fa fa-bolt"></i> Run</span> is clicked.';
+        }
+
+        $taskTab.find('.trigger-type-name').html(triggerOptions[task.data.trigger.type].name);
+        $taskTab.find('.trigger-type-desc').html(triggerOptions[task.data.trigger.type].desc);
+
+        var dependenciesContent = _generateDependenciesHTML(task);
+        var dynamicContent = _generateDynamicContentHTML(task);
+        if(dynamicContent){
+
+            PubSub.publish('newDynamicContent', {
+                task : task,
+                content : dependenciesContent + dynamicContent
+            });
+        }
+
+    }
+
+    function _setTaskTabbedContentDynamicContent(topic, data){
+        var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
+        $taskTab.find('.dynamic-content').html(data.content);
+        var hasDependencies = data.task.data.dependencies.length >= 1;
+        var $icon = $taskTab.find('.icon');
+        if(hasDependencies) {
+            $icon.html('<i class="fa lock-status"></i>');
+        } else {
+            $icon.html('');
+        }
+        if(!hasDependencies || (hasDependencies && data.task.data.dependenciesOKTimeStamp)){
+            $icon.find('.lock-status').addClass('fa-unlock');
+        } else {
+            $icon.find('.lock-status').addClass('fa-lock');
+        }
+        return true;
+    }
+
+    function _generateDependenciesHTML(task){
+        // dependenciesOK field must be set to true or dependencies must be null to bypass dependencies overlay
+        // Check if dependencies exists
+        // Check if dependencies have been satisfied
+        // Display dependency list
+        var dependencies = task.data.dependencies,
+          dependenciesOKTimeStamp = task.data.dependenciesOKTimeStamp,
+          hasDependencies = dependencies.length >= 1,
+          overlay = '',
+          date = new Date(),
+          fiveMinutes = 60*60*5,
+          currentDifferenceGreaterThanThreshold = (date.getTime() - dependenciesOKTimeStamp) >= fiveMinutes;
+
+        //console.log(dependencies, dependenciesOKTimeStamp, hasDependencies, currentDifferenceGreaterThanThreshold);
+        if(hasDependencies){
+            if(!dependenciesOKTimeStamp){
+                overlay += '<div class="dynamic-content-overlay clearfix">';
+                overlay += '<div class="dependency-list">';
+                overlay += '<a href="#" class="check-dependencies-btn br"><i class="fa fa-gear"></i> Check Dependencies</a>';
+                overlay += '<p class="explanation">Dependencies are small macro functions that assure that the current task is ready to be started.</p>';
+                overlay += '<span class="checking-text br"><i class="fa fa-gear fa-spin"></i> Checking Dependencies. Please wait.</span>';
+                overlay += '<ol>';
+                for(var i in dependencies){
+                    overlay += _generateActionText(dependencies[i]);
+                }
+                overlay += '</ol>';
+                overlay += '</div><!--/.dependency-list-->';
+                overlay += '</div><!--/.dynamic-content-overlay-->';
+            }
+        }
+        if(overlay == ''){
+
+        }
+        return overlay;
+    }
+
+    function _generateActionText(dependency){
+        var output = '<li>',
+          assertionOperator = null,
+          assertionValue = null;
+
+        if(dependency.assertion){
+            for(var operator in dependency.assertion){
+                assertionValue = dependency.assertion[operator];
+                switch (operator){
+                    case '_eq': assertionOperator = 'equal to';
+                        break;
+                    case '_neq': assertionOperator = 'not equal to';
+                        break;
+                    case '_gt': assertionOperator = 'greater than';
+                        break;
+                    case '_lt': assertionOperator = 'less than';
+                        break;
+                }
+
+            }
+        }
+
+        switch(dependency.callback){
+            case 'WF::MetaDataIsSet':
+              output += 'Confirming that meta data `' + dependency.paramsMap[0].value + '` has been set';
+                break;
+            default:
+              output += 'Confirming that callback ' + dependency.callback + ' returns response ';
+              output += assertionOperator + ' \'' + assertionValue + '\'';
+              if(dependency.paramsMap){
+                  output += ' when passed [' ;
+                  for(var i in dependency.paramsMap){
+                      output += dependency.paramsMap[i].value + ' (' + dependency.paramsMap[i].type + ')';
+                      if(i < (dependency.paramsMap.length - 1)) output += ', '
+                  }
+                  output += ']';
+              }
+                break;
+        }
+        output += '</li>';
+        return output;
+    }
+
+    function _generateDynamicContentHTML(task){
+        var html = '';
+        switch (task.data.trigger.type){
+            case 'lambda':
+                var autoRun = _PROJECT.template.settings.autoRun;
+                if(!autoRun) {
+                    html += '<button class="lambda-start-btn"><i class="fa fa-bolt"></i> Run Lambda</button>'
+                }
+                html += '<ul class="lambda-steps">';
+                html += '<li data-step="1"><i class="fa fa-square-o"></i> Validate Lambda Callback</li>';
+                html += '<li data-step="2"><i class="fa fa-square-o"></i> Validate Payload </li>';
+                html += '<li data-step="3"><i class="fa fa-square-o"></i> Validate Settings </li>';
+                html += '<li data-step="4"><i class="fa fa-square-o"></i> Execute Lambda Callback </li>';
+                html += '<li data-step="5"><i class="fa fa-square-o"></i> Analyze Results</li>';
+                html += '<li data-step="6"><i class="fa fa-square-o"></i> Execute Post-Lambda Routines</li>';
+                html += '</ul>';
+                break;
+            case 'form':
+                html += '';
+                break;
+            case 'applet':
+                html += '';
+                break;
+        }
+        return html;
     }
 
     function _metadataEntrySelected(e){
@@ -638,7 +986,7 @@
         var $details = $('.column-details');
         if(_metadata_data.selectedData){
             $details.find('h2').html(_metadata_data.selectedData.field);
-            $details.find('.meta-entry.slug .val').html('project.' + _metadata_data.selectedData.slug);
+            $details.find('.meta-entry.slug .val').html('job.' + _metadata_data.selectedData.slug);
             $details.find('.meta-entry.type .val').html(_metadata_data.selectedData.type.capitalize());
             switch(_metadata_data.selectedData.type){
                 case 'array':

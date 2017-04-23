@@ -1,13 +1,18 @@
 <div class="trigger-test-popout boxed">
   <header>
-    <h1><i class="fa fa-puzzle-piece"></i> Configure Trigger & Test</h1>
+    <h1><i class="fa fa-puzzle-piece"></i> Configure Trigger</h1>
     <ul class="container-nav clearfix">
       <li>
-        <a href="#" data-viewport="triggerTestTab"><i class="fa fa-puzzle-piece"></i> Trigger & Test</a>
+        <a href="#" data-viewport="triggerTestTab"><i class="fa fa-puzzle-piece"></i> Trigger</a>
       </li>
       <li>
-        <a href="#" data-viewport="formManageTab"><i class="fa fa-wpforms"></i> Manage Forms</a>
+        <a href="#" data-viewport="formManageTab"><i class="fa fa-gear"></i> Dependencies</a>
       </li>
+      <?php /* ?>
+      <li>
+        <a href="#" data-viewport="formManageTab2"><i class="fa fa-heartbeat"></i> Completion Tests</a>
+      </li>
+      <?php */ ?>
       <li>
         <a href="#" data-viewport="marketplaceTab"><i class="fa fa-shopping-cart"></i> Marketplace</a>
       </li>
@@ -27,8 +32,14 @@ $fileName = APPPATH.'views/widgets/_triggers-popout-'.$popout.'.php';
 </script>
 
 <script id="formManageTab" type="text/x-handlebars-template">
-  Form Management
+  Dependencies
 </script>
+
+<?php /* ?>
+ <script id="formManageTab2" type="text/x-handlebars-template">
+  Completion Tests
+</script>
+<?php */ ?>
 
 <script id="marketplaceTab" type="text/x-handlebars-template">
   Marketplace
