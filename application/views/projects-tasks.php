@@ -411,11 +411,11 @@
           $task = $this.parents('.task-style'),
           taskId = $task.data('task_id');
 
-        _triggerBoxOpen(_PROJECT, taskId);
+        _triggerBoxOpen(taskId);
         return false;
     }
 
-    $(document).on('click', '.task-name.has-trigger', _handleTaskBindedTrigger);
+    $(document).on('click', '.task-name', _handleTaskBindedTrigger);
 
     $(document).on('click', function(event){
         if (!$(event.target).closest('.binded-trigger-box').length) {
@@ -423,9 +423,10 @@
         }
     });
 
-    function _triggerBoxOpen(projectData, taskId){
+    function _triggerBoxOpen(taskId){
         var $overlay = $(".binded-trigger-box-overlay");
         var task = _getTaskDataById(taskId);
+        _LAMBDA_PROGRESS = 0;
         if(task){
             if(!$overlay.is('.show')){
                 $(".binded-trigger-box-overlay").addClass('show');
@@ -435,9 +436,12 @@
                 $(document).on('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
                 $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
                 $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
-                $(document).on('click', '.tabbed-content.tasks .lambda-start-btn', _handleRunLambdaBtnClick);
+                $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunLambdaBtnClick);
+                PubSub.subscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
+                PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
+                PubSub.subscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
             }
-            _renderTriggerBoxProjectAndTaskData(projectData, task);
+            _renderTriggerBoxProjectAndTaskData(task);
             _renderTaskTabbedContent(task);
             _renderMetaDataTabbedContent();
         }
@@ -454,7 +458,36 @@
             $(document).off('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
             $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
             $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
-            $(document).off('click', '.tabbed-content.tasks .lambda-start-btn', _handleRunLambdaBtnClick);
+            $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunLambdaBtnClick);
+            PubSub.unsubscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
+            PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
+            PubSub.unsubscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
+        }
+    }
+
+
+    function _renderBindedBoxTaskStatusChanges(topic, payload){
+        // Validate taskId, status, and currentStatus
+        var
+          projectId = _PROJECT.projectId,
+          taskId = typeof payload.taskId == 'undefined' ? null : payload.taskId,
+          status = typeof payload.status == 'undefined' ? null : payload.status,
+          task = _getTaskDataById(taskId),
+          currentStatus = task.data.status;
+
+        console.log(payload, projectId, task, status, currentStatus);
+
+        if(projectId && taskId && status && currentStatus && (currentStatus != status)){
+            // Update _TASK_JSON
+            for(var i in _TASK_JSON){
+                if(_TASK_JSON[i].id === taskId){
+                    _TASK_JSON[i].data.status = status;
+                    task = _TASK_JSON[i];
+                    console.log('new task', task);
+                }
+            }
+            _renderTriggerBoxProjectAndTaskData(task);
+            _renderTaskTabbedContent(task);
         }
     }
 
@@ -462,15 +495,11 @@
 
     function _handleRunLambdaBtnClick(e){
         e.preventDefault();
-        var $this = $(this);
-        console.log(_LAMBDA_PROGRESS);
         if(!_LAMBDA_PROGRESS){
             // Start ajax jumps
             _executeRunLambdaAjaxCalls()
         }
     }
-
-    PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
 
     function _executeRunLambdaAjaxCalls(topic, payload){
         _LAMBDA_PROGRESS++;
@@ -487,19 +516,19 @@
               _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'checking');
               if(_LAMBDA_PROGRESS == 1){
                   $lambdaStartBtn.addClass('clicked');
-                  $lambdaStartBtn.html('<i class="fa fa-spin fa-spinner"></i> Running Lambda');
+                  $lambdaStartBtn.html('<i class="fa fa-spin fa-spinner"></i> Loading Trigger');
               }
           },
           function(data){
               // success
               if(data.errors == false){
                   _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'done');
-                  if(_LAMBDA_PROGRESS < 6){
+                  if(_LAMBDA_PROGRESS < 3){
                       PubSub.publish('queueNextRunLambdaStep', data.response);
                   }
-                  if(_LAMBDA_PROGRESS == 6) {
+                  if(_LAMBDA_PROGRESS == 3) {
                       $lambdaStartBtn.removeClass('clicked').addClass('complete');
-                      $lambdaStartBtn.html('<i class="fa fa-bolt"></i> Ran Lambda');
+                      $lambdaStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
                   }
               } else {
                   alertify.error(data.errors[0]);
@@ -518,37 +547,25 @@
     }
 
     function _renderLambdaRoutineUIChanges(stepNum, progress){
-        var $steps = $('.dynamic-content .lambda-steps'),
+        var $steps = $('.dynamic-content .trigger-steps'),
         $step = $steps.find('[data-step=' + stepNum + ']'),
         textData = {
             0 : {
-              verb : "analyze",
-              noun : "Dependencies"
+              verb : "validate",
+              noun : "Task Dependencies"
             },
             1 : {
               verb : "validate",
-              noun : "Lambda Callback"
+              noun : "Lambda Callback & Parameters"
             },
             2 : {
-              verb : "validate",
-              noun : "Payload"
-            },
-            3 : {
-              verb : "validate",
-              noun : "Settings"
-            },
-            4 : {
               verb : "execute",
               noun : "Lambda Callback"
             },
-            5 : {
+            3 : {
               verb : "analyze",
-              noun : "Results"
+              noun : "Callback Results"
             },
-            6 : {
-              verb : "execute",
-              noun : "Post-Lambda Routines"
-            }
         },
         verbTenses = {
           validate : {
@@ -565,6 +582,11 @@
               do : "Analyze",
               doing : "Analyzing",
               did : "Analyzed"
+          },
+          render : {
+              do : "Render",
+              doing : "Rendering",
+              did : "Rendered"
           }
         },
           icons = {
@@ -578,18 +600,24 @@
         switch (progress){
             case 'checking':
                 icon = '<i class="' + icons.doing + '"></i> ';
+                $step.find('.icon').html(icon);
+                $step.find('.verb').html(verbTenses[textData[stepNum].verb].doing);
+                //$step.html(icon +  + ' ' + textData[stepNum].noun);
                 $step.removeClass('done');
-                $step.html(icon + verbTenses[textData[stepNum].verb].doing + ' ' + textData[stepNum].noun);
                 break;
             case 'done':
                 icon = '<i class="' + icons.did + '"></i> ';
-                $step.html(icon + verbTenses[textData[stepNum].verb].did + ' ' + textData[stepNum].noun);
+                $step.find('.icon').html(icon);
+                $step.find('.verb').html(verbTenses[textData[stepNum].verb].doing);
+                //$step.html(icon + verbTenses[textData[stepNum].verb].did + ' ' + textData[stepNum].noun);
                 $step.addClass('done');
                 break;
             default:
                 icon = '<i class="' + icons.do + '"></i> ';
+                $step.find('.icon').html(icon);
+                $step.find('.verb').html(verbTenses[textData[stepNum].verb].doing);
+                //$step.html(icon + verbTenses[textData[stepNum].verb].do + ' ' + textData[stepNum].noun);
                 $step.removeClass('done');
-                $step.html(icon + verbTenses[textData[stepNum].verb].do + ' ' + textData[stepNum].noun);
                 break;
         }
     }
@@ -615,6 +643,10 @@
               $this.parents('.dynamic-content-overlay').removeClass('checking').addClass('checked');
               $tabbedContent.find('.lock-status').removeClass('fa-lock').addClass('fa-unlock');
               _renderLambdaRoutineUIChanges(0, 'done');
+
+              // if autoRun, _executeRunLambdaAjaxCalls();
+              if(_PROJECT.template.settings.autoRun) _executeRunLambdaAjaxCalls();
+
               //PubSub.publish('taskChange.taskComplete', data.response);
           } else {
               alertify.error(data.errors[0]);
@@ -707,15 +739,23 @@
         settingsDropdown : []
     };
 
-    function _renderTriggerBoxProjectAndTaskData(projectData, taskData){
+    function _renderTriggerBoxProjectAndTaskData(taskData){
         //console.log(projectData, taskData);
         var $triggerBox = $('.binded-trigger-box');
-        $triggerBox.find('header .titles h2').html(projectData.projectName);
-        $triggerBox.find('header .titles h3').html(projectData.templateName);
+        var $markCompleteBtn = $(".action-btns .mark-complete");
+
+        if(taskData.data.status == 'completed') {
+            $markCompleteBtn.addClass('inactive');
+        } else {
+            $markCompleteBtn.removeClass('inactive');
+        }
+
+        $triggerBox.find('header .titles h2').html(_PROJECT.projectName);
+        $triggerBox.find('header .titles h3').html(_PROJECT.templateName);
         var $headerContent = $triggerBox.find('header .upper-settings');
-        if(typeof projectData.projectCompletionDateString == 'string') {
+        if(typeof _PROJECT.projectCompletionDateString == 'string') {
             $headerContent.find('.deadline-txt').show();
-            $headerContent.find('.date').html(projectData.projectCompletionDateString);
+            $headerContent.find('.date').html(_PROJECT.projectCompletionDateString);
         } else {
             $headerContent.find('.deadline-txt').hide();
         }
@@ -728,7 +768,7 @@
           && taskData.data.sortOrder
           && _TASK_JSON.length > 0){
             $taskCountText.find('.task-num').html(taskData.data.sortOrder);
-            $taskCountText.find('.task-count').html(_TASK_JSON.length);
+            $taskCountText.find('.task-count').html(_PROJECT.taskCount);
             $taskCountText.show();
         } else {
             $taskCountText.hide();
@@ -753,46 +793,55 @@
     };
 
     var $metadataTab = $('.tabbed-content.metadata');
-    PubSub.subscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
 
     function _renderTaskTabbedContent(task){
         var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
         //console.log(task.data);
-        $taskTab.find('.dynamic-content').html('Loading content ... <i class="fa fa-spin fa-spinner"></i>');
+        //$taskTab.find('.dynamic-content').html('Loading content ... <i class="fa fa-spin fa-spinner"></i>');
         $taskTab.find('.dynamic-content').attr('data-task_template_id', task.data.taskId);
         $taskTab.attr('data-status', task.data.status);
         $taskTab.find('pre').html(JSON.stringify(task, undefined, 2));
         $taskTab.find('h1 .num').html(task.data.sortOrder);
         $taskTab.find('h1 .group').html(task.data.taskGroup);
+        var hasDependencies = task.data.dependencies.length >= 1;
+        var unlocked = !hasDependencies || task.data.dependenciesOKTimeStamp;
+        var icon = '<i class="fa lock-status ' + (!unlocked ? 'fa-lock':'fa-unlock') + '"></i>';
+        $taskTab.find('h1 .icon').html(icon);
         $taskTab.find('h1 .name').html(task.data.taskName);
         $taskTab.find('.status-info .status').html(task.data.status.capitalize());
         $taskTab.find('.description').html(task.data.description);
         $taskTab.find('.instructions').html(task.data.instructions);
 
-        var triggerOptions = {
-            lambda : {
-                name : 'Lambda Function'
-            },
-            form : {
-                name : 'Dynamic Form',
-                desc : 'Fill out the following form to complete the task.'
-            },
-            applet : {
-                name : 'Visual Applet',
-                desc : 'Utilize custom applet to complete this task.'
-            }
-        };
-
-        var autoRun = _PROJECT.template.settings.autoRun;
-        //console.log(_PROJECT, autoRun);
-        if(autoRun){
-            triggerOptions.lambda.desc = 'This task runs automatically. No action required.';
+        if(!task.data.trigger){
+            $taskTab.find('.trigger-type').hide();
         } else {
-            triggerOptions.lambda.desc = 'This task will run automatically once <span class="false-btn"><i class="fa fa-bolt"></i> Run</span> is clicked.';
+            $taskTab.find('.trigger-type').show();
+            var triggerOptions = {
+                lambda : {
+                    name : 'Lambda Function'
+                },
+                form : {
+                    name : 'Dynamic Form',
+                    desc : 'Fill out the following form to complete the task.'
+                },
+                applet : {
+                    name : 'Visual Applet',
+                    desc : 'Utilize custom applet to complete this task.'
+                }
+            };
+
+            var autoRun = _PROJECT.template.settings.autoRun;
+            //console.log(_PROJECT, autoRun);
+            if(autoRun){
+                triggerOptions.lambda.desc = 'This task runs automatically. No action required.';
+            } else {
+                triggerOptions.lambda.desc = 'This task will run automatically once <span class="false-btn"><i class="fa fa-bolt"></i> Load</span> is clicked.';
+            }
+
+            $taskTab.find('.trigger-type-name').html(triggerOptions[task.data.trigger.type].name);
+            $taskTab.find('.trigger-type-desc').html(triggerOptions[task.data.trigger.type].desc);
         }
 
-        $taskTab.find('.trigger-type-name').html(triggerOptions[task.data.trigger.type].name);
-        $taskTab.find('.trigger-type-desc').html(triggerOptions[task.data.trigger.type].desc);
 
         var dependenciesContent = _generateDependenciesHTML(task);
         var dynamicContent = _generateDynamicContentHTML(task);
@@ -809,18 +858,6 @@
     function _setTaskTabbedContentDynamicContent(topic, data){
         var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
         $taskTab.find('.dynamic-content').html(data.content);
-        var hasDependencies = data.task.data.dependencies.length >= 1;
-        var $icon = $taskTab.find('.icon');
-        if(hasDependencies) {
-            $icon.html('<i class="fa lock-status"></i>');
-        } else {
-            $icon.html('');
-        }
-        if(!hasDependencies || (hasDependencies && data.task.data.dependenciesOKTimeStamp)){
-            $icon.find('.lock-status').addClass('fa-unlock');
-        } else {
-            $icon.find('.lock-status').addClass('fa-lock');
-        }
         return true;
     }
 
@@ -837,25 +874,28 @@
           fiveMinutes = 60*60*5,
           currentDifferenceGreaterThanThreshold = (date.getTime() - dependenciesOKTimeStamp) >= fiveMinutes;
 
-        //console.log(dependencies, dependenciesOKTimeStamp, hasDependencies, currentDifferenceGreaterThanThreshold);
-        if(hasDependencies){
-            if(!dependenciesOKTimeStamp){
-                overlay += '<div class="dynamic-content-overlay clearfix">';
-                overlay += '<div class="dependency-list">';
-                overlay += '<a href="#" class="check-dependencies-btn br"><i class="fa fa-gear"></i> Check Dependencies</a>';
-                overlay += '<p class="explanation">Dependencies are small macro functions that assure that the current task is ready to be started.</p>';
-                overlay += '<span class="checking-text br"><i class="fa fa-gear fa-spin"></i> Checking Dependencies. Please wait.</span>';
-                overlay += '<ol>';
-                for(var i in dependencies){
-                    overlay += _generateActionText(dependencies[i]);
+        if(task.data.status != 'completed'){
+            //console.log(dependencies, dependenciesOKTimeStamp, hasDependencies, currentDifferenceGreaterThanThreshold);
+            if(hasDependencies){
+                if(!dependenciesOKTimeStamp){
+                    overlay += '<div class="dynamic-content-overlay clearfix">';
+                    overlay += '<i class="fa fa-lock super-icon"></i>';
+                    overlay += '<div class="dependency-list">';
+                    overlay += '<a href="#" class="check-dependencies-btn br"><i class="fa fa-gear"></i> Check Dependencies</a>';
+                    overlay += '<p class="explanation">Dependencies are small macro functions that assure that the current task is ready to be started.</p>';
+                    overlay += '<span class="checking-text br"><i class="fa fa-gear fa-spin"></i> Checking Dependencies. Please wait.</span>';
+                    overlay += '<ol>';
+                    for(var i in dependencies){
+                        overlay += _generateActionText(dependencies[i]);
+                    }
+                    overlay += '</ol>';
+                    overlay += '</div><!--/.dependency-list-->';
+                    overlay += '</div><!--/.dynamic-content-overlay-->';
                 }
-                overlay += '</ol>';
-                overlay += '</div><!--/.dependency-list-->';
-                overlay += '</div><!--/.dynamic-content-overlay-->';
             }
-        }
-        if(overlay == ''){
+            if(overlay == ''){
 
+            }
         }
         return overlay;
     }
@@ -905,28 +945,34 @@
 
     function _generateDynamicContentHTML(task){
         var html = '';
-        switch (task.data.trigger.type){
-            case 'lambda':
-                var autoRun = _PROJECT.template.settings.autoRun;
-                if(!autoRun) {
-                    html += '<button class="lambda-start-btn"><i class="fa fa-bolt"></i> Run Lambda</button>'
-                }
-                html += '<ul class="lambda-steps">';
-                html += '<li data-step="0"><i class="fa fa-square-o"></i> Analyze Dependencies</li>';
-                html += '<li data-step="1"><i class="fa fa-square-o"></i> Validate Lambda Callback</li>';
-                html += '<li data-step="2"><i class="fa fa-square-o"></i> Validate Payload </li>';
-                html += '<li data-step="3"><i class="fa fa-square-o"></i> Validate Settings </li>';
-                html += '<li data-step="4"><i class="fa fa-square-o"></i> Execute Lambda Callback </li>';
-                html += '<li data-step="5"><i class="fa fa-square-o"></i> Analyze Results</li>';
-                html += '<li data-step="6"><i class="fa fa-square-o"></i> Execute Post-Lambda Routines</li>';
-                html += '</ul>';
-                break;
-            case 'form':
-                html += '';
-                break;
-            case 'applet':
-                html += '';
-                break;
+        if(task.data.status == 'completed'){
+            html += '<p>This task has already been completed. For more information, please review the summary report for details regarding this task.</p>';
+        } else {
+            var autoRun = _PROJECT.template.settings.autoRun;
+            if(!autoRun && task.data.trigger) {
+                html += '<button class="trigger-start-btn"><i class="fa fa-bolt"></i> Load Trigger</button>'
+            }
+            html += '<ul class="trigger-steps">';
+            if(task.data.dependencies && task.data.dependencies.length > 0) {
+                html += '<li data-step="0"><i class="fa fa-square-o"></i> <span class="verb">Validate</span> Task Dependencies</li>';
+            }
+//            console.log(task, typeof task.data.dependencies);
+            switch (task.data.trigger.type){
+                case 'lambda':
+                    html += '<li data-step="1"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Validate</span> Lambda Callback & Parameters</li>';
+                    html += '<li data-step="2"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Execute</span> Lambda Callback </li>';
+                    html += '<li data-step="3"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Analyze</span> Callback Results</li>';
+                    break;
+                case 'form':
+                    html += '<li data-step="1"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Validate</span> Form</li>';
+                    html += '<li data-step="2"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Render</span> Custom Form </li>';
+                    break;
+                case 'applet':
+                    html += '<li data-step="1"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Validate</span> Applet</li>';
+                    html += '<li data-step="2"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Load</span> Applet </li>';
+                    break;
+            }
+            html += '</ul>';
         }
         return html;
     }
@@ -952,6 +998,7 @@
         // Render list
         if(_metadata_data.listChanged){
             var html = '';
+            var metaDataCount = 0;
             for(var _slug in _METADATA){
                 html += '<div class="entry clearfix" data-slug="' + _METADATA[_slug].slug + '">' + "\n";
                 html += "\t" + '<span class="key truncate">' + _METADATA[_slug].field + '</span>' + "\n";
@@ -975,9 +1022,11 @@
                 html += '</span>' + "\n";
                 html += "\t" + '<i class="fa fa-chevron-right"></i>' + "\n";
                 html += '</div>' + "\n";
+                metaDataCount ++;
             }
 
             $entries.html(html);
+            $(".tabbed-nav .database-nav .num-flag").text(metaDataCount);
 
             // Reset listChanged
             _metadata_data.listChanged = false;

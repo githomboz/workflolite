@@ -20,12 +20,12 @@
     <div class="mid-section clearfix">
       <nav class="tabbed-nav clearfix">
         <ul>
-          <li class="item selected"><a href="#" class="fa fa-check-square" rel="tasks"></a> </li>
-          <li class="item"><a href="#" class="fa fa-database" rel="metadata"></a> </li>
-          <li class=""><a href="#" class="fa fa-users" rel="contacts"></a> </li>
-          <li class=""><a href="#" class="fa fa-comment" rel="notes"></a> </li>
-          <li class=""><a href="#" class="fa fa-clock-o" rel="time"></a> </li>
-          <li class=""><a href="#" class="fa fa-bar-chart" rel="stats"></a> </li>
+          <li class="item tasks-nav selected"><a href="#" class="fa fa-check-square" rel="tasks"></a> </li>
+          <li class="item database-nav"><span class="num-flag red"></span> <a href="#" class="fa fa-database" rel="metadata"></a> </li>
+          <li class="contacts-nav"><a href="#" class="fa fa-users" rel="contacts"></a> </li>
+          <li class="notes-nav"><a href="#" class="fa fa-comment" rel="notes"></a> </li>
+          <li class="time-nav"><a href="#" class="fa fa-clock-o" rel="time"></a> </li>
+          <li class="stats-nav"><a href="#" class="fa fa-bar-chart" rel="stats"></a> </li>
         </ul>
       </nav>
       <div class="tabbed-content-container clearfix">

@@ -400,10 +400,11 @@ class Project extends WorkflowFactory
    */
   public function getProjectData(){
     $return = [
+      'projectId' => (string) $this->id(),
       'projectName' => $this->getValue('name'),
       'templateName' => $this->template->getValue('name'),
       'projectCompletionDate' => $this->getValue('dueDate') instanceof MongoDate ? $this->getValue('dueDate')->sec : null,
-      'taskCount' => 0,
+      'taskCount' => $this->template->taskCount(),
       'template' => [
         'settings' => $this->template->getValue('settings')
       ]
