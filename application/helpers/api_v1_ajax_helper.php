@@ -665,7 +665,7 @@ function check_task_dependencies(){
   $data = _api_process_args($args, __FUNCTION__);
   if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
-  $response['response']['saved'] = true;
+  $response['response']['taskUpdates']['dependenciesOKTimeStamp'] = time();
   $response['recordCount'] = 0;
   return $response;
 }
@@ -699,5 +699,27 @@ function run_lambda_routines_args_map(){
 // Field names of fields required
 function run_lambda_routines_required_fields(){
   return array('projectId','taskTemplateId', 'routine');
+}
+
+function generate_completion_script_results(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $response['response']['metaUpdates'] = []; // Updates to be made to meta data
+  $response['response']['taskUpdates'] = []; // Updates to be made to task json
+  $response['recordCount'] = 0;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function generate_completion_script_results_args_map(){
+  return array('projectId','taskTemplateId');
+}
+
+// Field names of fields required
+function generate_completion_script_results_required_fields(){
+  return array('projectId','taskTemplateId');
 }
 

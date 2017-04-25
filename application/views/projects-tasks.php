@@ -439,6 +439,7 @@
                 $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
                 $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunLambdaBtnClick);
                 $(document).on('click', '.binded-trigger-box button.js-directional', _handleDirectionalBtnClick);
+                $(document).on('click', '.binded-trigger-box .action-btns .mark-complete', _handleMarkCompleteClick);
                 PubSub.subscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
                 PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
                 PubSub.subscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
@@ -463,6 +464,7 @@
             $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
             $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunLambdaBtnClick);
             $(document).off('click', '.binded-trigger-box button.js-directional', _handleDirectionalBtnClick);
+            $(document).off('click', '.binded-trigger-box .action-btns .mark-complete', _handleMarkCompleteClick);
             PubSub.unsubscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.unsubscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
@@ -470,6 +472,28 @@
         }
     }
 
+    function _handleMarkCompleteClick(e){
+        e.preventDefault();
+        var $this = $(this),
+          taskId = $this.data('task_id'),
+          task = _getTaskDataById(taskId);
+
+        console.log(taskId, task);
+
+        if(task){
+            // Check current status
+            if(task.data.status != 'completed'){
+                // Create visual confirmation. Using anything other than custom will break .closest() js.
+                // Check if dependencies have been reconciled
+                if(task.data.dependencies) _handleCheckDependenciesClick();
+                // If autoRun, attempt to autoRun
+                // Check if completion scripts have been run successfully
+                // Make sure completionReport is added to task
+                // Reload task
+            }
+        }
+        return false;
+    }
 
     function _renderBindedBoxTaskStatusChanges(topic, payload){
         // Validate taskId, status, and currentStatus
@@ -513,7 +537,7 @@
             taskTemplateId : $('.dynamic-content').attr('data-task_template_id'),
             routine : 'step-' + _LAMBDA_PROGRESS
         };
-        var $lambdaStartBtn = $('.lambda-start-btn');
+        var $lambdaStartBtn = $('.trigger-start-btn');
 
         CS_API.call('ajax/run_lambda_routines',
           function(){
@@ -531,6 +555,7 @@
                   if(_LAMBDA_PROGRESS < 3){
                       PubSub.publish('queueNextRunLambdaStep', data.response);
                   }
+                  console.log(_LAMBDA_PROGRESS, data);
                   if(_LAMBDA_PROGRESS == 3) {
                       $lambdaStartBtn.removeClass('clicked').addClass('complete');
                       $lambdaStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
@@ -630,8 +655,8 @@
     }
 
     function _handleCheckDependenciesClick(e){
-        e.preventDefault();
-        var $this = $(this),
+        if(e) e.preventDefault();
+        var $this = $(".check-dependencies-btn"),
           $tabbedContent = $this.parents('.tabbed-content'),
           post = {
               projectId : _CS_Get_Project_ID(),
@@ -819,7 +844,7 @@
 
         var classes = 'mark-complete inverse';
         if(task.data.status == 'completed') classes += ' inactive';
-        output += '<button class="' + classes + '"><i class="fa fa-check"></i>&nbsp; Mark Complete</button>';
+        output += '<button class="' + classes + '" data-task_id="' + task.id + '"><i class="fa fa-check"></i>&nbsp; Mark Complete</button>';
         // Add to html
         $actionBtns.html(output);
         //return false;
