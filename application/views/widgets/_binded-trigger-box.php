@@ -37,10 +37,7 @@
             <div class="description"></div>
             <div class="instructions"></div>
             <div class="dynamic-content" data-task_template_id=""></div>
-            <div class="bottom-links">
-              <a href="#" class="completion-test-btn"><i class="fa fa-heartbeat"></i><span class="info-data"> Run completion tests</span></a>
-              <span class="ajax-response success">[ <i class="fa fa-check"></i> Success | <a href="#" class="completion-test-report-btn">Report</a> ]</span>
-            </div>
+            <div class="bottom-links"></div>
           </div><!--/task-trigger-->
 
           <div class="task-data-block">
@@ -110,10 +107,6 @@
         </section>
       </div><!--/.tabbed-content-container-->
     </div><!--/.mid-section-->
-    <div class="action-btns clearfix">
-      <button class="prev-task"><i class="fa fa-fast-backward"></i>&nbsp; Prev. Task</button>
-      <button class="next-task"><i class="fa fa-fast-forward"></i>&nbsp; Next Task</button>
-      <button class="mark-complete inverse"><i class="fa fa-check"></i>&nbsp; Mark Complete</button>
-    </div>
+    <div class="action-btns clearfix"></div>
   </div><!--/.binded-trigger-box-->
 </div><!--/.binded-trigger-box-overlay-->

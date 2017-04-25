@@ -302,6 +302,7 @@ class Task2
       'startDate' => $this->getValue('startDate'),
       'completeDate' => $this->getValue('completeDate'),
       'estimatedTime' => $this->getValue('estimatedTime'),
+      'completionTests' => $this->getValue('completionTests'),
       'completionReport' => $this->getValue('completionReport'),
     ];
 

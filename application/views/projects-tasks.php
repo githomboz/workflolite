@@ -47,6 +47,7 @@
         <div class="tasklist">
             <script class="projectData">
                 var _PROJECT = <?php echo json_encode($this->project->getProjectData()) ?>;
+                _PROJECT.triggerBoxOpen = false; // Whether the triggerBoxShould be open or not
                 var _TASK_JSON = [];
             </script>
             <?php
@@ -424,11 +425,11 @@
     });
 
     function _triggerBoxOpen(taskId){
-        var $overlay = $(".binded-trigger-box-overlay");
         var task = _getTaskDataById(taskId);
         _LAMBDA_PROGRESS = 0;
         if(task){
-            if(!$overlay.is('.show')){
+            if(!_PROJECT.triggerBoxOpen){
+                //console.log('trigger box opened');
                 $(".binded-trigger-box-overlay").addClass('show');
                 $(document).on('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
                 $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
@@ -437,9 +438,11 @@
                 $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
                 $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
                 $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunLambdaBtnClick);
+                $(document).on('click', '.binded-trigger-box button.js-directional', _handleDirectionalBtnClick);
                 PubSub.subscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
                 PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
                 PubSub.subscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
+                _PROJECT.triggerBoxOpen = true;
             }
             _renderTriggerBoxProjectAndTaskData(task);
             _renderTaskTabbedContent(task);
@@ -449,7 +452,7 @@
 
     function _triggerBoxClose(){
         var $overlay = $(".binded-trigger-box-overlay");
-        if($overlay.is('.show')){
+        if($overlay.is('.show') || _PROJECT.triggerBoxOpen){
             //console.log('trigger box closed');
             $overlay.removeClass('show');
             $(document).off('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
@@ -459,9 +462,11 @@
             $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
             $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
             $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunLambdaBtnClick);
+            $(document).off('click', '.binded-trigger-box button.js-directional', _handleDirectionalBtnClick);
             PubSub.unsubscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.unsubscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
+            _PROJECT.triggerBoxOpen = false;
         }
     }
 
@@ -594,32 +599,34 @@
               doing : 'fa fa-spinner fa-spin',
               did : 'fa fa-check-square-o'
           },
-          icon = null;
+          icon = null,
+          verb = null;
 
 
         switch (progress){
             case 'checking':
                 icon = '<i class="' + icons.doing + '"></i> ';
-                $step.find('.icon').html(icon);
-                $step.find('.verb').html(verbTenses[textData[stepNum].verb].doing);
+                verb = verbTenses[textData[stepNum].verb].doing;
                 //$step.html(icon +  + ' ' + textData[stepNum].noun);
                 $step.removeClass('done');
                 break;
             case 'done':
                 icon = '<i class="' + icons.did + '"></i> ';
-                $step.find('.icon').html(icon);
-                $step.find('.verb').html(verbTenses[textData[stepNum].verb].doing);
+                verb = verbTenses[textData[stepNum].verb].did;
                 //$step.html(icon + verbTenses[textData[stepNum].verb].did + ' ' + textData[stepNum].noun);
                 $step.addClass('done');
                 break;
             default:
                 icon = '<i class="' + icons.do + '"></i> ';
-                $step.find('.icon').html(icon);
-                $step.find('.verb').html(verbTenses[textData[stepNum].verb].doing);
+                verb = verbTenses[textData[stepNum].verb].do;
                 //$step.html(icon + verbTenses[textData[stepNum].verb].do + ' ' + textData[stepNum].noun);
                 $step.removeClass('done');
                 break;
         }
+
+        $step.find('.icon').html(icon);
+        $step.find('.verb').html(verb);
+
     }
 
     function _handleCheckDependenciesClick(e){
@@ -666,17 +673,9 @@
         return false;
     }
 
-    function _handleCheckDependencies(task){
-        // Check if dependenciesOKTimeStamp is not false
-        // Check if dependenciesOKTimeStamp is within recheckThreshold limit
-        // If necessary, recheck dependencies
-        // If dependencies ok, save dependenciesOKTimeStamp
-        // Update and publish task updates
-    }
-
     function _handleTriggerBoxCompletionTestBtn(e){
         e.preventDefault();
-
+        _startRunningCompletionTest();
     }
 
     function _handleTriggerBoxCompletionTestReportBtn(e){
@@ -744,7 +743,7 @@
         var $triggerBox = $('.binded-trigger-box');
         var $markCompleteBtn = $(".action-btns .mark-complete");
 
-        if(taskData.data.status == 'completed') {
+        if($markCompleteBtn.length > 0 && taskData.data.status == 'completed') {
             $markCompleteBtn.addClass('inactive');
         } else {
             $markCompleteBtn.removeClass('inactive');
@@ -781,6 +780,56 @@
         } else {
             $lowerHeader.find('.time-tracker-btn').hide();
         }
+
+        // Render directional and 'mark complete' buttons
+        _renderTaskActionBtns(taskData);
+        //return false;
+    }
+
+
+    function _renderTaskActionBtns(task){
+        var
+          prevTaskId = null,
+          currTaskId = null,
+          nextTaskId;
+        var $actionBtns = $(".action-btns");
+
+        var output = '';
+        for(var i in _TASK_JSON){
+            if(currTaskId) prevTaskId = currTaskId;
+            currTaskId = _TASK_JSON[i].id;
+            var nextIndex = (parseInt(i) + 1).toString();
+            nextTaskId = typeof _TASK_JSON[nextIndex] != 'undefined' ? _TASK_JSON[nextIndex].id : null ;
+            if(task.id == currTaskId){
+                //console.log(prevTaskId, currTaskId, nextTaskId);
+                var prevTask = _getTaskDataById(prevTaskId);
+                var prevTask = prevTask ? prevTask : null;
+                var nextTask = _getTaskDataById(nextTaskId);
+                var nextTask = nextTask ? nextTask : null;
+                    output += '<button class="prev-task js-directional' + (prevTask ? '':' inactive') + '" ';
+                    output += 'data-target_id="' + prevTaskId + '">';
+                    output += '<i class="fa fa-fast-backward"></i>';
+                    output += '&nbsp; Prev. Task</button>';
+                    output += '<button class="next-task js-directional' + (nextTask ? '':' inactive') + '" ';
+                    output += 'data-target_id="' + nextTaskId + '">';
+                    output += '<i class="fa fa-fast-forward"></i>';
+                    output += '&nbsp; Next Task</button>';
+            }
+        }
+
+        var classes = 'mark-complete inverse';
+        if(task.data.status == 'completed') classes += ' inactive';
+        output += '<button class="' + classes + '"><i class="fa fa-check"></i>&nbsp; Mark Complete</button>';
+        // Add to html
+        $actionBtns.html(output);
+        //return false;
+    }
+
+    function _handleDirectionalBtnClick(e){
+        e.preventDefault();
+        var $this = $(this),
+          taskId = $this.data('target_id');
+        _triggerBoxOpen(taskId);
         return false;
     }
 
@@ -853,6 +902,42 @@
             });
         }
 
+
+
+
+        var completionTestHTML = '';
+        if(task.data.completionTests){
+            completionTestHTML += '<i class="fa ' + (task.data.completionReport ? 'success fa-heart':'fa-heartbeat') + '"></i>';
+            completionTestHTML += '<span class="info-data"> ';
+
+            // If completionReport, "Completion scripts successful"
+            if(task.data.completionReport){
+                completionTestHTML += 'Completion scripts successful ';
+            }
+            // If not status completed, += "Run (2) completion scripts. "
+            if(task.data.status != 'completed'){
+                completionTestHTML += 'Run (' + task.data.completionTests.length + ') completion script' + (task.data.completionTests.length == 1 ? '':'s') + '. ';
+            }
+            // If not completionReport or not status completed), += "Generate report."
+            if(!task.data.completionReport || task.data.status != 'completed'){
+                completionTestHTML += '<a href="#" class="completion-test-btn">';
+                completionTestHTML += 'Generate report ';
+                completionTestHTML += '</a>';
+            }
+
+            completionTestHTML += '</span>';
+            completionTestHTML += ' <span class="ajax-response ' + (task.data.completionReport ? 'show':'') + ' success">[ <i class="fa fa-check"></i> ';
+            completionTestHTML += '<a href="#" class="completion-test-report-btn">Report</a>';
+            completionTestHTML += ' ]</span>';
+        }
+        $taskTab.find('.bottom-links').html(completionTestHTML);
+
+    }
+
+    function _startRunningCompletionTest(task){
+        // Start the loading spinner
+        // Change html to reflect loading
+        //
     }
 
     function _setTaskTabbedContentDynamicContent(topic, data){
@@ -946,7 +1031,9 @@
     function _generateDynamicContentHTML(task){
         var html = '';
         if(task.data.status == 'completed'){
-            html += '<p>This task has already been completed. For more information, please review the summary report for details regarding this task.</p>';
+            html += '<p>This task has already been completed. ';
+            if(task.data.completionReport) html += 'For more information, please review the summary report for details regarding this task.';
+            html += '</p>';
         } else {
             var autoRun = _PROJECT.template.settings.autoRun;
             if(!autoRun && task.data.trigger) {
@@ -954,7 +1041,7 @@
             }
             html += '<ul class="trigger-steps">';
             if(task.data.dependencies && task.data.dependencies.length > 0) {
-                html += '<li data-step="0"><i class="fa fa-square-o"></i> <span class="verb">Validate</span> Task Dependencies</li>';
+                html += '<li data-step="0"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Validate</span> Task Dependencies</li>';
             }
 //            console.log(task, typeof task.data.dependencies);
             switch (task.data.trigger.type){

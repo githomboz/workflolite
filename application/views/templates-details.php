@@ -581,7 +581,8 @@
       };
       if(typeof post.trigger != 'undefined') add.updates.trigger = post.trigger;
       if(typeof post.dependencies != 'undefined') add.updates.dependencies = post.dependencies;
-      if(typeof post.completionTest != 'undefined') add.updates.completionTest = post.completionTest;
+      if(typeof post.completionTests != 'undefined') add.updates.completionTests = post.completionTests;
+      if(typeof post.completionReport != 'undefined') add.updates.completionReport = post.completionReport;
       if(typeof post.dependenciesOKTimeStamp != 'undefined') add.updates.dependenciesOKTimeStamp = post.dependenciesOKTimeStamp;
       //console.log(add);
 

@@ -3668,8 +3668,21 @@ span.checkbox {
       position: absolute;
       bottom: 10px;
       left: 10px; }
+      .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .fa-heart,
+      .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .fa-heartbeat {
+        color: rgba(255, 53, 65, 0.4); }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .fa-heart.success,
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .fa-heartbeat.success {
+          color: #ff3541; }
+      .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .completion-test-btn {
+        color: #ffd04c; }
+      .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .info-data {
+        color: rgba(204, 204, 204, 0.37); }
       .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .ajax-response {
-        color: #fff; }
+        color: #fff;
+        display: none; }
+        .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .ajax-response.show {
+          display: inline; }
         .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .ajax-response .fa {
           color: #dde69a; }
         .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .ajax-response.success {
@@ -3699,7 +3712,7 @@ span.checkbox {
           position: absolute;
           top: -18px;
           left: 0;
-          font-size: 300px;
+          font-size: 220px;
           width: 50%;
           text-align: center;
           color: rgba(37, 37, 37, 0.2); }
@@ -3766,15 +3779,15 @@ span.checkbox {
         .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .trigger-steps .fa {
           margin-right: 5px;
           color: #fff; }
-    .binded-trigger-box .tabbed-content.tasks .task-trigger .completion-test-btn {
+    .binded-trigger-box .tabbed-content.tasks .task-trigger .completion-test-btnXX {
       color: #ffd04c; }
-      .binded-trigger-box .tabbed-content.tasks .task-trigger .completion-test-btn .fa-heartbeat {
+      .binded-trigger-box .tabbed-content.tasks .task-trigger .completion-test-btnXX .fa-heartbeat {
         color: rgba(255, 53, 65, 0.4); }
-  .binded-trigger-box .tabbed-content.tasks[data-status=completed] .completion-test-btn {
+  .binded-trigger-box .tabbed-content.tasks[data-status=completedXX] .completion-test-btn {
     pointer-events: none;
     cursor: default;
     color: rgba(204, 204, 204, 0.37); }
-    .binded-trigger-box .tabbed-content.tasks[data-status=completed] .completion-test-btn .fa-heartbeat {
+    .binded-trigger-box .tabbed-content.tasks[data-status=completedXX] .completion-test-btn .fa-heartbeat {
       color: #ff3541; }
   .binded-trigger-box .tabbed-content.tasks .task-data-block {
     float: right;

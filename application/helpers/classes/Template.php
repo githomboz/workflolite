@@ -632,7 +632,8 @@ class Template extends WorkflowFactory
       $taskTemplate = $template->getTaskTemplate($taskTemplateId);
 
       // Transform data if necessary
-      $data['dependenciesOKTimeStamp'] = is_numeric($data['dependenciesOKTimeStamp']) && (int) $data['dependenciesOKTimeStamp'] > 0 ? (int) $data['dependenciesOKTimeStamp'] : false;
+      if(isset($data['dependencies']) && $data['dependencies'] == 'false') $data['dependencies'] = false;
+      $data['dependenciesOKTimeStamp'] = isset($data['dependenciesOKTimeStamp']) && is_numeric($data['dependenciesOKTimeStamp']) && (int) $data['dependenciesOKTimeStamp'] > 0 ? (int) $data['dependenciesOKTimeStamp'] : false;
 
       $updatedData = $template->getTaskTemplateDiff($data);
       // var_dump($taskTemplate, $updatedData, $data);
