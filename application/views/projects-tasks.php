@@ -9,7 +9,9 @@
         }
 
         include_once 'widgets/_task-change-dialog.php';
-
+        //var_dump(WF::GetMetaDataBySlug($this->project, 'job.closingDate'));
+        //var_dump(WF::Add(2, 4, 'a'));
+        var_dump(WF::GenerateCallbackReport($this->project->getTaskByNumber(6)->getValue('dependencies'), $this->project));
         ;?>
 
 
@@ -445,9 +447,11 @@
                 PubSub.subscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
                 _PROJECT.triggerBoxOpen = true;
             }
+            _PROJECT.activeTaskId = taskId;
             _renderTriggerBoxProjectAndTaskData(task);
             _renderTaskTabbedContent(task);
             _renderMetaDataTabbedContent();
+            _activateTriggerBoxSlide('tasks'); // Default back to tasks slide
         }
     }
 
@@ -469,6 +473,7 @@
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.unsubscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
             _PROJECT.triggerBoxOpen = false;
+            _PROJECT.activeTaskId = null;
         }
     }
 
@@ -561,7 +566,7 @@
                       $lambdaStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
                   }
               } else {
-                  alertify.error(data.errors[0]);
+                  if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
               }
           },
           function(){
@@ -660,7 +665,7 @@
           $tabbedContent = $this.parents('.tabbed-content'),
           post = {
               projectId : _CS_Get_Project_ID(),
-              taskTemplateId : $this.parents('.dynamic-content').attr('data-task_template_id')
+              taskId : _PROJECT.activeTaskId
           };
 
         CS_API.call('ajax/check_task_dependencies',
@@ -681,7 +686,7 @@
 
               //PubSub.publish('taskChange.taskComplete', data.response);
           } else {
-              alertify.error(data.errors[0]);
+              if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
           }
         },
         function(){

@@ -4,10 +4,10 @@
      data-tasktemplate="<?php echo $template->id() ?>"
 >
   <a href="#tasktemplate-<?php echo $template->id() ?>" class="dark sidepanel-bg boxed preview entry clearfix">
-    <h2><i class="fa fa-chevron-right"></i> <?php $group = (string) $template->getValue('taskGroup'); echo (trim($group) == '' ? '' : $group . ': ') . $template->getValue('name') ?></h2>
+    <h2><i class="fa fa-chevron-right"></i> <?php echo $template->getValue('sortOrder') . '. '; $group = (string) $template->getValue('taskGroup'); echo (trim($group) == '' ? '' : $group . ': ') . $template->getValue('name') ?></h2>
   </a>
   <div class="sidepanel-bg boxed form entry clearfix">
-    <h2><i class="fa fa-chevron-down"></i>  <?php $group = (string) $template->getValue('taskGroup'); echo (trim($group) == '' ? '' : $group . ': ') .$template->getValue('name') ?></h2>
+    <h2><i class="fa fa-chevron-down"></i>  <?php echo $template->getValue('sortOrder') . '. '; $group = (string) $template->getValue('taskGroup'); echo (trim($group) == '' ? '' : $group . ': ') .$template->getValue('name') ?></h2>
     <div class="link-group">
       <a href="#" class="js-delete-task"><i class="fa fa-trash"></i> Delete</a>
       <a href="#" class="js-cancel-edit"><i class="fa fa-times"></i> Close Task</a>

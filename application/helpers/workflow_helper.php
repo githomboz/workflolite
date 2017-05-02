@@ -15,6 +15,7 @@ require_once 'classes/WFClientInterface.php';
 require_once 'classes/WFEvents.php';
 require_once 'classes/Workflo.php';
 require_once 'classes/Webhooks.php';
+require_once 'classes/core/WF.php';
 require_once 'classes/core/WFRequestParser.php';
 require_once 'classes/core/WFSocialUtilities.php';
 require_once 'classes/core/WFSocialUtilitiesTwitter.php';
@@ -41,4 +42,5 @@ require_once 'classes/Contact.php';
 require_once 'classes/Organization.php';
 require_once 'classes/Workflow.php';
 require_once 'classes/QueueItemSendEmail.php';
+
 

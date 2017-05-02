@@ -665,19 +665,27 @@ function check_task_dependencies(){
   $data = _api_process_args($args, __FUNCTION__);
   if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
-  $response['response']['taskUpdates']['dependenciesOKTimeStamp'] = time();
+  $project = Project::Get($data['projectId']);
+  $response['response']['taskId'] = $data['taskId'];
+  if($project){
+    $dependenciesResults = $project->checkTaskDependencies($data['taskId']);
+    if($dependenciesResults['ok']){
+      $response['response']['taskUpdates']['dependenciesOKTimeStamp'] = time();
+    }
+  }
+
   $response['recordCount'] = 0;
   return $response;
 }
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function check_task_dependencies_args_map(){
-  return array('projectId','taskTemplateId');
+  return array('projectId','taskId');
 }
 
 // Field names of fields required
 function check_task_dependencies_required_fields(){
-  return array('projectId','taskTemplateId');
+  return array('projectId','taskId');
 }
 
 function run_lambda_routines(){

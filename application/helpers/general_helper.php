@@ -1,9 +1,23 @@
 <?php
 // Functions specific to this site/app
 
+/**
+ * Class NullValue
+ */
 class NullValue {
-  function __toString()
-  { return '';}
+  private static $_instance;
+  function __toString() { return ''; }
+  function __construct() { return self::instance(); }
+  public static function instance() {
+    if(!self::$_instance) {
+      self::$_instance = new NullValue();
+    }
+    return self::$_instance;
+  }
+}
+
+function NullValue(){
+  return new NullValue();
 }
 
 function CI(){

@@ -355,7 +355,9 @@ class Task2
             ],
           ],
           'assertion' => [
-            '_eq' => true
+            '_dt' => 'boolean',
+            '_op' => '==',
+            '_val' => true
           ],
         ],
         [
@@ -377,7 +379,8 @@ class Task2
             ],
           ],
           'assertion' => [
-            '_gt' => 2.5
+            '_op' => '>',
+            '_val' => 2.5
           ],
         ],
 
@@ -393,7 +396,9 @@ class Task2
             ],
           ],
           'assertion' => [
-            '_eq' => true
+            '_dt' => 'boolean',
+            '_op' => '==',
+            '_val' => true
           ],
         ],
       ],

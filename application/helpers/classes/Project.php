@@ -413,6 +413,11 @@ class Project extends WorkflowFactory
     return $return;
   }
 
+  public function checkTaskDependencies($taskId){
+    $task = $this->getTaskById($taskId);
+    var_dump($task->getValue('dependencies'));
+  }
+
   /**
    * Whether or not this is a custom project or based upon a template
    * @return bool
@@ -597,6 +602,11 @@ class Project extends WorkflowFactory
    */
   public function getTaskById($id){
     foreach($this->tasks as $task) if((string) $task->id() == (string) $id) return $task;
+    return false;
+  }
+
+  public function getTaskByNumber($number){
+    foreach($this->tasks as $task) if($task->getValue('sortOrder') == $number) return $task;
     return false;
   }
 

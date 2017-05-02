@@ -51,7 +51,7 @@
     <a href="#" class="checkbox <?php echo $task->isComplete() ? 'checked' : 'clickable'?>">
       <i class="fa fa-check"></i>
     </a>
-    <span class="task-name <?php echo $task->getValue('trigger') ? 'has-trigger':'' ?>"><?php echo $task->getValue('name') ?> <a href="#taskOptions-<?php echo $task->id(); ?>" class="fa fa-pencil"></a></span>
+    <span class="task-num"><?php echo $task->getValue('sortOrder'); ?>. </span> <span class="task-name <?php echo $task->getValue('trigger') ? 'has-trigger':'' ?>"><?php echo $task->getValue('name') ?> <a href="#taskOptions-<?php echo $task->id(); ?>" class="fa fa-pencil"></a></span>
   </div>
   <div class="col-meta">
     <div class="cols">
