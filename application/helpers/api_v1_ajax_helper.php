@@ -668,9 +668,33 @@ function check_task_dependencies(){
   $project = Project::Get($data['projectId']);
   $response['response']['taskId'] = $data['taskId'];
   if($project){
-    $dependenciesResults = $project->checkTaskDependencies($data['taskId']);
-    if($dependenciesResults['ok']){
+    $report = $project->checkTaskDependencies($data['taskId']);
+    //var_dump($dependenciesResults);
+    if(isset($data['returnReport']) && true === (bool) $data['returnReport']){
+      switch ($data['returnReport']){
+        case 'condensed':
+          $modified = $report;
+          foreach($modified['response']['callbacks'] as $i => $execution){
+            unset($modified['response']['callbacks'][$i]['tests']);
+            unset($modified['response']['callbacks'][$i]['fnExecMethod']);
+            unset($modified['response']['callbacks'][$i]['fnResponseType']);
+            unset($modified['response']['callbacks'][$i]['fnResponse']);
+          }
+          unset($modified['response']['taskId']);
+          unset($modified['logs']['debug']);
+          $response['response']['report'] = $modified;
+          break;
+        default:
+          $response['response']['report'] = $report;
+          break;
+      }
+    }
+    if(!$report['errors']){
+      // save dependenciesOKTimeStamp and return it to client
       $response['response']['taskUpdates']['dependenciesOKTimeStamp'] = time();
+    } else {
+      if(!$response['errors']) $response['errors'] = [];
+      $response['errors'] = array_merge((array) $response['errors'], $report['logs']['errors']);
     }
   }
 
@@ -680,7 +704,7 @@ function check_task_dependencies(){
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function check_task_dependencies_args_map(){
-  return array('projectId','taskId');
+  return array('projectId','taskId','returnReport');
 }
 
 // Field names of fields required
@@ -715,8 +739,22 @@ function generate_completion_script_results(){
   $data = _api_process_args($args, __FUNCTION__);
   if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
-  $response['response']['metaUpdates'] = []; // Updates to be made to meta data
-  $response['response']['taskUpdates'] = []; // Updates to be made to task json
+  $project = Project::Get($data['projectId']);
+  $response['response']['taskId'] = $data['taskId'];
+  if($project){
+    $report = $project->checkCompletionScripts($data['taskId']);
+    //var_dump($dependenciesResults);
+    if(isset($data['returnReport']) && true === (bool) $data['returnReport']){
+      $response['response']['report'] = $report;
+    }
+    if(!$report['errors']){
+      $response['response']['taskUpdates']['completeDate'] = null;
+      $response['response']['taskUpdates']['status'] = null;
+    } else {
+      $response['errors'] = array_merge($response['errors'], (array) $report['logs']['errors']);
+    }
+  }
+
   $response['recordCount'] = 0;
   return $response;
 }

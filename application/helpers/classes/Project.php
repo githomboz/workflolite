@@ -415,7 +415,7 @@ class Project extends WorkflowFactory
 
   public function checkTaskDependencies($taskId){
     $task = $this->getTaskById($taskId);
-    var_dump($task->getValue('dependencies'));
+    return WF::GenerateCallbackReport($task->getValue('dependencies'), $this, $taskId);
   }
 
   /**

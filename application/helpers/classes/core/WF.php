@@ -41,22 +41,25 @@ class WF
    * @param array $paramsMap
    * @return array Array of parsed map values
    */
-  public static function _GetParsedParamsMap(array $paramsMap, $metaArray){
+  public static function _GetParsedParamsMap(array $paramsMap, $project){
     $params = [];
 
     foreach($paramsMap as $i => $param){
       if(isset($param['type'])){
         switch($param['type']){
           case 'metaObject':
+            $metaData = self::GetMetaDataBySlug($project, $param['value']);
+            $param['value'] = isset($metaData['value']) ? $metaData['value'] : null;
             break;
           case 'metaObjectValue':
+            $metaData = self::GetMetaDataBySlug($project, $param['value']);
+            $param['value'] = isset($metaData['value']) ? $metaData['value']->get() : null;
             break;
           case 'paramMap':
             break;
           case 'callback':
             break;
           case 'value':
-            break;
           default:
             break;
         }
@@ -132,70 +135,175 @@ class WF
    *  ]
    * ]
    * @param $callbackArray
-   * @param $project
+   * @param Project $project
+   * @param string $taskId
    * @return mixed
    */
-  public static function GenerateCallbackReport($callbackArray, $project){
+  public static function GenerateCallbackReport($callbackArray, Project $project, $taskId){
     $logs = ['errors'=>[],'debug'=>[]];
     $report = [
-      'callback' => null,
-      'params' => [],
-      'callbackResult' => null,
-      'assertion' => null,
-      'tests' => []
+      'taskId' => $taskId,
+      'callbacks' => [],
     ];
     foreach($callbackArray as $i => $callbacks){
-      $report['tests'][$i] = [
-        'validateTests' => null,
-        'validateAssertion' => null,
-        'callbackExecMethod' => null,
-        'paramsMapValid' => null,
-        'testCallbackResponse' => null,
-        'paramsParsed' => null,
+      if(!empty($logs['errors'])) continue;
+      //var_dump($callbacks, '-- / callback --');
+      $report['callbacks'][$i]['fn'] = isset($callbacks['callback']) ? $callbacks['callback'] : null;
+      $report['callbacks'][$i]['fnExecMethod'] = null;
+      $report['callbacks'][$i]['fnParams'] = null;
+      $report['callbacks'][$i]['fnResponse'] = null;
+      $report['callbacks'][$i]['fnResponseType'] = null;
+      $report['callbacks'][$i]['assertion'] = null;
+      $report['callbacks'][$i]['tests'] = [
+        'callbackValidated' => null,
+        'assertionValidated' => null,
+        'paramsValidated' => null,
+        'callbackExecuted' => null,
+        'assertionTested' => null,
       ];
+      $report['callbacks'][$i]['success'] = false;
       // Callback Validated; Result stored;
       $_callbackExecMethod = WF::_ValidateCallback($callbacks['callback']);
-      $report['tests'][$i]['callbackExecMethod'] = $_callbackExecMethod ? $_callbackExecMethod : false;
+      $report['callbacks'][$i]['fnExecMethod'] = $_callbackExecMethod ? $_callbackExecMethod : false;
+      $report['callbacks'][$i]['tests']['callbackValidated'] = (bool) $report['callbacks'][$i]['fnExecMethod'];
 
       // Assertion is validated; Result stored
       $_assertionSet = isset($callbacks['assertion']);
-      $_assertionOperationSet = $_assertionSet && isset($callbacks['assertion']['_op']);
+      $_assertionOperationSet = $_assertionSet && isset($callbacks['assertion']['_op']) && in_array($callbacks['assertion']['_op'], ['==','!=','>','>=','<','<=']);
       $_assertionValueSet = $_assertionSet && isset($callbacks['assertion']['_val']);
       $_assertionDataTypeSet = $_assertionSet && isset($callbacks['assertion']['_dt']);
       if($_assertionDataTypeSet) {
         switch ($callbacks['assertion']['_dt']) {
           case 'boolean':
             $val = $callbacks['assertion']['_val'];
-            $val = is_string($val) ? trim(strtolower($val)) : (bool)$val;
-            $val = (in_array($val, ['false', '0', 0, '']) || empty($val) || !$val);
-            $callbacks['assertion']['_val'] = $val;
+            if(!is_bool($val)){
+              if(is_string($val)){
+                $val = trim(strtolower($val));
+                $callbacks['assertion']['_val'] = !in_array($val, ['false', '0', '']);
+              }
+              if(is_numeric($val)) $callbacks['assertion']['_val'] = (bool) $callbacks['assertion']['_val'];
+              if(!is_bool($callbacks['assertion']['_val'])) $callbacks['assertion']['_val'] = (bool) $callbacks['assertion']['_val'];
+            }
             break;
         }
       }
 
-      $error = 'One or more tests have failed';
+      $error = 'One or more dependency tests have failed';
 
-      if(in_array(false, $report['tests'][$i])) {
+      // Check for errors and terminate loop if found
+      if(in_array(false, $report['callbacks'][$i]['tests'], true)) {
         if(!in_array($error, $logs['errors'])) $logs['errors'][] = $error;
         continue;
       }
 
-      $report['tests'][$i]['assertionFormatValid'] = $_assertionOperationSet && $_assertionValueSet;
+      //var_dump($callbacks['assertion'], '-- / assertion --');
 
-      if(in_array(false, $report['tests'][$i])) {
+      // Assertion is tested against callback response; Result stored
+      $report['callbacks'][$i]['tests']['assertionValidated'] = !$_assertionSet || ($_assertionOperationSet && $_assertionValueSet);
+      if($report['callbacks'][$i]['tests']['assertionValidated'] && $_assertionSet){
+        // Assertion is parsed; Result stored
+        $report['callbacks'][$i]['assertion']['_op'] = $callbacks['assertion']['_op'];
+        $report['callbacks'][$i]['assertion']['_val'] = $callbacks['assertion']['_val'];
+      }
+
+      // Check for errors and terminate loop if found
+      if(in_array(false, $report['callbacks'][$i]['tests'], true)) {
         if(!in_array($error, $logs['errors'])) $logs['errors'][] = $error;
         continue;
       }
-
-      if(isset($callbacks['paramsMap'])){
-        $report['params'][$i] = WF::_GetParsedParamsMap($callbacks['paramsMap']);
-      }
-
 
       // $params array used or $paramsMap parsed to create $params; Result stored
-      // Callback executed; Result stored
-      // Assertion is parsed; Result stored
-      // Assertion is tested against callback response; Result stored
+      // Handle case where paramsMap is set
+      if(isset($callbacks['paramsMap'])){
+        $report['callbacks'][$i]['fnParams'] = WF::_GetParsedParamsMap($callbacks['paramsMap'], $project);
+        $report['callbacks'][$i]['tests']['paramsValidated'] = true;
+      }
+
+      // Handle case where if report[params] hasn't been set but callback[params] is set, set it
+      if(!isset($report['callbacks'][$i]['fnParams']) && $callbacks['params']) {
+        $report['callbacks'][$i]['fnParams'] = $callbacks['params'];
+        $report['callbacks'][$i]['tests']['paramsValidated'] = true;
+      }
+
+      // Check for errors and terminate loop if found
+      if((isset($callbacks['paramsMap']) || isset($callbacks['params'])) && !isset($report['callbacks'][$i]['fnParams'])){
+        $logs['errors'][] = 'Params invalid';
+        $report['callbacks'][$i]['tests']['paramsValidated'] = false;
+        continue;
+      }
+
+      // Attempt to execute in a try/catch block
+      if($report['callbacks'][$i]['fnExecMethod'] && $report['callbacks'][$i]['fn']){
+        try {
+          // Callback executed; Result stored
+          switch ($report['callbacks'][$i]['fnExecMethod']){
+            case 'is_callable':
+              $result = call_user_func_array($report['callbacks'][$i]['fn'], $report['callbacks'][$i]['fnParams']);
+              $report['callbacks'][$i]['fnResponse'] = $result;
+              $report['callbacks'][$i]['fnResponseType'] = is_array($result) ? 'array' : (is_bool($result) ? 'bool' : null);
+              switch($report['callbacks'][$i]['fnResponseType']){
+                case 'array':
+                  $report['callbacks'][$i]['fnResponse'] = isset($result['response']) ? $result['response'] : null;
+                  $report['metaUpdates'] = isset($result['metaUpdates']) ? $result['metaUpdates'] : null;
+                  $report['taskUpdates'] = isset($result['taskUpdates']) ? $result['taskUpdates'] : null;
+                  break;
+                case 'bool':
+                  $report['callbacks'][$i]['fnResponse'] = $result;
+                  break;
+              }
+              $report['callbacks'][$i]['tests']['callbackExecuted'] = true;
+              break;
+          }
+          // Test response against assertion
+
+        }
+
+        catch (Exception $e) {
+          $logs['errors'][] = $e->getMessage();
+        }
+
+        // Set test for executed callback after the try/catch
+        $report['callbacks'][$i]['tests']['callbackExecuted'] = (bool) $report['callbacks'][$i]['tests']['callbackExecuted'];
+      }
+
+      // Check for errors and terminate loop if found
+      if(in_array(false, $report['callbacks'][$i]['tests'], true)) {
+        if(!in_array($error, $logs['errors'])) $logs['errors'][] = $error;
+        continue;
+      }
+
+      // Test assertion if applicable
+
+      if($report['callbacks'][$i]['assertion']){
+        switch ($report['callbacks'][$i]['assertion']['_op']){
+          case '==':
+            $report['callbacks'][$i]['success'] = $report['callbacks'][$i]['fnResponse'] == $report['callbacks'][$i]['assertion']['_val'];
+            break;
+          case '!=':
+            $report['callbacks'][$i]['success'] = $report['callbacks'][$i]['fnResponse'] != $report['callbacks'][$i]['assertion']['_val'];
+            break;
+          case '>':
+            $report['callbacks'][$i]['success'] = $report['callbacks'][$i]['fnResponse'] > $report['callbacks'][$i]['assertion']['_val'];
+            break;
+          case '>=':
+            $report['callbacks'][$i]['success'] = $report['callbacks'][$i]['fnResponse'] >= $report['callbacks'][$i]['assertion']['_val'];
+            break;
+          case '<':
+            $report['callbacks'][$i]['success'] = $report['callbacks'][$i]['fnResponse'] < $report['callbacks'][$i]['assertion']['_val'];
+            break;
+          case '<=':
+            $report['callbacks'][$i]['success'] = $report['callbacks'][$i]['fnResponse'] <= $report['callbacks'][$i]['assertion']['_val'];
+            break;
+        }
+        $report['callbacks'][$i]['tests']['assertionTested'] = true;
+      }
+
+      if(!$report['callbacks'][$i]['success']) {
+        $error02 = 'Callback execution was unsuccessful';
+        if(!in_array($error02, $logs['errors'])) $logs['errors'][] = $error02;
+        continue;
+      }
+
     }
     $response['response'] = $report;
     $response['errors'] = !empty($logs['errors']);
@@ -203,4 +311,10 @@ class WF
     return $response;
   }
 
+}
+
+class JNBPA {
+  public static function ValidateFileNumber($fileNumber){
+    return strlen((string) $fileNumber) >= 5 && strpos('jnbpa', $fileNumber) == 0;
+  }
 }

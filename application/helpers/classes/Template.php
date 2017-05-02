@@ -634,6 +634,7 @@ class Template extends WorkflowFactory
       // Transform data if necessary
       if(isset($data['dependencies']) && $data['dependencies'] == 'false') $data['dependencies'] = false;
       $data['dependenciesOKTimeStamp'] = isset($data['dependenciesOKTimeStamp']) && is_numeric($data['dependenciesOKTimeStamp']) && (int) $data['dependenciesOKTimeStamp'] > 0 ? (int) $data['dependenciesOKTimeStamp'] : false;
+      if(isset($data['completionTests']) && !is_array($data['completionTests'])) $data['completionTests'] = false;
 
       $updatedData = $template->getTaskTemplateDiff($data);
       // var_dump($taskTemplate, $updatedData, $data);

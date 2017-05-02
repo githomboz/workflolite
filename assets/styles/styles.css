@@ -3738,10 +3738,19 @@ span.checkbox {
             .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .dependency-list ol li {
               margin-bottom: .5em;
               list-style: decimal; }
+              .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .dependency-list ol li .fa-thumbs-up {
+                margin-left: 4px;
+                color: #92f38b; }
+              .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .dependency-list ol li .fa-thumbs-down {
+                margin-left: 4px;
+                color: #d06a6a; }
         .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .check-dependencies-btn {
           color: #92f38b; }
         .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .checking-text {
-          display: none; }
+          display: none;
+          line-height: 1.3em; }
+          .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .checking-text .fa-exclamation-triangle {
+            color: #ffd04c; }
         .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay.checking ol {
           display: block; }
         .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay.checking .explanation {

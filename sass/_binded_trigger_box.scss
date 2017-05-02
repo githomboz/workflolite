@@ -11,6 +11,8 @@ $lightGreen : #92f38b;
 $inactiveBtnBG : #848484;
 $inactiveBtnText : darken($normalBtnGray, 5%);
 $overLayBG : rgba(0, 0, 0, .5);
+$cautionYellow : #ffd04c;
+$alertRed : rgba(208, 106, 106, 1);
 
 .binded-trigger-box-overlay {
   position: fixed;
@@ -471,6 +473,16 @@ $overLayBG : rgba(0, 0, 0, .5);
                 li {
                   margin-bottom: .5em;
                   list-style: decimal;
+
+                  .fa-thumbs-up {
+                    margin-left: 4px;
+                    color: $lightGreen;
+                  }
+
+                  .fa-thumbs-down {
+                    margin-left: 4px;
+                    color: $alertRed;
+                  }
                 }
               }
             }
@@ -481,6 +493,11 @@ $overLayBG : rgba(0, 0, 0, .5);
             
             .checking-text {
               display: none;
+              line-height: 1.3em;
+
+              .fa-exclamation-triangle {
+                color: $cautionYellow;
+              }
             }
 
             &.checking {

@@ -11,7 +11,7 @@
         include_once 'widgets/_task-change-dialog.php';
         //var_dump(WF::GetMetaDataBySlug($this->project, 'job.closingDate'));
         //var_dump(WF::Add(2, 4, 'a'));
-        var_dump(WF::GenerateCallbackReport($this->project->getTaskByNumber(6)->getValue('dependencies'), $this->project));
+        //var_dump(WF::GenerateCallbackReport($this->project->getTaskByNumber(6)->getValue('dependencies'), $this->project, (string) $this->project->getTaskByNumber(6)->id()));
         ;?>
 
 
@@ -606,51 +606,62 @@
           validate : {
               do : "Validate",
               doing : "Validating",
-              did : "Validated"
+              did : "Validated",
+              doh : "Issues Validating"
           },
           execute : {
               do : "Execute",
               doing : "Executing",
-              did : "Executed"
+              did : "Executed",
+              doh : "Issues Executing"
           },
           analyze : {
               do : "Analyze",
               doing : "Analyzing",
-              did : "Analyzed"
+              did : "Analyzed",
+              doh : "Issues Analyzing"
           },
           render : {
               do : "Render",
               doing : "Rendering",
-              did : "Rendered"
+              did : "Rendered",
+              doh : "Issues Rendering"
           }
         },
           icons = {
               do : 'fa fa-square-o',
               doing : 'fa fa-spinner fa-spin',
-              did : 'fa fa-check-square-o'
+              did : 'fa fa-check-square-o',
+              doh : 'fa fa-exclamation-triangle'
           },
           icon = null,
           verb = null;
 
 
         switch (progress){
+            case 'error':
+                icon = '<i class="' + icons.doh + '"></i> ';
+                verb = verbTenses[textData[stepNum].verb].doh;
+                //$step.html(icon +  + ' ' + textData[stepNum].noun);
+                $step.removeClass('done').addClass('error');
+                break;
             case 'checking':
                 icon = '<i class="' + icons.doing + '"></i> ';
                 verb = verbTenses[textData[stepNum].verb].doing;
                 //$step.html(icon +  + ' ' + textData[stepNum].noun);
-                $step.removeClass('done');
+                $step.removeClass('done error');
                 break;
             case 'done':
                 icon = '<i class="' + icons.did + '"></i> ';
                 verb = verbTenses[textData[stepNum].verb].did;
                 //$step.html(icon + verbTenses[textData[stepNum].verb].did + ' ' + textData[stepNum].noun);
-                $step.addClass('done');
+                $step.removeClass('error').addClass('done');
                 break;
             default:
                 icon = '<i class="' + icons.do + '"></i> ';
                 verb = verbTenses[textData[stepNum].verb].do;
                 //$step.html(icon + verbTenses[textData[stepNum].verb].do + ' ' + textData[stepNum].noun);
-                $step.removeClass('done');
+                $step.removeClass('done error');
                 break;
         }
 
@@ -662,12 +673,14 @@
     function _handleCheckDependenciesClick(e){
         if(e) e.preventDefault();
         var $this = $(".check-dependencies-btn"),
-          $tabbedContent = $this.parents('.tabbed-content'),
+          $tabbedContent = $this.parents('.tabbed-content.tasks'),
           post = {
               projectId : _CS_Get_Project_ID(),
-              taskId : _PROJECT.activeTaskId
+              taskId : _PROJECT.activeTaskId,
+              returnReport : 'condensed'
           };
 
+        var errorMsg01 = '<i class="fa fa-exclamation-triangle"></i> Dependencies have not been satisfied. This task can not be started until dependency checks pass. <a href="#" class="check-dependencies-btn br"> Re-check</a>';
         CS_API.call('ajax/check_task_dependencies',
         function(){
           // beforeSend
@@ -676,27 +689,39 @@
         },
         function(data){
           // success
-          if(data.errors == false){
-              $this.parents('.dynamic-content-overlay').removeClass('checking').addClass('checked');
-              $tabbedContent.find('.lock-status').removeClass('fa-lock').addClass('fa-unlock');
-              _renderLambdaRoutineUIChanges(0, 'done');
+            if(data.errors == false){
+                $this.parents('.dynamic-content-overlay').removeClass('checking').addClass('checked');
+                $tabbedContent.find('.lock-status').removeClass('fa-lock').addClass('fa-unlock');
+                _renderLambdaRoutineUIChanges(0, 'done');
 
-              // if autoRun, _executeRunLambdaAjaxCalls();
-              if(_PROJECT.template.settings.autoRun) _executeRunLambdaAjaxCalls();
+                // if autoRun, _executeRunLambdaAjaxCalls();
+                if(_PROJECT.template.settings.autoRun) _executeRunLambdaAjaxCalls();
 
-              //PubSub.publish('taskChange.taskComplete', data.response);
-          } else {
-              if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
-          }
+                //PubSub.publish('taskChange.taskComplete', data.response);
+            } else {
+                if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
+                _renderLambdaRoutineUIChanges(0, 'error');
+                $this.parents('.dynamic-content-overlay').find('.checking-text').html(errorMsg01);
+
+                for(var i in data.response.report.response.callbacks){
+                    var callback = data.response.report.response.callbacks[i];
+                    var $icon = $tabbedContent.find('.dependency-item[rel=' + i + ']');
+                    var icon = callback.success ? 'fa-thumbs-up' : 'fa-thumbs-down';
+                    $icon.addClass(icon);
+                }
+
+            }
         },
         function(){
-          // error
-          alertify.error('Error', 'An error has occurred while checking dependencies. Please try again later.');
+            // error
+            alertify.error('Error', 'An error has occurred while checking dependencies. Please try again later.');
+            _renderLambdaRoutineUIChanges(0, 'error');
+            $this.parents('.dynamic-content-overlay').find('.checking-text').html(errorMsg01);
         },
         post,
         {
-          method: 'POST',
-          preferCache : false
+            method: 'POST',
+            preferCache : false
         }
         );
 
@@ -1001,7 +1026,7 @@
                     overlay += '<span class="checking-text br"><i class="fa fa-gear fa-spin"></i> Checking Dependencies. Please wait.</span>';
                     overlay += '<ol>';
                     for(var i in dependencies){
-                        overlay += _generateActionText(dependencies[i]);
+                        overlay += _generateActionText(i, dependencies[i]);
                     }
                     overlay += '</ol>';
                     overlay += '</div><!--/.dependency-list-->';
@@ -1015,26 +1040,29 @@
         return overlay;
     }
 
-    function _generateActionText(dependency){
+    function _generateActionText(itemNum, dependency){
         var output = '<li>',
           assertionOperator = null,
           assertionValue = null;
 
         if(dependency.assertion){
-            for(var operator in dependency.assertion){
-                assertionValue = dependency.assertion[operator];
-                switch (operator){
-                    case '_eq': assertionOperator = 'equal to';
+            //console.log(dependency.assertion);
+                assertionValue = dependency.assertion._val;
+                switch (dependency.assertion._op){
+                    case '==': assertionOperator = 'equal to';
                         break;
-                    case '_neq': assertionOperator = 'not equal to';
+                    case '!=': assertionOperator = 'not equal to';
                         break;
-                    case '_gt': assertionOperator = 'greater than';
+                    case '>': assertionOperator = 'greater than';
                         break;
-                    case '_lt': assertionOperator = 'less than';
+                    case '>=': assertionOperator = 'greater than or equal to';
+                        break;
+                    case '<': assertionOperator = 'less than';
+                        break;
+                    case '<=': assertionOperator = 'less than or equal to';
                         break;
                 }
 
-            }
         }
 
         switch(dependency.callback){
@@ -1054,7 +1082,7 @@
               }
                 break;
         }
-        output += '</li>';
+        output += '<i class="fa dependency-item" rel="' + itemNum+ '"></i></li>';
         return output;
     }
 
