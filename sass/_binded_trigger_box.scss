@@ -271,7 +271,7 @@ $alertRed : rgba(208, 106, 106, 1);
     }
 
     .entries {
-      height: 293px;
+      //height: 293px;
       overflow: scroll;
       padding-bottom: 3em;
 
@@ -653,6 +653,8 @@ $alertRed : rgba(208, 106, 106, 1);
         width: 72%;
         float: left;
         position: relative;
+        height: 100%;
+        min-height: 318px;
 
         .tab-form {
 

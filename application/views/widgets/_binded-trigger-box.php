@@ -47,7 +47,7 @@
         </section>
         <section class="tabbed-content metadata clearfix" data-slide="metadata">
           <h1>Job Metadata</h1>
-          <div class="column-list">
+          <div class="column-list meta">
             <div class="meta-fields">
               <div class="head-links clearfix">
                 <a href="#" class="key key-sort-btn">Name / Key &nbsp; <i class="fa fa-caret-down"></i></a>

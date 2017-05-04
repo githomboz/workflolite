@@ -88,12 +88,12 @@
     PubSub.subscribe('project.updated', _handleProjectUpdates);
 
     var
-      $bindedBox = $(".binded-trigger-box"),
-      $bindedBoxInnerHead = $bindedBox.find('.inner-head'),
-      dimensions  = {
-        padding : 10,
-        actionBtnHeight : 46,
-        slideNavWidth : $(".tabbed-nav .item").outerWidth()
+        $bindedBox = $(".binded-trigger-box"),
+        $bindedBoxInnerHead = $bindedBox.find('.inner-head'),
+        dimensions  = {
+            padding : 10,
+            actionBtnHeight : 46,
+            slideNavWidth : $(".tabbed-nav .item").outerWidth(),
     };
 
     $(window).load(function(){
@@ -103,14 +103,40 @@
     });
 
     function triggerResize(){
-        PubSub.publish('bindedBox.resize', {
+        var payload = {
             padding : dimensions.padding,
+            windowWidth : $(window).width(),
+            windowHeight : $(window).height(),
+            windowChanges : {
+                width: null,
+                height: null
+            },
             boxOuterWidth : $bindedBox.outerWidth(),
             boxOuterHeight : $bindedBox.outerHeight(),
             headerOuterHeight : $bindedBoxInnerHead.outerHeight(),
             actionBtnHeight : dimensions.actionBtnHeight,
             slideNavWidth : dimensions.slideNavWidth
-        });
+        };
+
+        payload.newTaskTabHeight = payload.boxOuterHeight - payload.headerOuterHeight - payload.actionBtnHeight - (payload.padding * 3) - 2;
+        payload.tabContainerWidth = payload.boxOuterWidth - payload.slideNavWidth - (payload.padding * 2) - 2;
+        payload.preElementHeight = payload.newTaskTabHeight - (payload.padding * 4) - 6;
+
+        if(typeof _PROJECT.dimensions != 'undefined'){
+            payload.windowChanges.width = null;
+            if(payload.windowWidth != _PROJECT.dimensions.windowWidth){
+                payload.windowChanges.width = (payload.windowWidth > _PROJECT.dimensions.windowWidth) ? 'grow' : 'shrink';
+            }
+            payload.windowChanges.height = null;
+            if(payload.windowHeight != _PROJECT.dimensions.windowHeight){
+                payload.windowChanges.height = (payload.windowHeight > _PROJECT.dimensions.windowWidth) ? 'grow' : 'shrink';
+            }
+        }
+
+
+
+        PubSub.publish('bindedBox.resize', payload);
+        _PROJECT.dimensions = payload
     }
 
     var TASK_CACHE = {};
@@ -513,13 +539,14 @@
     function _handleBindedBoxViewportResize(topic, payload){
         // Change pre max-height to be full height minus header and action buttons
         var $tabContainer = $bindedBox.find('.tabbed-content-container'),
-          $taskTab = $bindedBox.find('.tabbed-content.tasks'),
-          newTaskTabHeight = payload.boxOuterHeight - payload.headerOuterHeight - payload.actionBtnHeight - (payload.padding * 3) - 2,
-          tabContainerWidth = payload.boxOuterWidth - payload.slideNavWidth - (payload.padding * 2) - 2;
-        $taskTab.css({height : newTaskTabHeight});
-        $tabContainer.css({width : tabContainerWidth});
-        var preHeight = newTaskTabHeight - (payload.padding * 4) - 6;
-        $taskTab.find('.task-data-block pre').css({maxHeight: preHeight});
+          $taskTab = $bindedBox.find('.tabbed-content');
+
+        $tabContainer.css({width : payload.tabContainerWidth});
+
+        $taskTab.css({height : payload.newTaskTabHeight});
+        $taskTab.find('.column-list.meta').css({maxHeight : (payload.newTaskTabHeight - 53)});
+        $taskTab.find('.meta-fields .entries').css({maxHeight : (payload.newTaskTabHeight - 78)});
+        $taskTab.find('.task-data-block pre').css({maxHeight: payload.preElementHeight});
     }
 
     function _handleProjectUpdates(topic, payload){
