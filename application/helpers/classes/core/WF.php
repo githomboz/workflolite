@@ -315,6 +315,6 @@ class WF
 
 class JNBPA {
   public static function ValidateFileNumber($fileNumber){
-    return strlen((string) $fileNumber) >= 5 && strpos('jnbpa', $fileNumber) == 0;
+    return strlen((string) $fileNumber) >= 5 && (strpos('jnbpa', $fileNumber) >= 0);
   }
 }

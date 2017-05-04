@@ -83,6 +83,36 @@
 </div><!--/#main-mid-section-->
 <script type="text/javascript">
 
+    PubSub.subscribe('task.updated', _handleTaskUpdates);
+    PubSub.subscribe('meta.updated', _handleMetaUpdates);
+    PubSub.subscribe('project.updated', _handleProjectUpdates);
+
+    var
+      $bindedBox = $(".binded-trigger-box"),
+      $bindedBoxInnerHead = $bindedBox.find('.inner-head'),
+      dimensions  = {
+        padding : 10,
+        actionBtnHeight : 46,
+        slideNavWidth : $(".tabbed-nav .item").outerWidth()
+    };
+
+    $(window).load(function(){
+        $(window).resize(function(){
+            triggerResize();
+        });
+    });
+
+    function triggerResize(){
+        PubSub.publish('bindedBox.resize', {
+            padding : dimensions.padding,
+            boxOuterWidth : $bindedBox.outerWidth(),
+            boxOuterHeight : $bindedBox.outerHeight(),
+            headerOuterHeight : $bindedBoxInnerHead.outerHeight(),
+            actionBtnHeight : dimensions.actionBtnHeight,
+            slideNavWidth : dimensions.slideNavWidth
+        });
+    }
+
     var TASK_CACHE = {};
 
     $(document).on('click', ".task-option-links .task-settings", function(e){
@@ -445,6 +475,7 @@
                 PubSub.subscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
                 PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
                 PubSub.subscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
+                PubSub.subscribe('bindedBox.resize', _handleBindedBoxViewportResize);
                 _PROJECT.triggerBoxOpen = true;
             }
             _PROJECT.activeTaskId = taskId;
@@ -452,6 +483,7 @@
             _renderTaskTabbedContent(task);
             _renderMetaDataTabbedContent();
             _activateTriggerBoxSlide('tasks'); // Default back to tasks slide
+            triggerResize();
         }
     }
 
@@ -472,9 +504,71 @@
             PubSub.unsubscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.unsubscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
+            PubSub.unsubscribe('bindedBox.resize', _handleBindedBoxViewportResize);
             _PROJECT.triggerBoxOpen = false;
             _PROJECT.activeTaskId = null;
         }
+    }
+
+    function _handleBindedBoxViewportResize(topic, payload){
+        // Change pre max-height to be full height minus header and action buttons
+        var $tabContainer = $bindedBox.find('.tabbed-content-container'),
+          $taskTab = $bindedBox.find('.tabbed-content.tasks'),
+          newTaskTabHeight = payload.boxOuterHeight - payload.headerOuterHeight - payload.actionBtnHeight - (payload.padding * 3) - 2,
+          tabContainerWidth = payload.boxOuterWidth - payload.slideNavWidth - (payload.padding * 2) - 2;
+        $taskTab.css({height : newTaskTabHeight});
+        $tabContainer.css({width : tabContainerWidth});
+        var preHeight = newTaskTabHeight - (payload.padding * 4) - 6;
+        $taskTab.find('.task-data-block pre').css({maxHeight: preHeight});
+    }
+
+    function _handleProjectUpdates(topic, payload){
+        if(typeof payload.projectId != 'undefined'){
+            if(typeof payload.updates != 'undefined'){
+
+            } else {
+                console.error('updates is not defined');
+            }
+        } else {
+            console.error('projectId is not defined');
+        }
+
+    }
+
+    function _handleMetaUpdates(projectId, updates){
+        // Publish PubSub
+        // Update the meta array
+        // Redraw meta slide
+        // Update counts
+        // Update project details sidebar
+        //
+    }
+
+    function _handleTaskUpdates(topic, payload){
+        // Publish PubSub
+        // Update the given task in _TASK_JSON
+        // Update the UI for task slide
+        if(typeof payload.taskId != 'undefined'){
+            if(typeof payload.updates != 'undefined'){
+
+//                console.log(_TASK_JSON, payload);
+                for(var i in _TASK_JSON){
+                    if(_TASK_JSON[i].data.taskId == payload.taskId){
+                        for(var field in payload.updates){
+                            _TASK_JSON[i].data[field] = payload.updates[field];
+                        }
+                        $('.task-data-block pre').html(JSON.stringify(_TASK_JSON[i], undefined, 2));
+                    }
+                }
+//                console.log(_TASK_JSON, payload);
+
+            } else {
+                console.error('updates is not defined');
+            }
+        } else {
+            console.error('taskId is not defined');
+        }
+
     }
 
     function _handleMarkCompleteClick(e){
@@ -697,7 +791,24 @@
                 // if autoRun, _executeRunLambdaAjaxCalls();
                 if(_PROJECT.template.settings.autoRun) _executeRunLambdaAjaxCalls();
 
-                //PubSub.publish('taskChange.taskComplete', data.response);
+                if(typeof data.response.taskUpdates != 'undefined'){
+                    PubSub.publish('task.updated', {
+                        taskId : data.response.taskId,
+                        updates : data.response.taskUpdates
+                    });
+                }
+                if(typeof data.response.metaUpdates != 'undefined'){
+                    PubSub.publish('meta.updated', {
+                        projectId : data.response.projectId,
+                        updates : data.response.metaUpdates
+                    });
+                }
+                if(typeof data.response.projectUpdates != 'undefined'){
+                    PubSub.publish('project.updated', {
+                        projectId : data.response.projectId,
+                        updates : data.response.projectUpdates
+                    });
+                }
             } else {
                 if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
                 _renderLambdaRoutineUIChanges(0, 'error');
@@ -873,7 +984,8 @@
         }
 
         var classes = 'mark-complete inverse';
-        if(task.data.status == 'completed') classes += ' inactive';
+        var dependencyHold = task.data.dependencies && !task.data.dependenciesOKTimeStamp;
+        if(task.data.status == 'completed' || dependencyHold) classes += ' inactive';
         output += '<button class="' + classes + '" data-task_id="' + task.id + '"><i class="fa fa-check"></i>&nbsp; Mark Complete</button>';
         // Add to html
         $actionBtns.html(output);
@@ -904,13 +1016,14 @@
         //$taskTab.find('.dynamic-content').html('Loading content ... <i class="fa fa-spin fa-spinner"></i>');
         $taskTab.find('.dynamic-content').attr('data-task_template_id', task.data.taskId);
         $taskTab.attr('data-status', task.data.status);
-        $taskTab.find('pre').html(JSON.stringify(task, undefined, 2));
+        $taskTab.find('.task-data-block pre').html(JSON.stringify(task, undefined, 2));
         $taskTab.find('h1 .num').html(task.data.sortOrder);
         $taskTab.find('h1 .group').html(task.data.taskGroup);
         var hasDependencies = task.data.dependencies.length >= 1;
         var unlocked = !hasDependencies || task.data.dependenciesOKTimeStamp;
         var icon = '<i class="fa lock-status ' + (!unlocked ? 'fa-lock':'fa-unlock') + '"></i>';
         $taskTab.find('h1 .icon').html(icon);
+        //if(task.data.dependencies.length >= 1 && unlocked) _renderLambdaRoutineUIChanges(0, 'done'); // Mark "Validate Task Dependencies" done
         $taskTab.find('h1 .name').html(task.data.taskName);
         $taskTab.find('.status-info .status').html(task.data.status.capitalize());
         $taskTab.find('.description').html(task.data.description);
@@ -1098,8 +1211,14 @@
                 html += '<button class="trigger-start-btn"><i class="fa fa-bolt"></i> Load Trigger</button>'
             }
             html += '<ul class="trigger-steps">';
-            if(task.data.dependencies && task.data.dependencies.length > 0) {
-                html += '<li data-step="0"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Validate</span> Task Dependencies</li>';
+            var hasDependencies = task.data.dependencies && task.data.dependencies.length > 0,
+              unlocked = !hasDependencies || task.data.dependenciesOKTimeStamp;
+            if(hasDependencies) {
+                if(unlocked){
+                    html += '<li class="done" data-step="0"><span class="icon"><i class="fa fa-check-square-o"></i></span> <span class="verb">Validated</span> Task Dependencies</li>';
+                } else {
+                    html += '<li data-step="0"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Validate</span> Task Dependencies</li>';
+                }
             }
 //            console.log(task, typeof task.data.dependencies);
             switch (task.data.trigger.type){

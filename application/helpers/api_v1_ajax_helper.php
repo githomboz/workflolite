@@ -667,6 +667,7 @@ function check_task_dependencies(){
 
   $project = Project::Get($data['projectId']);
   $response['response']['taskId'] = $data['taskId'];
+  $response['response']['projectId'] = $data['projectId'];
   if($project){
     $report = $project->checkTaskDependencies($data['taskId']);
     //var_dump($dependenciesResults);
@@ -691,7 +692,10 @@ function check_task_dependencies(){
     }
     if(!$report['errors']){
       // save dependenciesOKTimeStamp and return it to client
-      $response['response']['taskUpdates']['dependenciesOKTimeStamp'] = time();
+      $time = time();
+      $project->getTaskById($data['taskId'])->setValue('dependenciesOKTimeStamp', $time)->update();
+      $response['response']['taskUpdates']['dependenciesOKTimeStamp'] = $time;
+
     } else {
       if(!$response['errors']) $response['errors'] = [];
       $response['errors'] = array_merge((array) $response['errors'], $report['logs']['errors']);
