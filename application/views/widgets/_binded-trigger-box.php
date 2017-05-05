@@ -30,7 +30,7 @@
       </nav>
       <div class="tabbed-content-container clearfix">
         <section class="tabbed-content tasks clearfix show" data-status="completed" data-slide="tasks">
-          <span class="status-info">Status: <span class="status"></span></span>
+          <span class="status-info"><span class="status"></span></span>
           <div class="task-trigger">
             <div class="trigger-type"><span class="trigger-type-name"></span> | <span class="trigger-type-desc"></span></div>
             <h1>#<span class="num"></span>) <span class="group"></span>: <span class="icon"></span> <span class="name"></span></h1>
@@ -40,10 +40,23 @@
             <div class="bottom-links"></div>
           </div><!--/task-trigger-->
 
-          <div class="task-data-block">
-            <a href="#"><i class="fa fa-search"></i> Toggle Raw</a>
-            <pre></pre>
-          </div><!--/task-data-block-->
+          <div class="task-inset">
+            <a class="inset-tab-link" data-tab_id="0" href="#">Screens (<span class="screen-count"></span>)</a>
+            <span class="tab-name"></span>
+            </a>
+            <div class="inset-tabs">
+              <div class="inset-tab" data-tab_id="0" data-has_content="1">
+              </div>
+              <div class="inset-tab" data-tab_id="1" data-has_content="1">
+              </div>
+              <div class="inset-tab" data-tab_id="2" data-has_content="0">
+                <pre class="task-data"></pre>
+              </div>
+              <div class="inset-tab" data-tab_id="3" data-has_content="0">
+                <pre class="meta-data"></pre>
+              </div>
+            </div>
+          </div>
         </section>
         <section class="tabbed-content metadata clearfix" data-slide="metadata">
           <h1>Job Metadata</h1>
@@ -74,7 +87,7 @@
               <button type="submit"><i class="fa fa-plus"></i> Add Key</button>
             </form>
           </div><!--/.column-list-->
-          <div class="column-details">
+          <div class="column-details meta">
             <div class="inner-details">
               <h2>Closing Date</h2>
               <ul class="meta-meta">

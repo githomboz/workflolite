@@ -589,22 +589,41 @@ $alertRed : rgba(208, 106, 106, 1);
         }
       }
 
-      .task-data-block {
+      .task-inset {
         float: right;
         width: 38%;
 
-        a  {
-          display: block;
+        .inset-tabs {
+          .inset-tab {
+            padding: $padding;
+            background: rgba(255, 255, 255, .04);
+            display: none;
+            overflow: scroll;
+            min-height: 324px;
+            font-weight: 100;
+            margin-top: $padding;
+            line-height: 1.3em;
+
+            &[data-tab_id="1"] {
+              font-size: 12px;
+              line-height: 2em;
+
+              .inset-tasklist {
+                li.active .task-name {
+                  color: #e4b3b3;
+                }
+              }
+            }
+
+            &.active {
+              display: block;
+            }
+          }
         }
 
         pre {
-          margin-top: $padding;
-          overflow: scroll;
-          min-height: 324px;
           font-size: 12px;
-          font-weight: 100;
-          padding: $padding;
-          background: rgba(255, 255, 255, .04);
+          line-height: 1.1em;
         }
       }
     }

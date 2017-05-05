@@ -78,7 +78,7 @@ class Projects extends Users_Controller {
 
   public function archive(){
     $this->preCollapseSidePanel = true;
-    $this->pageTitle = 'Current Projects';
+    $this->pageTitle = 'Project Pipeline';
     $this->navSelected = 'projects';
     $this->view('projects-page');
   }

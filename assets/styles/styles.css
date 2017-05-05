@@ -3800,19 +3800,28 @@ span.checkbox {
     color: rgba(204, 204, 204, 0.37); }
     .binded-trigger-box .tabbed-content.tasks[data-status=completedXX] .completion-test-btn .fa-heartbeat {
       color: #ff3541; }
-  .binded-trigger-box .tabbed-content.tasks .task-data-block {
+  .binded-trigger-box .tabbed-content.tasks .task-inset {
     float: right;
     width: 38%; }
-    .binded-trigger-box .tabbed-content.tasks .task-data-block a {
-      display: block; }
-    .binded-trigger-box .tabbed-content.tasks .task-data-block pre {
-      margin-top: 10px;
+    .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      display: none;
       overflow: scroll;
       min-height: 324px;
-      font-size: 12px;
       font-weight: 100;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.04); }
+      margin-top: 10px;
+      line-height: 1.3em; }
+      .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="1"] {
+        font-size: 12px;
+        line-height: 2em; }
+        .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="1"] .inset-tasklist li.active .task-name {
+          color: #e4b3b3; }
+      .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab.active {
+        display: block; }
+    .binded-trigger-box .tabbed-content.tasks .task-inset pre {
+      font-size: 12px;
+      line-height: 1.1em; }
   .binded-trigger-box .tabbed-content .meta-fields {
     font-size: 14px; }
     .binded-trigger-box .tabbed-content .meta-fields .head-links {

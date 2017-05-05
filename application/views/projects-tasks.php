@@ -491,7 +491,7 @@
                 $(".binded-trigger-box-overlay").addClass('show');
                 $(document).on('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
                 $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
-                $(document).on('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
+                //$(document).on('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
                 $(document).on('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
                 $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
                 $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
@@ -520,7 +520,7 @@
             $overlay.removeClass('show');
             $(document).off('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
             $(document).off('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
-            $(document).off('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
+            //$(document).off('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
             $(document).off('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
             $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
             $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
@@ -545,8 +545,9 @@
 
         $taskTab.css({height : payload.newTaskTabHeight});
         $taskTab.find('.column-list.meta').css({maxHeight : (payload.newTaskTabHeight - 53)});
+        $taskTab.find('.column-details.meta').css({height : (payload.newTaskTabHeight - 53)});
         $taskTab.find('.meta-fields .entries').css({maxHeight : (payload.newTaskTabHeight - 78)});
-        $taskTab.find('.task-data-block pre').css({maxHeight: payload.preElementHeight});
+        $taskTab.find('.task-inset .inset-tab').css({maxHeight: payload.preElementHeight});
     }
 
     function _handleProjectUpdates(topic, payload){
@@ -584,7 +585,7 @@
                         for(var field in payload.updates){
                             _TASK_JSON[i].data[field] = payload.updates[field];
                         }
-                        $('.task-data-block pre').html(JSON.stringify(_TASK_JSON[i], undefined, 2));
+                        $('.task-inset pre.task-data').html(JSON.stringify(_TASK_JSON[i], undefined, 2));
                     }
                 }
 //                console.log(_TASK_JSON, payload);
@@ -876,13 +877,13 @@
 
     }
 
-    function _handleTriggerBoxPreviewData(e){
-        e.preventDefault();
-        var $el = $(e.target),
-          $dataBlock = $el.parents('.task-data-block'),
-          $pre = $dataBlock.find('pre');
-        $pre.toggle();
-    }
+//    function _handleTriggerBoxPreviewData(e){
+//        e.preventDefault();
+//        var $el = $(e.target),
+//          $dataBlock = $el.parents('.task-inset'),
+//          $pre = $dataBlock.find('pre');
+//        $pre.toggle();
+//    }
 
     function _handleTriggerBoxNavClick(e){
         e.preventDefault();
@@ -1043,7 +1044,7 @@
         //$taskTab.find('.dynamic-content').html('Loading content ... <i class="fa fa-spin fa-spinner"></i>');
         $taskTab.find('.dynamic-content').attr('data-task_template_id', task.data.taskId);
         $taskTab.attr('data-status', task.data.status);
-        $taskTab.find('.task-data-block pre').html(JSON.stringify(task, undefined, 2));
+        $taskTab.find('.task-inset pre.task-data').html(JSON.stringify(task, undefined, 2));
         $taskTab.find('h1 .num').html(task.data.sortOrder);
         $taskTab.find('h1 .group').html(task.data.taskGroup);
         var hasDependencies = task.data.dependencies.length >= 1;
@@ -1380,7 +1381,212 @@
         }
     }
 
+    var BindedBoxScreens = (function(){
 
+        var _options = {
+            screensActivated : false,
+            activeScreen : 1,
+            screenChangesMade : false,
+            screenNavChangesMade : false,
+            $taskInset : $(".task-inset")
+        };
+        var _screens = [
+            {
+                title : 'All Screens',
+                content : null,
+                isLoaded : false, // Whether content has been loaded to dom
+                isLoading : false, // If the content is in request mode
+                contentCallback : null // Function to call to get content
+            },
+            {
+                title : 'Task List',
+                content : null,
+                isLoaded : false, // Whether content has been loaded to dom
+                isLoading : false, // If the content is in request mode
+                contentCallback : _renderInsetTaskList // Function to call to get content
+            },
+            {
+                title : 'Task Dump (Admin)',
+                content : null,
+                isLoaded : false, // Whether content has been loaded to dom
+                isLoading : false, // If the content is in request mode
+                contentCallback : null // Function to call to get content
+            },
+            {
+                title : 'Meta Dump (Admin)',
+                content : null,
+                isLoaded : false, // Whether content has been loaded to dom
+                isLoading : false, // If the content is in request mode
+                contentCallback : null // Function to call to get content
+            }
+        ];
 
+        function _renderInsetTaskList(){
+            console.log(_PROJECT);
+            var html = '<ol class="inset-tasklist">';
+            for(var i in _TASK_JSON){
+                console.log(_TASK_JSON[i].id);
+                var activeTask = _PROJECT.activeTaskId == _TASK_JSON[i].id;
+                html += '<li data-status="' + _TASK_JSON[i].data.status + '" ';
+                html += 'class="' + (activeTask ? 'active':'') + '"';
+                html += '>';
+                if(_TASK_JSON[i].data.status == 'completed'){
+                    html += '<i class="fa fa-check-square"></i> &nbsp; ';
+                } else {
+                    html += '<i class="fa fa-square"></i> &nbsp; ';
+                }
+                html += '<span class="task-sort-order">' + _TASK_JSON[i].data.sortOrder + '.</span> ';
+                html += '<span class="task-name">' + _TASK_JSON[i].data.taskName + '</span> ';
+                if(activeTask) html += ' <i class="fa fa-caret-left"></i>';
+                html += '</li>';
+            }
+            return html;
+        }
+
+        function _activateScreen(index){
+            if(index != +_options.activeScreen) {
+                _options.activeScreen = index;
+                _options.screenChangesMade = true;
+            }
+            _render();
+        }
+
+        function _setScreenData(index, data){
+            data.isLoaded = false;
+            for(var field in data){
+                _options.screenChangesMade = true;
+                if(field == 'title') _options.screenNavChangesMade = true;
+                _screens[index][field] = data[field];
+            }
+            console.log(data);
+        }
+
+        function _getScreen(index){
+            for(var i in _screens){
+                if(i == index) return _screens[i];
+            }
+        }
+
+        function _applyScreenContent(index, content){
+            data = {
+                content : content
+            };
+            _setScreenData(index, data);
+        }
+
+        function _loadContent(index){
+            // activate loading overlay
+            _setLoadingScreen(index);
+            // attempt to get returned content
+            var content = null;
+            var screen = _getScreen(index);
+            if(screen.content){
+                content = screen.content;
+            } else {
+                if(screen.contentCallback){
+                    content = screen.contentCallback();
+                }
+            }
+            if(content){
+                _applyScreenContent(index, content);
+                _unsetLoadingScreen(index);
+            }
+            return content;
+
+        }
+
+        function _renderNav(){
+            var html = '<ul>';
+
+            for(var i in _screens){
+                if(i > 0){
+                    html += '<li>';
+                    html += '<a class="inset-tab-link';
+                    if(_options.activeScreen == i) html += ' active';
+                    html += '" ';
+                    html += 'data-tab_id="' + i + '" ';
+                    html += 'href="#">';
+                    html += _screens[i].title;
+                    html += '</a>';
+                    html += '</li>';
+                }
+            }
+
+            html += '</ul>';
+            var $screensScreen = $(".inset-tab[data-tab_id=0]");
+            $screensScreen.attr('has_content', 1);
+            $screensScreen.html(html);
+            _options.screenNavChangesMade = false;
+        }
+
+        function _setLoadingScreen(index){
+            // Apply the loading ui to the given screen
+        }
+
+        function _unsetLoadingScreen(index){
+            // Remove the loading ui from the given screen
+        }
+
+        function _activate(){
+            $(document).on('click', '.inset-tab-link', _handleInsetBtnClick);
+            _render();
+        }
+
+        function _deactivate(){
+            $(document).off('click', '.inset-tab-link', _handleInsetBtnClick);
+        }
+
+        function _handleInsetBtnClick(e){
+            e.preventDefault();
+            var $this = $(this);
+            _activateScreen(parseInt($this.attr('data-tab_id')));
+        }
+
+        function _render(){
+            //console.log(_options);
+            if(_options.screenNavChangesMade || !_options.screensActivated) _renderNav();
+
+            // Set screen count
+            _options.$taskInset.find('.screen-count').html((_screens.length - 1));
+
+            if(_options.screenChangesMade || !_options.screensActivated){
+
+                var $screen = _options.$taskInset.find('.inset-tab[data-tab_id=' + _options.activeScreen + ']');
+
+                // Get Rendered content
+                _loadContent(_options.activeScreen);
+
+                var screen = _getScreen(_options.activeScreen);
+                // Activate Screen name
+                if(_options.activeScreen > 0){
+                    _options.$taskInset.find('.tab-name').html(screen.title);
+                } else {
+                    _options.$taskInset.find('.tab-name').html('');
+                }
+                if(screen.isLoading){
+                    _setLoadingScreen(_options.activeScreen);
+                }
+
+                if(screen.content && !screen.loaded){
+                    // Load screen
+                    $screen.html(screen.content);
+
+                    // Mark screen loaded
+                    _screens[_options.activeScreen].isLoaded = true;
+                }
+
+                // Activate active tab
+                _options.$taskInset.find('.inset-tab').removeClass('active');
+                $screen.addClass('active');
+
+                _options.screenChangesMade = false;
+            }
+
+            _options.screensActivated = true;
+        }
+
+        _activate();
+
+    })();
 
 </script>
