@@ -503,6 +503,9 @@
                 PubSub.subscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
                 PubSub.subscribe('bindedBox.resize', _handleBindedBoxViewportResize);
                 _PROJECT.triggerBoxOpen = true;
+                PubSub.publish('bindedBox.opened', {
+                    _PROJECT : _PROJECT
+                });
             }
             _PROJECT.activeTaskId = taskId;
             _renderTriggerBoxProjectAndTaskData(task);
@@ -510,6 +513,9 @@
             _renderMetaDataTabbedContent();
             _activateTriggerBoxSlide('tasks'); // Default back to tasks slide
             triggerResize();
+            PubSub.publish('bindedBox.newTaskActivated', {
+                activeTaskId : taskId
+            });
         }
     }
 
@@ -533,6 +539,10 @@
             PubSub.unsubscribe('bindedBox.resize', _handleBindedBoxViewportResize);
             _PROJECT.triggerBoxOpen = false;
             _PROJECT.activeTaskId = null;
+            PubSub.publish('bindedBox.closed', {
+                _PROJECT : _PROJECT
+            });
+
         }
     }
 
@@ -547,7 +557,7 @@
         $taskTab.find('.column-list.meta').css({maxHeight : (payload.newTaskTabHeight - 53)});
         $taskTab.find('.column-details.meta').css({height : (payload.newTaskTabHeight - 53)});
         $taskTab.find('.meta-fields .entries').css({maxHeight : (payload.newTaskTabHeight - 78)});
-        $taskTab.find('.task-inset .inset-tab').css({maxHeight: payload.preElementHeight});
+        $taskTab.find('.task-inset .inset-tab').css({height: payload.preElementHeight});
     }
 
     function _handleProjectUpdates(topic, payload){
@@ -659,10 +669,18 @@
 
     function _executeRunLambdaAjaxCalls(topic, payload){
         _LAMBDA_PROGRESS++;
-        var post = {
+        var
+          routineSlugs = [
+            'validate_dependencies',
+            'validate_lambda_callback',
+            'execute_lambda_callback',
+            'analyze_callback_results'
+          ],
+          post = {
             projectId : _CS_Get_Project_ID(),
             taskTemplateId : $('.dynamic-content').attr('data-task_template_id'),
-            routine : 'step-' + _LAMBDA_PROGRESS
+            routine : 'step-' + _LAMBDA_PROGRESS,
+              slug : routineSlugs[_LAMBDA_PROGRESS],
         };
         var $lambdaStartBtn = $('.trigger-start-btn');
 
@@ -677,23 +695,32 @@
           },
           function(data){
               // success
-              if(data.errors == false){
-                  _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'done');
-                  if(_LAMBDA_PROGRESS < 3){
-                      PubSub.publish('queueNextRunLambdaStep', data.response);
+              if(data.errors == false && data.response.success){
+                  console.log(data);
+                  switch (data.response.slug){
+                      case routineSlugs[1]: //'validate_lambda_callback':
+                      case routineSlugs[2]: //'execute_lambda_callback':
+                          _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'done');
+                          PubSub.publish('queueNextRunLambdaStep', data.response);
+                          break;
+                      case routineSlugs[3]: //'analyze_callback_results':
+                          _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'done');
+                          $lambdaStartBtn.removeClass('clicked').addClass('complete');
+                          $lambdaStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
+                          break;
                   }
                   console.log(_LAMBDA_PROGRESS, data);
-                  if(_LAMBDA_PROGRESS == 3) {
-                      $lambdaStartBtn.removeClass('clicked').addClass('complete');
-                      $lambdaStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
-                  }
               } else {
-                  if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
+                  _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'error');
+                  if(data.errors && typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
+                  $lambdaStartBtn.html('<i class="fa fa-exclamation-triangle"></i> Trigger Error');
               }
           },
           function(){
               // error
+              _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'error');
               alertify.error('Error', 'An error has occurred.');
+              $lambdaStartBtn.html('<i class="fa fa-exclamation-triangle"></i> Trigger Error');
           },
           post,
           {
@@ -1392,6 +1419,7 @@
         };
         var _screens = [
             {
+                slug : 'screens',
                 title : 'All Screens',
                 content : null,
                 isLoaded : false, // Whether content has been loaded to dom
@@ -1399,6 +1427,7 @@
                 contentCallback : null // Function to call to get content
             },
             {
+                slug : 'task_list',
                 title : 'Task List',
                 content : null,
                 isLoaded : false, // Whether content has been loaded to dom
@@ -1406,6 +1435,15 @@
                 contentCallback : _renderInsetTaskList // Function to call to get content
             },
             {
+                slug : 'logs',
+                title : 'Logs',
+                content : null,
+                isLoaded : false, // Whether content has been loaded to dom
+                isLoading : false, // If the content is in request mode
+                contentCallback : null // Function to call to get content
+            },
+            {
+                slug : '_admin_task_dump',
                 title : 'Task Dump (Admin)',
                 content : null,
                 isLoaded : false, // Whether content has been loaded to dom
@@ -1413,6 +1451,7 @@
                 contentCallback : null // Function to call to get content
             },
             {
+                slug : '_admin_meta_dump',
                 title : 'Meta Dump (Admin)',
                 content : null,
                 isLoaded : false, // Whether content has been loaded to dom
@@ -1421,26 +1460,40 @@
             }
         ];
 
+        function _initialize(){
+            for(var i in _screens) _screens[i].index = parseInt(i);
+        }
+
         function _renderInsetTaskList(){
             console.log(_PROJECT);
             var html = '<ol class="inset-tasklist">';
             for(var i in _TASK_JSON){
-                console.log(_TASK_JSON[i].id);
+                var isComplete = _TASK_JSON[i].data.status == 'completed';
+                //console.log(_TASK_JSON[i].id);
                 var activeTask = _PROJECT.activeTaskId == _TASK_JSON[i].id;
                 html += '<li data-status="' + _TASK_JSON[i].data.status + '" ';
+                html += 'data-task_id="' + _TASK_JSON[i].id + '" ';
                 html += 'class="' + (activeTask ? 'active':'') + '"';
                 html += '>';
-                if(_TASK_JSON[i].data.status == 'completed'){
+                if(isComplete){
                     html += '<i class="fa fa-check-square"></i> &nbsp; ';
                 } else {
                     html += '<i class="fa fa-square"></i> &nbsp; ';
                 }
                 html += '<span class="task-sort-order">' + _TASK_JSON[i].data.sortOrder + '.</span> ';
-                html += '<span class="task-name">' + _TASK_JSON[i].data.taskName + '</span> ';
+                html += '<a href="#" class="task-name">';
+                if(isComplete) html += '<strike>';
+                html += _TASK_JSON[i].data.taskName;
+                if(isComplete) html += '</strike>';
+                html += '</a> ';
                 if(activeTask) html += ' <i class="fa fa-caret-left"></i>';
                 html += '</li>';
             }
             return html;
+        }
+
+        function _renderInsetTabs(){
+            console.log(_screens);
         }
 
         function _activateScreen(index){
@@ -1461,9 +1514,26 @@
             console.log(data);
         }
 
+        function _setScreenDataBySlug(slug, data){
+            data.isLoaded = false;
+            for(var field in data){
+                _options.screenChangesMade = true;
+                if(field == 'title') _options.screenNavChangesMade = true;
+                var screen = _getScreenBySlug(slug);
+                _screens[screen.index][field] = data[field];
+            }
+            console.log(data);
+        }
+
         function _getScreen(index){
             for(var i in _screens){
                 if(i == index) return _screens[i];
+            }
+        }
+
+        function _getScreenBySlug(slug){
+            for(var i in _screens){
+                if(_screens[i].slug == slug) return _screens[i];
             }
         }
 
@@ -1474,18 +1544,20 @@
             _setScreenData(index, data);
         }
 
-        function _loadContent(index){
+        function _loadContent(index, flush){
+            flush = flush || false;
             // activate loading overlay
             _setLoadingScreen(index);
             // attempt to get returned content
             var content = null;
             var screen = _getScreen(index);
-            if(screen.content){
+            if(screen.content && !flush){
                 content = screen.content;
             } else {
                 if(screen.contentCallback){
                     content = screen.contentCallback();
                 }
+                if(!content && screen.content) content = screen.content;
             }
             if(content){
                 _applyScreenContent(index, content);
@@ -1500,7 +1572,9 @@
 
             for(var i in _screens){
                 if(i > 0){
-                    html += '<li>';
+                    html += '<li data-slug="' + _screens[i].slug + '"';
+
+                    html += '>';
                     html += '<a class="inset-tab-link';
                     if(_options.activeScreen == i) html += ' active';
                     html += '" ';
@@ -1528,12 +1602,32 @@
         }
 
         function _activate(){
+            _initialize();
             $(document).on('click', '.inset-tab-link', _handleInsetBtnClick);
+            $(document).on('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
+            PubSub.subscribe('bindedBox.newTaskActivated', _handleNewTaskActivated);
             _render();
         }
 
         function _deactivate(){
             $(document).off('click', '.inset-tab-link', _handleInsetBtnClick);
+            $(document).off('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
+            PubSub.unsubscribe('bindedBox.newTaskActivated', _handleNewTaskActivated);
+        }
+
+        function _handleNewTaskActivated(topic, payload){
+            var taskListScreen = 1;
+            var content = _loadContent(taskListScreen, true);
+            if(content) _options.$taskInset.find('.inset-tab[data-tab_id=' + taskListScreen + ']').html(content);
+        }
+
+        function _handleInsetTaskBtnClick(e){
+            e.preventDefault();
+            var $this = $(this),
+              $li = $this.parents('li'),
+              taskId = $li.data('task_id');
+
+            _triggerBoxOpen(taskId);
         }
 
         function _handleInsetBtnClick(e){
@@ -1542,12 +1636,19 @@
             _activateScreen(parseInt($this.attr('data-tab_id')));
         }
 
+        function _updateScreenCount(topic, screenCount){
+            screenCount = screenCount || _screens.length;
+            _options.$taskInset.find('.screen-count').html((screenCount - 1));
+        }
+
         function _render(){
             //console.log(_options);
             if(_options.screenNavChangesMade || !_options.screensActivated) _renderNav();
 
+            _renderInsetTabs();
+
             // Set screen count
-            _options.$taskInset.find('.screen-count').html((_screens.length - 1));
+            _updateScreenCount();
 
             if(_options.screenChangesMade || !_options.screensActivated){
 
@@ -1585,7 +1686,8 @@
             _options.screensActivated = true;
         }
 
-        _activate();
+        PubSub.subscribe('bindedBox.opened', _activate);
+        PubSub.subscribe('bindedBox.closed', _deactivate);
 
     })();
 

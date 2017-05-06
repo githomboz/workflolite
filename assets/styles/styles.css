@@ -3575,7 +3575,15 @@ span.checkbox {
       color: #92f38b;
       background: #555;
       margin: 0;
-      margin-left: 8px; }
+      margin-left: 8px;
+      -webkit-user-select: none;
+      /* Chrome all / Safari all */
+      -moz-user-select: none;
+      /* Firefox all */
+      -ms-user-select: none;
+      /* IE 10+ */
+      -o-user-select: none;
+      user-select: none; }
       .binded-trigger-box .action-btns button:hover {
         background: #505050; }
       .binded-trigger-box .action-btns button.inverse {
@@ -3641,16 +3649,18 @@ span.checkbox {
     right: 10px;
     color: #afaeae; }
     .binded-trigger-box .tabbed-content.tasks .status-info .status {
-      color: #fff; }
+      color: #fff;
+      font-size: 14px; }
   .binded-trigger-box .tabbed-content.tasks .task-trigger {
     float: left;
     width: 60%;
     height: 350px;
     padding-bottom: 18px; }
     .binded-trigger-box .tabbed-content.tasks .task-trigger .trigger-type {
-      margin-bottom: 10px;
+      margin-bottom: 2px;
       color: #7b7b7b;
-      line-height: 1.3em; }
+      line-height: 1.3em;
+      font-size: 14px; }
       .binded-trigger-box .tabbed-content.tasks .task-trigger .trigger-type .trigger-type-name {
         color: #bdbdbd; }
       .binded-trigger-box .tabbed-content.tasks .task-trigger .trigger-type .trigger-type-desc {
@@ -3664,6 +3674,10 @@ span.checkbox {
           font-size: 12px;
           position: relative;
           top: -2px; }
+    .binded-trigger-box .tabbed-content.tasks .task-trigger .description {
+      margin-bottom: .8em; }
+    .binded-trigger-box .tabbed-content.tasks .task-trigger .instructions {
+      margin-bottom: .8em; }
     .binded-trigger-box .tabbed-content.tasks .task-trigger .group {
       color: #bdbdbd; }
     .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links {
@@ -3730,7 +3744,7 @@ span.checkbox {
           width: 50%; }
           .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .dependency-list ol {
             font-size: 12px;
-            line-height: 1.3em;
+            line-height: 1.4em;
             list-style-type: decimal;
             list-style-position: inside;
             list-style: decimal;
@@ -3738,7 +3752,7 @@ span.checkbox {
             color: rgba(255, 255, 255, 0.7);
             display: none; }
             .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .dependency-list ol li {
-              margin-bottom: .5em;
+              margin-bottom: 1em;
               list-style: decimal; }
               .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .dependency-list ol li .fa-thumbs-up {
                 margin-left: 4px;
@@ -3803,6 +3817,11 @@ span.checkbox {
   .binded-trigger-box .tabbed-content.tasks .task-inset {
     float: right;
     width: 38%; }
+    .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tab-link {
+      font-size: 14px;
+      color: #afaeae; }
+    .binded-trigger-box .tabbed-content.tasks .task-inset .tab-name {
+      font-size: 14px; }
     .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab {
       padding: 10px;
       background: rgba(255, 255, 255, 0.04);
@@ -3815,8 +3834,20 @@ span.checkbox {
       .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="1"] {
         font-size: 12px;
         line-height: 2em; }
-        .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="1"] .inset-tasklist li.active .task-name {
-          color: #e4b3b3; }
+        .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="1"] .inset-tasklist {
+          -webkit-user-select: none;
+          /* Chrome all / Safari all */
+          -moz-user-select: none;
+          /* Firefox all */
+          -ms-user-select: none;
+          /* IE 10+ */
+          -o-user-select: none;
+          user-select: none;
+          cursor: default; }
+          .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="1"] .inset-tasklist .task-name {
+            color: #afaeae; }
+          .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="1"] .inset-tasklist li.active .task-name {
+            color: #e4b3b3; }
       .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab.active {
         display: block; }
     .binded-trigger-box .tabbed-content.tasks .task-inset pre {

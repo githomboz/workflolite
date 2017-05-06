@@ -218,6 +218,12 @@ $alertRed : rgba(208, 106, 106, 1);
       background: $normalBtnGray;
       margin: 0;
       margin-left: $padding - 2;
+      -webkit-user-select: none;  /* Chrome all / Safari all */
+      -moz-user-select: none;     /* Firefox all */
+      -ms-user-select: none;      /* IE 10+ */
+
+      -o-user-select: none;
+      user-select: none;
 
       &:hover {
         background: darken($normalBtnGray, 2%);
@@ -238,6 +244,7 @@ $alertRed : rgba(208, 106, 106, 1);
         pointer-events: none;
         background: $inactiveBtnBG;
         color: $inactiveBtnText;
+
       }
 
     }
@@ -330,6 +337,7 @@ $alertRed : rgba(208, 106, 106, 1);
 
         .status {
           color: $txtInnerColor;
+          font-size: 14px;
         }
       }
 
@@ -340,9 +348,10 @@ $alertRed : rgba(208, 106, 106, 1);
         padding-bottom: $paddingLarge;
 
         .trigger-type {
-          margin-bottom: $padding;
+          margin-bottom: 2px;
           color: #7b7b7b;
           line-height: 1.3em;
+          font-size: 14px;
 
           .trigger-type-name {
             color: #bdbdbd;
@@ -362,6 +371,14 @@ $alertRed : rgba(208, 106, 106, 1);
             }
           }
 
+        }
+
+        .description {
+          margin-bottom: .8em;
+        }
+
+        .instructions {
+          margin-bottom: .8em;
         }
 
         .group {
@@ -465,7 +482,7 @@ $alertRed : rgba(208, 106, 106, 1);
 
               ol {
                 font-size: 12px;
-                line-height: 1.3em;
+                line-height: 1.4em;
                 list-style-type: decimal;
                 list-style-position: inside;
                 list-style: decimal;
@@ -474,7 +491,7 @@ $alertRed : rgba(208, 106, 106, 1);
                 display: none;
 
                 li {
-                  margin-bottom: .5em;
+                  margin-bottom: 1em;
                   list-style: decimal;
 
                   .fa-thumbs-up {
@@ -593,6 +610,15 @@ $alertRed : rgba(208, 106, 106, 1);
         float: right;
         width: 38%;
 
+        .inset-tab-link {
+          font-size: 14px;
+          color: $txtLightGray;
+        }
+
+        .tab-name {
+          font-size: 14px;
+        }
+
         .inset-tabs {
           .inset-tab {
             padding: $padding;
@@ -609,6 +635,21 @@ $alertRed : rgba(208, 106, 106, 1);
               line-height: 2em;
 
               .inset-tasklist {
+                -webkit-user-select: none;  /* Chrome all / Safari all */
+                -moz-user-select: none;     /* Firefox all */
+                -ms-user-select: none;      /* IE 10+ */
+
+                -o-user-select: none;
+                user-select: none;
+                cursor: default;
+
+                .task-sort-order {
+                }
+
+                .task-name {
+                  color: $txtLightGray;
+                }
+
                 li.active .task-name {
                   color: #e4b3b3;
                 }

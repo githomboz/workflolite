@@ -99,6 +99,10 @@ class WF
 
   }
 
+  /**
+   * Addition function. Adds the parameters that are passed in.
+   * @return mixed
+   */
   public static function Add(){
     $params = func_get_args();
     $logs = ['errors'=>[],'debug'=>[]];
@@ -315,6 +319,13 @@ class WF
 
 class JNBPA {
   public static function ValidateFileNumber($fileNumber){
-    return strlen((string) $fileNumber) >= 5 && (strpos('jnbpa', $fileNumber) >= 0);
+    return strlen((string) $fileNumber) >= 5 && (strpos($fileNumber, 'jnbpa') === 0);
+  }
+}
+
+class WorkfloCore {
+  public static function SimpleSMS(){
+    log_message('error','Simple SMS triggered');
+    return true;
   }
 }

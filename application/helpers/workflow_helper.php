@@ -33,6 +33,7 @@ require_once 'classes/Confirmations.php';
 require_once 'classes/utilities/WFSimpleForm.php';
 require_once 'classes/utilities/WFAction.php';
 require_once 'classes/utilities/WFDependencies.php';
+require_once 'classes/Trigger2.php';
 require_once 'classes/Task.php';
 require_once 'classes/TaskTemplate.php';
 require_once 'classes/Job.php';
