@@ -485,7 +485,11 @@
     function _triggerBoxOpen(taskId){
         var task = _getTaskDataById(taskId);
         _LAMBDA_PROGRESS = 0;
+        _FORM_PROGRESS = 0;
         if(task){
+            console.log('Active Task Before', _PROJECT.activeTaskId);
+            _PROJECT.activeTaskId = taskId;
+            console.log('Active Task After', _PROJECT.activeTaskId);
             if(!_PROJECT.triggerBoxOpen){
                 //console.log('trigger box opened');
                 $(".binded-trigger-box-overlay").addClass('show');
@@ -495,7 +499,7 @@
                 $(document).on('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
                 $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
                 $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
-                $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunLambdaBtnClick);
+                $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
                 $(document).on('click', '.binded-trigger-box button.js-directional', _handleDirectionalBtnClick);
                 $(document).on('click', '.binded-trigger-box .action-btns .mark-complete', _handleMarkCompleteClick);
                 PubSub.subscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
@@ -507,7 +511,6 @@
                     _PROJECT : _PROJECT
                 });
             }
-            _PROJECT.activeTaskId = taskId;
             _renderTriggerBoxProjectAndTaskData(task);
             _renderTaskTabbedContent(task);
             _renderMetaDataTabbedContent();
@@ -530,7 +533,7 @@
             $(document).off('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
             $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
             $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
-            $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunLambdaBtnClick);
+            $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
             $(document).off('click', '.binded-trigger-box button.js-directional', _handleDirectionalBtnClick);
             $(document).off('click', '.binded-trigger-box .action-btns .mark-complete', _handleMarkCompleteClick);
             PubSub.unsubscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
@@ -658,17 +661,101 @@
     }
 
     var _LAMBDA_PROGRESS = 0;
+    var _FORM_PROGRESS = 0;
 
-    function _handleRunLambdaBtnClick(e){
+    function _handleRunTriggerBtnClick(e){
         e.preventDefault();
+        var
+          taskId = _PROJECT.activeTaskId,
+          task = _getTaskDataById(taskId),
+          taskType = task.data.trigger.type;
+
+        //console.log(taskId, taskType);
+
         if(!_LAMBDA_PROGRESS){
             // Start ajax jumps
-            _executeRunLambdaAjaxCalls()
+            switch (taskType){
+                case 'form':
+                    _executeRunFormAjaxCalls();
+                    break;
+                case 'lambda':
+                    _executeRunLambdaAjaxCalls();
+                    break;
+                case 'applet':
+                    break;
+            }
         }
+    }
+
+    function _executeRunFormAjaxCalls(topic, payload){
+        _FORM_PROGRESS++;
+        var triggerType = 'form';
+        var
+          routineSlugs = [
+            'validate_dependencies',
+            'validate_form',
+            'render_form'
+          ],
+          post = {
+            projectId : _CS_Get_Project_ID(),
+            taskTemplateId : $('.dynamic-content').attr('data-task_template_id'),
+            routine : 'step-' + _FORM_PROGRESS,
+              slug : routineSlugs[_FORM_PROGRESS],
+        };
+        var $triggerStartBtn = $('.trigger-start-btn');
+
+        CS_API.call('ajax/run_form_routines',
+          function(){
+              // beforeSend
+              _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'checking', triggerType);
+              if(_FORM_PROGRESS == 1){
+                  $triggerStartBtn.addClass('clicked');
+                  $triggerStartBtn.html('<i class="fa fa-spin fa-spinner"></i> Loading Trigger');
+              }
+          },
+          function(data){
+              // success
+              if(data.errors == false && data.response.success){
+                  console.log(data);
+                  switch (data.response.slug){
+                      case routineSlugs[1]: //'validate_lambda_callback':
+                          _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'done', triggerType);
+                          PubSub.publish('queueNextRunLambdaStep', data.response);
+                          break;
+                      case routineSlugs[2]: //'execute_lambda_callback':
+                          _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'done', triggerType);
+                          //PubSub.publish('queueNextRunLambdaStep', data.response);
+                          $triggerStartBtn.removeClass('clicked').addClass('complete');
+                          $triggerStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
+                          break;
+                      case routineSlugs[3]: //'analyze_callback_results':
+                          _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'done', triggerType);
+                          break;
+                  }
+                  console.log(_FORM_PROGRESS, data);
+              } else {
+                  _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'error', triggerType);
+                  if(data.errors && typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
+                  $triggerStartBtn.html('<i class="fa fa-exclamation-triangle"></i> Trigger Error');
+              }
+          },
+          function(){
+              // error
+              _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'error', triggerType);
+              alertify.error('Error', 'An error has occurred.');
+              $triggerStartBtn.html('<i class="fa fa-exclamation-triangle"></i> Trigger Error');
+          },
+          post,
+          {
+              method: 'POST',
+              preferCache : false
+          }
+        );
     }
 
     function _executeRunLambdaAjaxCalls(topic, payload){
         _LAMBDA_PROGRESS++;
+        var triggerType = 'lambda';
         var
           routineSlugs = [
             'validate_dependencies',
@@ -682,15 +769,15 @@
             routine : 'step-' + _LAMBDA_PROGRESS,
               slug : routineSlugs[_LAMBDA_PROGRESS],
         };
-        var $lambdaStartBtn = $('.trigger-start-btn');
+        var $triggerStartBtn = $('.trigger-start-btn');
 
         CS_API.call('ajax/run_lambda_routines',
           function(){
               // beforeSend
-              _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'checking');
+              _renderTriggerRoutineUIChanges(_LAMBDA_PROGRESS, 'checking', triggerType);
               if(_LAMBDA_PROGRESS == 1){
-                  $lambdaStartBtn.addClass('clicked');
-                  $lambdaStartBtn.html('<i class="fa fa-spin fa-spinner"></i> Loading Trigger');
+                  $triggerStartBtn.addClass('clicked');
+                  $triggerStartBtn.html('<i class="fa fa-spin fa-spinner"></i> Loading Trigger');
               }
           },
           function(data){
@@ -699,28 +786,31 @@
                   console.log(data);
                   switch (data.response.slug){
                       case routineSlugs[1]: //'validate_lambda_callback':
-                      case routineSlugs[2]: //'execute_lambda_callback':
-                          _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'done');
+                          _renderTriggerRoutineUIChanges(_LAMBDA_PROGRESS, 'done', triggerType);
                           PubSub.publish('queueNextRunLambdaStep', data.response);
                           break;
+                      case routineSlugs[2]: //'execute_lambda_callback':
+                          _renderTriggerRoutineUIChanges(_LAMBDA_PROGRESS, 'done', triggerType);
+                          //PubSub.publish('queueNextRunLambdaStep', data.response);
+                          $triggerStartBtn.removeClass('clicked').addClass('complete');
+                          $triggerStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
+                          break;
                       case routineSlugs[3]: //'analyze_callback_results':
-                          _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'done');
-                          $lambdaStartBtn.removeClass('clicked').addClass('complete');
-                          $lambdaStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
+                          _renderTriggerRoutineUIChanges(_LAMBDA_PROGRESS, 'done', triggerType);
                           break;
                   }
                   console.log(_LAMBDA_PROGRESS, data);
               } else {
-                  _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'error');
+                  _renderTriggerRoutineUIChanges(_LAMBDA_PROGRESS, 'error', triggerType);
                   if(data.errors && typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
-                  $lambdaStartBtn.html('<i class="fa fa-exclamation-triangle"></i> Trigger Error');
+                  $triggerStartBtn.html('<i class="fa fa-exclamation-triangle"></i> Trigger Error');
               }
           },
           function(){
               // error
-              _renderLambdaRoutineUIChanges(_LAMBDA_PROGRESS, 'error');
+              _renderTriggerRoutineUIChanges(_LAMBDA_PROGRESS, 'error', triggerType);
               alertify.error('Error', 'An error has occurred.');
-              $lambdaStartBtn.html('<i class="fa fa-exclamation-triangle"></i> Trigger Error');
+              $triggerStartBtn.html('<i class="fa fa-exclamation-triangle"></i> Trigger Error');
           },
           post,
           {
@@ -730,92 +820,142 @@
         );
     }
 
-    function _renderLambdaRoutineUIChanges(stepNum, progress){
-        var $steps = $('.dynamic-content .trigger-steps'),
-        $step = $steps.find('[data-step=' + stepNum + ']'),
-        textData = {
-            0 : {
-              verb : "validate",
-              noun : "Task Dependencies"
-            },
-            1 : {
-              verb : "validate",
-              noun : "Lambda Callback & Parameters"
-            },
-            2 : {
-              verb : "execute",
-              noun : "Lambda Callback"
-            },
-            3 : {
-              verb : "analyze",
-              noun : "Callback Results"
-            },
-        },
-        verbTenses = {
-          validate : {
-              do : "Validate",
-              doing : "Validating",
-              did : "Validated",
-              doh : "Issues Validating"
-          },
-          execute : {
-              do : "Execute",
-              doing : "Executing",
-              did : "Executed",
-              doh : "Issues Executing"
-          },
-          analyze : {
-              do : "Analyze",
-              doing : "Analyzing",
-              did : "Analyzed",
-              doh : "Issues Analyzing"
-          },
-          render : {
-              do : "Render",
-              doing : "Rendering",
-              did : "Rendered",
-              doh : "Issues Rendering"
-          }
-        },
-          icons = {
-              do : 'fa fa-square-o',
-              doing : 'fa fa-spinner fa-spin',
-              did : 'fa fa-check-square-o',
-              doh : 'fa fa-exclamation-triangle'
-          },
-          icon = null,
-          verb = null;
+    function _renderTriggerRoutineUIChanges(stepNum, progress, type){
+        if(['form','lambda','applet'].indexOf(type) >= 0) {
+            var $steps = $('.dynamic-content .trigger-steps'),
+                $step = $steps.find('[data-step=' + stepNum + ']'),
+                verbTenses = {
+                  validate: {
+                      do: "Validate",
+                      doing: "Validating",
+                      did: "Validated",
+                      doh: "Issues Validating"
+                  },
+                  execute: {
+                      do: "Execute",
+                      doing: "Executing",
+                      did: "Executed",
+                      doh: "Issues Executing"
+                  },
+                  analyze: {
+                      do: "Analyze",
+                      doing: "Analyzing",
+                      did: "Analyzed",
+                      doh: "Issues Analyzing"
+                  },
+                  render: {
+                      do: "Render",
+                      doing: "Rendering",
+                      did: "Rendered",
+                      doh: "Issues Rendering"
+                  },
+                  load: {
+                      do: "Load",
+                      doing: "Loading",
+                      did: "Loaded",
+                      doh: "Issues Loading"
+                  },
+                  verify: {
+                      do: "Verify",
+                      doing: "Verifying",
+                      did: "Verified",
+                      doh: "Issues Verifying"
+                  }
+                },
+                icons = {
+                  do: 'fa fa-square-o',
+                  doing: 'fa fa-spinner fa-spin',
+                  did: 'fa fa-check-square-o',
+                  doh: 'fa fa-exclamation-triangle'
+                },
+                icon, verb, textData;
+
+            switch(type){
+                case 'form':
+                    textData = {
+                          0 : {
+                              verb : "validate",
+                              noun : "Task Dependencies"
+                          },
+                          1 : {
+                              verb : "validate",
+                              noun : "Form Settings & Options"
+                          },
+                          2 : {
+                              verb : "render",
+                              noun : "Form"
+                          },
+                      };
+                    break;
+                case 'lambda':
+                    textData = {
+                          0 : {
+                              verb : "validate",
+                              noun : "Task Dependencies"
+                          },
+                          1 : {
+                              verb : "validate",
+                              noun : "Lambda Callback & Parameters"
+                          },
+                          2 : {
+                              verb : "execute",
+                              noun : "Lambda Callback"
+                          },
+                          3 : {
+                              verb : "analyze",
+                              noun : "Callback Results"
+                          },
+                      };
+                    break;
+                case 'applet':
+                    textData = {
+                          0 : {
+                              verb : "validate",
+                              noun : "Task Dependencies"
+                          },
+                          1 : {
+                              verb : "verify",
+                              noun : "Applet"
+                          },
+                          2 : {
+                              verb : "load",
+                              noun : "Applet"
+                          },
+                      };
+                    break;
+            }
 
 
-        switch (progress){
-            case 'error':
-                icon = '<i class="' + icons.doh + '"></i> ';
-                verb = verbTenses[textData[stepNum].verb].doh;
-                //$step.html(icon +  + ' ' + textData[stepNum].noun);
-                $step.removeClass('done').addClass('error');
-                break;
-            case 'checking':
-                icon = '<i class="' + icons.doing + '"></i> ';
-                verb = verbTenses[textData[stepNum].verb].doing;
-                //$step.html(icon +  + ' ' + textData[stepNum].noun);
-                $step.removeClass('done error');
-                break;
-            case 'done':
-                icon = '<i class="' + icons.did + '"></i> ';
-                verb = verbTenses[textData[stepNum].verb].did;
-                //$step.html(icon + verbTenses[textData[stepNum].verb].did + ' ' + textData[stepNum].noun);
-                $step.removeClass('error').addClass('done');
-                break;
-            default:
-                icon = '<i class="' + icons.do + '"></i> ';
-                verb = verbTenses[textData[stepNum].verb].do;
-                //$step.html(icon + verbTenses[textData[stepNum].verb].do + ' ' + textData[stepNum].noun);
-                $step.removeClass('done error');
-                break;
+            switch (progress) {
+                case 'error':
+                    icon = '<i class="' + icons.doh + '"></i> ';
+                    verb = verbTenses[textData[stepNum].verb].doh;
+                    //$step.html(icon +  + ' ' + textData[stepNum].noun);
+                    $step.removeClass('done').addClass('error');
+                    break;
+                case 'checking':
+                    icon = '<i class="' + icons.doing + '"></i> ';
+                    verb = verbTenses[textData[stepNum].verb].doing;
+                    //$step.html(icon +  + ' ' + textData[stepNum].noun);
+                    $step.removeClass('done error');
+                    break;
+                case 'done':
+                    icon = '<i class="' + icons.did + '"></i> ';
+                    verb = verbTenses[textData[stepNum].verb].did;
+                    //$step.html(icon + verbTenses[textData[stepNum].verb].did + ' ' + textData[stepNum].noun);
+                    $step.removeClass('error').addClass('done');
+                    break;
+                default:
+                    icon = '<i class="' + icons.do + '"></i> ';
+                    verb = verbTenses[textData[stepNum].verb].do;
+                    //$step.html(icon + verbTenses[textData[stepNum].verb].do + ' ' + textData[stepNum].noun);
+                    $step.removeClass('done error');
+                    break;
+            }
+
+            $step.find('.icon').html(icon);
+            $step.find('.verb').html(verb);
         }
-
-        $step.find('.icon').html(icon);
-        $step.find('.verb').html(verb);
 
     }
 
@@ -827,21 +967,23 @@
               projectId : _CS_Get_Project_ID(),
               taskId : _PROJECT.activeTaskId,
               returnReport : 'condensed'
-          };
+          },
+          task = _getTaskDataById(post.taskId),
+          triggerType = task.data.trigger.type;
 
         var errorMsg01 = '<i class="fa fa-exclamation-triangle"></i> Dependencies have not been satisfied. This task can not be started until dependency checks pass. <a href="#" class="check-dependencies-btn br"> Re-check</a>';
         CS_API.call('ajax/check_task_dependencies',
         function(){
           // beforeSend
             $this.parents('.dynamic-content-overlay').addClass('checking');
-            _renderLambdaRoutineUIChanges(0, 'checking');
+            _renderTriggerRoutineUIChanges(0, 'checking', triggerType);
         },
         function(data){
           // success
             if(data.errors == false){
                 $this.parents('.dynamic-content-overlay').removeClass('checking').addClass('checked');
                 $tabbedContent.find('.lock-status').removeClass('fa-lock').addClass('fa-unlock');
-                _renderLambdaRoutineUIChanges(0, 'done');
+                _renderTriggerRoutineUIChanges(0, 'done', triggerType);
 
                 // if autoRun, _executeRunLambdaAjaxCalls();
                 if(_PROJECT.template.settings.autoRun) _executeRunLambdaAjaxCalls();
@@ -866,7 +1008,7 @@
                 }
             } else {
                 if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
-                _renderLambdaRoutineUIChanges(0, 'error');
+                _renderTriggerRoutineUIChanges(0, 'error', triggerType);
                 $this.parents('.dynamic-content-overlay').find('.checking-text').html(errorMsg01);
 
                 for(var i in data.response.report.response.callbacks){
@@ -881,7 +1023,7 @@
         function(){
             // error
             alertify.error('Error', 'An error has occurred while checking dependencies. Please try again later.');
-            _renderLambdaRoutineUIChanges(0, 'error');
+            _renderTriggerRoutineUIChanges(0, 'error', triggerType);
             $this.parents('.dynamic-content-overlay').find('.checking-text').html(errorMsg01);
         },
         post,
@@ -1078,7 +1220,7 @@
         var unlocked = !hasDependencies || task.data.dependenciesOKTimeStamp;
         var icon = '<i class="fa lock-status ' + (!unlocked ? 'fa-lock':'fa-unlock') + '"></i>';
         $taskTab.find('h1 .icon').html(icon);
-        //if(task.data.dependencies.length >= 1 && unlocked) _renderLambdaRoutineUIChanges(0, 'done'); // Mark "Validate Task Dependencies" done
+        //if(task.data.dependencies.length >= 1 && unlocked) _renderTriggerRoutineUIChanges(0, 'done'); // Mark "Validate Task Dependencies" done
         $taskTab.find('h1 .name').html(task.data.taskName);
         $taskTab.find('.status-info .status').html(task.data.status.capitalize());
         $taskTab.find('.description').html(task.data.description);
@@ -1280,7 +1422,7 @@
                 case 'lambda':
                     html += '<li data-step="1"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Validate</span> Lambda Callback & Parameters</li>';
                     html += '<li data-step="2"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Execute</span> Lambda Callback </li>';
-                    html += '<li data-step="3"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Analyze</span> Callback Results</li>';
+                    //html += '<li data-step="3"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Analyze</span> Callback Results</li>';
                     break;
                 case 'form':
                     html += '<li data-step="1"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Validate</span> Form</li>';
@@ -1606,6 +1748,7 @@
             $(document).on('click', '.inset-tab-link', _handleInsetBtnClick);
             $(document).on('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
             PubSub.subscribe('bindedBox.newTaskActivated', _handleNewTaskActivated);
+            //console.log('Inset Tasklist', _PROJECT.activeTaskId);
             _render();
         }
 
@@ -1627,7 +1770,10 @@
               $li = $this.parents('li'),
               taskId = $li.data('task_id');
 
-            _triggerBoxOpen(taskId);
+            var isActiveTask = _PROJECT.activeTaskId == taskId;
+            var boxOpen = _PROJECT.triggerBoxOpen === true;
+
+            if(!boxOpen || !isActiveTask) _triggerBoxOpen(taskId);
         }
 
         function _handleInsetBtnClick(e){

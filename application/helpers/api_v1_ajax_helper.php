@@ -846,6 +846,136 @@ function run_lambda_routines_required_fields(){
   return array('projectId','taskTemplateId', 'routine','slug');
 }
 
+function run_form_routines(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $saltedData = isset($data['saltedData']) ? $data['saltedData'] : null;
+  $salt = isset($data['salt']) ? $data['salt'] : null;
+  if($saltedData && $salt) $saltedData = di_decrypt_s($saltedData, $salt);
+
+  $callback = null;
+  if(is_array($saltedData) && isset($saltedData['trigger'])){
+    $triggerData = $saltedData['trigger'];
+  } else {
+    $project = Project::Get($data['projectId']);
+    $task = $project->getTaskById($data['taskTemplateId']);
+    $triggerData = $task->getValue('trigger');
+  }
+
+  // Check if triggerData is valid
+  $issetTriggerType = isset($triggerData['type']) && $triggerData['type'] == 'form';
+  $issetTriggerId = isset($triggerData['triggerId']) && !empty($triggerData['triggerId']);
+  $validTriggerData = $issetTriggerId && $issetTriggerType;
+
+  //var_dump($issetTriggerId, $issetTriggerType, $validTriggerData);
+
+  // Check if trigger has already been validated
+  $callbackSet = isset($saltedData['callback']);
+  if($callbackSet) $callback = $saltedData['callback'];
+  // If not validated, check if trigger is valid
+  $triggerSet = isset($saltedData['validTrigger']);
+  // Get trigger callback
+
+  $validTrigger = is_array($saltedData) && (isset($saltedData['validTrigger']) && $saltedData['validTrigger']) === true;
+  if($validTriggerData && (!$triggerSet || !$callbackSet)){
+    $trigger = Trigger2::Get($triggerData['triggerId']);
+    //var_dump($triggerData['triggerId'], $trigger);
+    if((string) $trigger->id() == $triggerData['triggerId']) $validTrigger = true;
+    $callback = $trigger->getValue('callback');
+    $callbackSet = true;
+  }
+
+  $newSalt = is_array($saltedData) && isset($saltedData['salt']) ? $saltedData['salt'] : md5(time());
+
+  if($issetTriggerType){
+
+    if($issetTriggerId){
+
+      if($validTrigger){
+
+        $response['response'] = [
+          'slug' => $data['slug'],
+          'success' => false,
+          'salt' => $newSalt,
+          'saltedData' => $saltedData,
+          'data' => [
+            'triggerCallback' => $callback,
+            'triggerDefaultOptions' => null,
+            'triggerId' => $triggerData['triggerId'],
+            'validTrigger' => $validTrigger,
+            'slug' => $data['slug'],
+            'salt' => $newSalt
+          ]
+        ];
+
+        switch ($data['slug']){
+          case 'validate_lambda_callback':
+            $response['response']['data']['method'] = WF::_ValidateCallback($callback);
+            $response['response']['success'] = (bool) $response['response']['data']['method'];
+            break;
+          case 'execute_lambda_callback':
+            $response['response']['data']['method'] = WF::_ValidateCallback($callback);
+
+            try {
+              switch ($response['response']['data']['method']){
+                case 'is_callable':
+                  $result = call_user_func_array($callback, []);
+                  $resultType = is_array($result) ? 'array' : (is_bool($result) ? 'bool' : null);
+                  switch($resultType){
+                    case 'array':
+                      $response['response']['metaUpdates'] = isset($result['metaUpdates']) ? $result['metaUpdates'] : null;
+                      $response['response']['taskUpdates'] = isset($result['taskUpdates']) ? $result['taskUpdates'] : null;
+                      break;
+                    case 'bool':
+                      break;
+                  }
+                  $response['response']['callbackResponse'] = $result;
+                  break;
+              }
+              if($result) $response['response']['success'] = true;
+
+            }
+
+            catch(Exception $e){
+              $response['errors'][] = $e->getMessage();
+            }
+            //var_dump($response);
+            break;
+          case 'analyze_callback_results':
+            break;
+        }
+        //$response['response']['data'] = di_encrypt_s($response['response']['data'], $response['response']['salt']);
+
+      } else {
+        $response['errors'][] = 'Trigger is invalid';
+      }
+
+    } else {
+      $response['errors'][] = 'Trigger id must be valid';
+    }
+
+  } else {
+    $response['errors'][] = 'Trigger type must be lambda function';
+  }
+
+
+  $response['recordCount'] = 0;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function run_form_routines_args_map(){
+  return array('projectId','taskTemplateId', 'routine','slug', 'saltedData', 'salt');
+}
+
+// Field names of fields required
+function run_form_routines_required_fields(){
+  return array('projectId','taskTemplateId', 'routine','slug');
+}
+
 function generate_completion_script_results(){
   $response = _api_template();
   $args = func_get_args();
