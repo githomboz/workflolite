@@ -814,8 +814,8 @@ function run_lambda_routines(){
             }
             //var_dump($response);
             break;
-          case 'analyze_callback_results':
-            break;
+//          case 'analyze_callback_results':
+//            break;
         }
         //$response['response']['data'] = di_encrypt_s($response['response']['data'], $response['response']['salt']);
 
@@ -911,40 +911,27 @@ function run_form_routines(){
           ]
         ];
 
+        $typeMeta = $trigger->getValue('typeMeta');
+        $isEmbedded = $typeMeta['embedded'];
+        $formData = $isEmbedded ? $typeMeta['form'] : WFSimpleForm::GetFormData($typeMeta['formId']);
+
         switch ($data['slug']){
-          case 'validate_lambda_callback':
-            $response['response']['data']['method'] = WF::_ValidateCallback($callback);
-            $response['response']['success'] = (bool) $response['response']['data']['method'];
-            break;
-          case 'execute_lambda_callback':
-            $response['response']['data']['method'] = WF::_ValidateCallback($callback);
-
-            try {
-              switch ($response['response']['data']['method']){
-                case 'is_callable':
-                  $result = call_user_func_array($callback, []);
-                  $resultType = is_array($result) ? 'array' : (is_bool($result) ? 'bool' : null);
-                  switch($resultType){
-                    case 'array':
-                      $response['response']['metaUpdates'] = isset($result['metaUpdates']) ? $result['metaUpdates'] : null;
-                      $response['response']['taskUpdates'] = isset($result['taskUpdates']) ? $result['taskUpdates'] : null;
-                      break;
-                    case 'bool':
-                      break;
-                  }
-                  $response['response']['callbackResponse'] = $result;
-                  break;
-              }
-              if($result) $response['response']['success'] = true;
-
+          case 'validate_form':
+            $validateData = WFSimpleForm::VerifyFormTypeFormat($formData);
+            if($validateData['response']['success']){
+              $response['response']['success'] = true;
+            } else {
+              $response['errors'][] = 'Error validating form type format';
             }
-
-            catch(Exception $e){
-              $response['errors'][] = $e->getMessage();
-            }
-            //var_dump($response);
             break;
-          case 'analyze_callback_results':
+          case 'render_form':
+            $validateData = WFSimpleForm::RenderForm($formData);
+            if($validateData['response']['success']){
+              $response['response']['success'] = true;
+              $response['response']['_form'] = $validateData['response']['data'];
+            } else {
+              $response['errors'][] = 'Error rendering this form';
+            }
             break;
         }
         //$response['response']['data'] = di_encrypt_s($response['response']['data'], $response['response']['salt']);
@@ -958,7 +945,7 @@ function run_form_routines(){
     }
 
   } else {
-    $response['errors'][] = 'Trigger type must be lambda function';
+    $response['errors'][] = 'Trigger type must be form';
   }
 
 

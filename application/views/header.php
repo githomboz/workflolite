@@ -122,7 +122,7 @@
     ?>
   <div class="panel">
     <i class="js-send-message fa fa-envelope"></i>
-    <h1><i class="fa fa-users"></i> Job Contacts</h1>
+    <h1><i class="fa fa-users"></i> Job Parties</h1>
     <div class="contact-list">
       <?php foreach(entity()->getContacts() as $i => $contact){
         include 'widgets/_sidebar-contact-include.php';

@@ -16,7 +16,8 @@ class Projects extends Users_Controller {
       $this->preCollapseSidePanel = false;
       $this->project = Project::Get($projectId);
       if(isset($this->project) && $this->project){
-        if($this->project->loadOrganization()->getValue('organization')->getValue('_id') == UserSession::value('organizationId')){
+        $org = $this->project->loadOrganization()->getValue('organization');
+        if($org instanceof Organization && $org->getValue('_id') == UserSession::value('organizationId')){
           $this->project->loadTemplate();
           if($slug == 'tasks') load_before_content(get_include(APPPATH.'/views/widgets/_binded-trigger-box.php'));
           $this->template = $this->project->getValue('template');

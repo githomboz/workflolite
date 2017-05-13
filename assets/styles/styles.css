@@ -3826,7 +3826,6 @@ span.checkbox {
       padding: 10px;
       background: rgba(255, 255, 255, 0.04);
       display: none;
-      overflow: scroll;
       min-height: 324px;
       font-weight: 100;
       margin-top: 10px;

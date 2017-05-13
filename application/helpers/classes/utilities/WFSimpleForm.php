@@ -9,6 +9,17 @@
 class WFSimpleForm
 {
 
+  public static function GetForm($formId){
+    return [];
+  }
+
+  public static function GetFormData($formId){
+    $form = self::GetForm($formId);
+    if($form){
+      return isset($form['data']) ? $form['data'] : null;
+    }
+  }
+
   public static function VerifyFormTypeFormat($formData){
     $logger = new WFLogger(__METHOD__, __FILE__);
     $response = WFClientInterface::GetPayloadTemplate();

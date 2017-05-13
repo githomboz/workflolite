@@ -50,7 +50,11 @@
             <script class="projectData">
                 var _PROJECT = <?php echo json_encode($this->project->getProjectData()) ?>;
                 _PROJECT.triggerBoxOpen = false; // Whether the triggerBoxShould be open or not
-                var _TASK_JSON = [];
+                var _TASK_JSON = []; // Task data
+                var _BINDED_BOX = { // Popup data
+                    activeTaskId : null,
+                    activeTabId : null
+                };
             </script>
             <?php
             //var_dump($showableTasksGrouped);
@@ -464,6 +468,54 @@
         return false;
     }
 
+    // Update task data on page. This does not change task data values in db. This is only for triggering front end
+    // related tasks.
+    function _setTaskDataById(id, data){
+        var updates = {}, newTask = null;
+        // Update
+        for(var i in _TASK_JSON){
+            if(typeof _TASK_JSON[i].id != 'undefined' && _TASK_JSON[i].id == id){
+                if(data){
+                    for(var field in data){
+                        var fieldIsNew = typeof _TASK_JSON[i].data[field] == 'undefined';
+                        var fieldIsDifferent = fieldIsNew || (!fieldIsNew && _TASK_JSON[i].data[field] != data[field]);
+                        if(fieldIsDifferent){
+                            _TASK_JSON[i].data[field] = data[field];
+                            updates[field] = data[field];
+                            newTask = _TASK_JSON[i];
+                        }
+                    }
+                }
+            }
+        }
+        if(newTask) {
+            var payload = {
+                id : id,
+                updates : updates,
+                newTask : newTask,
+                updatesMade : newTask !== null
+            };
+            _handleTaskUpdatesAirTrafficControl(payload);
+        }
+    }
+
+    function _handleTaskUpdatesAirTrafficControl(payload){
+        var sent = false; // Whether or not payload has been sent or not.
+        // Check if active task is the task that has changed
+        var isActiveTask = typeof _BINDED_BOX.activeTaskId != 'undefined' && _BINDED_BOX.activeTaskId == payload.id;
+        if(isActiveTask) {
+            sent = true;
+            PubSub.publish('taskData.updates.activeTask', payload);
+        }
+
+        if(!sent){
+            sent = true;
+            PubSub.publish('taskData.updates.updatedTask', payload);
+        }
+
+        return sent;
+    }
+
     function _handleTaskBindedTrigger(e){
         e.preventDefault();
         var $this = $(this),
@@ -487,9 +539,7 @@
         _LAMBDA_PROGRESS = 0;
         _FORM_PROGRESS = 0;
         if(task){
-            console.log('Active Task Before', _PROJECT.activeTaskId);
-            _PROJECT.activeTaskId = taskId;
-            console.log('Active Task After', _PROJECT.activeTaskId);
+            _BINDED_BOX.activeTaskId = taskId;
             if(!_PROJECT.triggerBoxOpen){
                 //console.log('trigger box opened');
                 $(".binded-trigger-box-overlay").addClass('show');
@@ -504,6 +554,7 @@
                 $(document).on('click', '.binded-trigger-box .action-btns .mark-complete', _handleMarkCompleteClick);
                 PubSub.subscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
                 PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
+                PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
                 PubSub.subscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
                 PubSub.subscribe('bindedBox.resize', _handleBindedBoxViewportResize);
                 _PROJECT.triggerBoxOpen = true;
@@ -538,10 +589,11 @@
             $(document).off('click', '.binded-trigger-box .action-btns .mark-complete', _handleMarkCompleteClick);
             PubSub.unsubscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
+            PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
             PubSub.unsubscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
             PubSub.unsubscribe('bindedBox.resize', _handleBindedBoxViewportResize);
             _PROJECT.triggerBoxOpen = false;
-            _PROJECT.activeTaskId = null;
+            _BINDED_BOX.activeTaskId = null;
             PubSub.publish('bindedBox.closed', {
                 _PROJECT : _PROJECT
             });
@@ -666,7 +718,7 @@
     function _handleRunTriggerBtnClick(e){
         e.preventDefault();
         var
-          taskId = _PROJECT.activeTaskId,
+          taskId = _BINDED_BOX.activeTaskId,
           task = _getTaskDataById(taskId),
           taskType = task.data.trigger.type;
 
@@ -720,17 +772,18 @@
                   switch (data.response.slug){
                       case routineSlugs[1]: //'validate_lambda_callback':
                           _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'done', triggerType);
-                          PubSub.publish('queueNextRunLambdaStep', data.response);
+                          PubSub.publish('queueNextRunFormStep', data.response);
                           break;
                       case routineSlugs[2]: //'execute_lambda_callback':
                           _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'done', triggerType);
                           //PubSub.publish('queueNextRunLambdaStep', data.response);
                           $triggerStartBtn.removeClass('clicked').addClass('complete');
                           $triggerStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
+                        $(".dynamic-content").html(data.response._form);
                           break;
-                      case routineSlugs[3]: //'analyze_callback_results':
-                          _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'done', triggerType);
-                          break;
+//                      case routineSlugs[3]: //'analyze_callback_results':
+//                          _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'done', triggerType);
+//                          break;
                   }
                   console.log(_FORM_PROGRESS, data);
               } else {
@@ -965,7 +1018,7 @@
           $tabbedContent = $this.parents('.tabbed-content.tasks'),
           post = {
               projectId : _CS_Get_Project_ID(),
-              taskId : _PROJECT.activeTaskId,
+              taskId : _BINDED_BOX.activeTaskId,
               returnReport : 'condensed'
           },
           task = _getTaskDataById(post.taskId),
@@ -1092,6 +1145,7 @@
         // activate slide button
         $(".tabbed-nav .item").removeClass('selected');
         $(".tabbed-nav .item a[rel=" + slide + "]").parents('.item').addClass('selected');
+        _BINDED_BOX.activeTabId = slide;
     }
 
     var _BoxTriggerSettings = {
@@ -1207,6 +1261,14 @@
 
     var $metadataTab = $('.tabbed-content.metadata');
 
+    PubSub.subscribe('taskData.updates.activeTask', _handleActiveTaskUpdated);
+
+    function _handleActiveTaskUpdated(topic, payload){
+        _renderTaskTabbedContent(payload.newTask);
+        PubSub.publish('taskData.updates.updatedTask', payload);
+        _renderTaskActionBtns(payload.newTask);
+    }
+
     function _renderTaskTabbedContent(task){
         var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
         //console.log(task.data);
@@ -1245,12 +1307,8 @@
             };
 
             var autoRun = _PROJECT.template.settings.autoRun;
-            //console.log(_PROJECT, autoRun);
-            if(autoRun){
-                triggerOptions.lambda.desc = 'This task runs automatically. No action required.';
-            } else {
-                triggerOptions.lambda.desc = 'This task will run automatically once <span class="false-btn"><i class="fa fa-bolt"></i> Load</span> is clicked.';
-            }
+
+            triggerOptions.lambda.desc = autoRun ? 'This task runs automatically. No action required.' : 'This task will run automatically once <span class="false-btn"><i class="fa fa-bolt"></i> Load</span> is clicked.';
 
             $taskTab.find('.trigger-type-name').html(triggerOptions[task.data.trigger.type].name);
             $taskTab.find('.trigger-type-desc').html(triggerOptions[task.data.trigger.type].desc);
@@ -1550,6 +1608,8 @@
         }
     }
 
+    /****************************************************************************************************************/
+
     var BindedBoxScreens = (function(){
 
         var _options = {
@@ -1566,7 +1626,9 @@
                 content : null,
                 isLoaded : false, // Whether content has been loaded to dom
                 isLoading : false, // If the content is in request mode
-                contentCallback : null // Function to call to get content
+                contentCallback : null, // Function to call to get content
+                scrollX : false,
+                scrollY : true,
             },
             {
                 slug : 'task_list',
@@ -1574,7 +1636,9 @@
                 content : null,
                 isLoaded : false, // Whether content has been loaded to dom
                 isLoading : false, // If the content is in request mode
-                contentCallback : _renderInsetTaskList // Function to call to get content
+                contentCallback : _renderInsetTaskList, // Function to call to get content
+                scrollX : false,
+                scrollY : true,
             },
             {
                 slug : 'logs',
@@ -1582,7 +1646,9 @@
                 content : null,
                 isLoaded : false, // Whether content has been loaded to dom
                 isLoading : false, // If the content is in request mode
-                contentCallback : null // Function to call to get content
+                contentCallback : null, // Function to call to get content
+                scrollX : true,
+                scrollY : true,
             },
             {
                 slug : '_admin_task_dump',
@@ -1590,7 +1656,9 @@
                 content : null,
                 isLoaded : false, // Whether content has been loaded to dom
                 isLoading : false, // If the content is in request mode
-                contentCallback : null // Function to call to get content
+                contentCallback : null, // Function to call to get content
+                scrollX : true,
+                scrollY : true,
             },
             {
                 slug : '_admin_meta_dump',
@@ -1598,7 +1666,9 @@
                 content : null,
                 isLoaded : false, // Whether content has been loaded to dom
                 isLoading : false, // If the content is in request mode
-                contentCallback : null // Function to call to get content
+                contentCallback : null, // Function to call to get content
+                scrollX : true,
+                scrollY : true,
             }
         ];
 
@@ -1607,12 +1677,11 @@
         }
 
         function _renderInsetTaskList(){
-            console.log(_PROJECT);
             var html = '<ol class="inset-tasklist">';
             for(var i in _TASK_JSON){
                 var isComplete = _TASK_JSON[i].data.status == 'completed';
                 //console.log(_TASK_JSON[i].id);
-                var activeTask = _PROJECT.activeTaskId == _TASK_JSON[i].id;
+                var activeTask = _BINDED_BOX.activeTaskId == _TASK_JSON[i].id;
                 html += '<li data-status="' + _TASK_JSON[i].data.status + '" ';
                 html += 'data-task_id="' + _TASK_JSON[i].id + '" ';
                 html += 'class="' + (activeTask ? 'active':'') + '"';
@@ -1653,7 +1722,7 @@
                 if(field == 'title') _options.screenNavChangesMade = true;
                 _screens[index][field] = data[field];
             }
-            console.log(data);
+            //console.log(data);
         }
 
         function _setScreenDataBySlug(slug, data){
@@ -1748,7 +1817,8 @@
             $(document).on('click', '.inset-tab-link', _handleInsetBtnClick);
             $(document).on('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
             PubSub.subscribe('bindedBox.newTaskActivated', _handleNewTaskActivated);
-            //console.log('Inset Tasklist', _PROJECT.activeTaskId);
+            PubSub.subscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
+            //console.log('Inset Tasklist', _BINDED_BOX.activeTaskId);
             _render();
         }
 
@@ -1756,6 +1826,25 @@
             $(document).off('click', '.inset-tab-link', _handleInsetBtnClick);
             $(document).off('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
             PubSub.unsubscribe('bindedBox.newTaskActivated', _handleNewTaskActivated);
+            PubSub.unsubscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
+        }
+
+        function _handleTaskDataChanges(topic, payload){
+            var redrawStatuses = ['completed','new','active','skipped','force_skipped'];
+            // Check if tabbed-content.tasks is the active screen
+                if(_BINDED_BOX.activeTabId == 'tasks'){
+                    console.log(redrawStatuses.indexOf(payload.updates.status));
+                    // Check if taskNames changed
+                    var taskNameChanged = typeof payload.updates.taskName != 'undefined';
+                    // Check if status changed
+                    var statusChanged = typeof payload.updates.status != 'undefined';
+                    var newStatusRequiresRender = statusChanged && (redrawStatuses.indexOf(payload.updates.status) >= 0);
+                    // If necessary, redraw task list
+                    if(taskNameChanged || newStatusRequiresRender){
+                        _handleNewTaskActivated();
+                    }
+                }
+
         }
 
         function _handleNewTaskActivated(topic, payload){
@@ -1770,7 +1859,7 @@
               $li = $this.parents('li'),
               taskId = $li.data('task_id');
 
-            var isActiveTask = _PROJECT.activeTaskId == taskId;
+            var isActiveTask = _BINDED_BOX.activeTaskId == taskId;
             var boxOpen = _PROJECT.triggerBoxOpen === true;
 
             if(!boxOpen || !isActiveTask) _triggerBoxOpen(taskId);
@@ -1804,6 +1893,8 @@
                 _loadContent(_options.activeScreen);
 
                 var screen = _getScreen(_options.activeScreen);
+
+
                 // Activate Screen name
                 if(_options.activeScreen > 0){
                     _options.$taskInset.find('.tab-name').html(screen.title);
@@ -1826,6 +1917,14 @@
                 _options.$taskInset.find('.inset-tab').removeClass('active');
                 $screen.addClass('active');
 
+                if(screen.scrollX){
+                    $screen.css('overflow-x', 'scroll');
+                }
+
+                if(screen.scrollY){
+                    $screen.css('overflow-y', 'scroll');
+                }
+
                 _options.screenChangesMade = false;
             }
 
@@ -1835,6 +1934,19 @@
         PubSub.subscribe('bindedBox.opened', _activate);
         PubSub.subscribe('bindedBox.closed', _deactivate);
 
+    })();
+
+    /****************************************************************************************************************/
+
+    var SlideMetadata = (function(){
+
+        function _updateMeta(key, value){
+
+        }
+
+        function _render(){
+
+        }
     })();
 
 </script>

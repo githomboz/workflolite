@@ -22,7 +22,7 @@
         <ul>
           <li class="item tasks-nav selected"><a href="#" class="fa fa-check-square" rel="tasks"></a> </li>
           <li class="item database-nav"><span class="num-flag red"></span> <a href="#" class="fa fa-database" rel="metadata"></a> </li>
-          <li class="contacts-nav"><a href="#" class="fa fa-users" rel="contacts"></a> </li>
+          <li class="parties-nav"><a href="#" class="fa fa-users" rel="parties"></a> </li>
           <li class="notes-nav"><a href="#" class="fa fa-comment" rel="notes"></a> </li>
           <li class="time-nav"><a href="#" class="fa fa-clock-o" rel="time"></a> </li>
           <li class="stats-nav"><a href="#" class="fa fa-bar-chart" rel="stats"></a> </li>
@@ -117,6 +117,9 @@
               </form>
             </div><!--/.inner-details-->
           </div><!--/.column-details-->
+        </section>
+        <section class="tabbed-content parties clearfix show" data-slide="parties">
+          <h1>Job Parties</h1>
         </section>
       </div><!--/.tabbed-content-container-->
     </div><!--/.mid-section-->

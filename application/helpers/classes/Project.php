@@ -292,7 +292,9 @@ class Project extends WorkflowFactory
     /**
      * Fields that are always stored in the project instance record
      */
-    $taskMetaFields = array('startDate','completeDate','status','comments','assigneeId');
+    $taskMetaFields = array('startDate','completeDate','status','comments','assigneeId','completionReport');
+
+    //$taskMetaFields[] = 'dependenciesOKTimeStamp';
 
     if(isset($data['name'])) unset($data['name']); // Name should be specified; taskName, templateName
 
