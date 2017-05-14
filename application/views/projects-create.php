@@ -20,7 +20,7 @@
         <div class="message-box error"><?php echo join('; ', $pageState['formSubmitted']['errors']); ?></div>
       <?php } ?>
       <?php if($pageState['successPageValid']) { ?>
-        <div class="message-box success">Project "<?php echo '<a href="' . $pageState['projectUrl'] . '" style="color:#0F560F">'.$pageState['projectName'].'</a>'; ?>" created successfully.</div>
+        <div class="message-box success">Project "<?php echo '<a href="' . $pageState['projectUrl'] . '" style="color:#4992D0">'.$pageState['projectName'].'</a>'; ?>" created successfully.</div>
       <?php } ?>
 
         <input type="hidden" name="action" value="create-project" />

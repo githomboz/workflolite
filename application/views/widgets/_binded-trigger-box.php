@@ -59,7 +59,7 @@
           </div>
         </section>
         <section class="tabbed-content metadata clearfix" data-slide="metadata">
-          <h1>Job Metadata</h1>
+          <h1>Job Data</h1>
           <div class="column-list meta">
             <div class="meta-fields">
               <div class="head-links clearfix">
@@ -73,16 +73,21 @@
               <input type="text" placeholder="Enter new meta key" />
               <select>
                 <option>Select Type</option>
-                <option>String</option>
-                <option>URL</option>
-                <option>Date</option>
-                <option>Number</option>
-                <option>Boolean</option>
-                <option>Phone</option>
-                <option>Text</option>
-                <option>Array</option>
-                <option>Address</option>
-                <option>Twitter Handle</option>
+                <?php
+                $metaTypes = ['string','number','date',
+                  'datetime' => 'Date &amp; Time',
+                  'url' => 'URL',
+                  'boolean','phone','text','array','address',
+                  'twitterHandle' => 'Twitter Handle'
+                ];
+                foreach($metaTypes as $i => $val){
+                  if(is_numeric($i)){
+                    echo '<option value="' . strtolower($val) . '">' . ucwords($val) . '</option>';
+                  } else {
+                    echo '<option value="' . strtolower($i) . '">' . ucwords($val) . '</option>';
+                  }
+                }
+                ?>
               </select>
               <button type="submit"><i class="fa fa-plus"></i> Add Key</button>
             </form>
@@ -112,7 +117,11 @@
                   <span class="meta-value"><span class="val"></span> <a href="#" class="fa fa-pencil"></a> </span>
                 </li>
               </ul>
-              <form>
+              <form class="set-meta-value">
+                <div class="inner-form clearfix">
+
+                </div>
+                <!--/.inner-form-->
                 <button class="btn-style btn submit" type="submit" disabled="disabled">Submit</button>
               </form>
             </div><!--/.inner-details-->

@@ -921,3 +921,35 @@ if(!extend){
         return parent;
     }
 }
+
+function removeSpecialChars(str) {
+    return str.replace(/(?!\w|\s)./g, '')
+        .replace(/\s+/g, ' ')
+        .replace(/^(\s*)([\W\w]*)(\b\s*$)/g, '$2');
+}
+
+if(!String.prototype.toCamelCase){
+    String.prototype.toCamelCase = function() {
+        return this.valueOf()
+            .replace(/\s(.)/g, function($1) { return $1.toUpperCase(); })
+            .replace(/\s/g, '')
+            .replace(/^(.)/, function($1) { return $1.toLowerCase(); });
+    }
+}
+
+if(!String.prototype.camelizeOne){
+    String.prototype.camelizeOne = function() {
+        return this.replace(/(?:^\w|[A-Z]|\b\w)/g, function(letter, index) {
+            return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
+        }).replace(/\s+/g, '');
+    };
+}
+
+if(!String.prototype.camelizeTwo){
+    String.prototype.camelizeTwo = function() {
+        return this.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
+            if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
+            return index == 0 ? match.toLowerCase() : match.toUpperCase();
+        });
+    };
+}

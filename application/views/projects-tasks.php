@@ -468,6 +468,20 @@
         return false;
     }
 
+    function _getTaskDataByNumber(num){
+        for(var i in _TASK_JSON){
+            if(typeof _TASK_JSON[i].data.sortOrder != 'undefined' && _TASK_JSON[i].data.sortOrder == num){
+                return _TASK_JSON[i];
+            }
+        }
+        return false;
+    }
+
+    function _getTaskIdByTaskNumber(num){
+        var task  = _getTaskDataByNumber(num);
+        if(typeof task.id != 'undefined') return task.id;
+    }
+
     // Update task data on page. This does not change task data values in db. This is only for triggering front end
     // related tasks.
     function _setTaskDataById(id, data){
@@ -496,6 +510,13 @@
                 updatesMade : newTask !== null
             };
             _handleTaskUpdatesAirTrafficControl(payload);
+        }
+    }
+
+    function _setTaskDataByNum(num, data){
+        var id = _getTaskIdByTaskNumber(num);
+        if(id){
+            return _setTaskDataById(id, data);
         }
     }
 
@@ -544,7 +565,6 @@
                 //console.log('trigger box opened');
                 $(".binded-trigger-box-overlay").addClass('show');
                 $(document).on('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
-                $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
                 //$(document).on('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
                 $(document).on('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
                 $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
@@ -564,7 +584,6 @@
             }
             _renderTriggerBoxProjectAndTaskData(task);
             _renderTaskTabbedContent(task);
-            _renderMetaDataTabbedContent();
             _activateTriggerBoxSlide('tasks'); // Default back to tasks slide
             triggerResize();
             PubSub.publish('bindedBox.newTaskActivated', {
@@ -579,7 +598,6 @@
             //console.log('trigger box closed');
             $overlay.removeClass('show');
             $(document).off('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
-            $(document).off('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
             //$(document).off('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
             $(document).off('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
             $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
@@ -1145,8 +1163,20 @@
         // activate slide button
         $(".tabbed-nav .item").removeClass('selected');
         $(".tabbed-nav .item a[rel=" + slide + "]").parents('.item').addClass('selected');
+        var oldSlide = typeof _BINDED_BOX.activeTabId == 'undefined' ? null : _BINDED_BOX.activeTabId;
         _BINDED_BOX.activeTabId = slide;
+        var topic = null;
+        if(oldSlide) {
+            topic = 'bindedBox.tabs.' + oldSlide + '.closeTriggered';
+            PubSub.publish(topic, null);
+        }
+        topic = 'bindedBox.tabs.' + slide + '.openTriggered';
+        PubSub.publish(topic, null);
     }
+
+    PubSub.subscribe('bindedBox.tabs', function(topic, payload){
+       console.log(topic, payload)
+    });
 
     var _BoxTriggerSettings = {
         showTaskCount : true,
@@ -1250,16 +1280,6 @@
         _triggerBoxOpen(taskId);
         return false;
     }
-
-    var _metadata_data = {
-        listSelected : false,
-        selectedEntry : null,
-        selectedData : null,
-        listChanged : true, //(typeof _METADATA != 'undefined')
-        editMode : false
-    };
-
-    var $metadataTab = $('.tabbed-content.metadata');
 
     PubSub.subscribe('taskData.updates.activeTask', _handleActiveTaskUpdated);
 
@@ -1496,117 +1516,13 @@
         return html;
     }
 
-    function _metadataEntrySelected(e){
-        e.preventDefault();
-        var
-          $entry = $(this),
-          slug = $entry.data('slug');
 
-        // Mark list as selected
-        _metadata_data.listSelected = true;
-        // Mark current entry as selected
-        _metadata_data.selectedEntry = slug;
-        _metadata_data.selectedData = _METADATA[slug];
-        // Run Render
-        _renderMetaDataTabbedContent();
-        return false;
-    }
 
-    function _renderMetaDataTabbedContent(){
-        var $entries = $('.binded-trigger-box .tabbed-content.metadata .entries');
-        // Render list
-        if(_metadata_data.listChanged){
-            var html = '';
-            var metaDataCount = 0;
-            for(var _slug in _METADATA){
-                html += '<div class="entry clearfix" data-slug="' + _METADATA[_slug].slug + '">' + "\n";
-                html += "\t" + '<span class="key truncate">' + _METADATA[_slug].field + '</span>' + "\n";
-                html += "\t" + '<span class="value truncate">';
-                var value = _METADATA[_slug].formatted || _METADATA[_slug].value;
-                if(value != null){
-                    switch(_METADATA[_slug].type){
-                        case 'address':
-                            html += value;
-                            break;
-                        case 'array':
-                          html += JSON.stringify(value);
-                            break;
-                        default:
-                            html += value;
-                            break;
-                    }
-                } else {
-                    html += '[ value not set ]';
-                }
-                html += '</span>' + "\n";
-                html += "\t" + '<i class="fa fa-chevron-right"></i>' + "\n";
-                html += '</div>' + "\n";
-                metaDataCount ++;
-            }
+    /****************************************************************************************************************/
 
-            $entries.html(html);
-            $(".tabbed-nav .database-nav .num-flag").text(metaDataCount);
+    var BindedBox = (function(){
 
-            // Reset listChanged
-            _metadata_data.listChanged = false;
-        }
-
-        //console.log($entries.html());
-
-        // Set list selected class
-        if(_metadata_data.listSelected) {
-            $entries.addClass('selected');
-        } else {
-            $entries.removeClass('selected');
-        }
-
-        // Set entry selected
-        if(_metadata_data.selectedEntry){
-            $entries.find('.entry').removeClass('selected');
-            var $entry = $entries.find('[data-slug='+_metadata_data.selectedEntry+']');
-            $entry.addClass('selected');
-        } else {
-            $entries.find('.entry').removeClass('selected');
-        }
-
-        // Render Details
-        _renderMetaDataTabbedContent_Details();
-    }
-
-    function _renderMetaDataTabbedContent_Details(){
-        var $details = $('.column-details');
-        if(_metadata_data.selectedData){
-            $details.find('h2').html(_metadata_data.selectedData.field);
-            $details.find('.meta-entry.slug .val').html('job.' + _metadata_data.selectedData.slug);
-            $details.find('.meta-entry.type .val').html(_metadata_data.selectedData.type.capitalize());
-            switch(_metadata_data.selectedData.type){
-                case 'array':
-                case 'address':
-                    $details.find('.meta-entry.value .val').html('<pre>' + JSON.stringify(_metadata_data.selectedData.value, undefined, 2) + '</pre>');
-                    break;
-                default:
-                    $details.find('.meta-entry.value .val').html(_metadata_data.selectedData.value);
-                    break;
-            }
-            if(_metadata_data.selectedData.formatted){
-                $details.find('.meta-entry.formatted').addClass('show');
-                $details.find('.meta-entry.formatted .val').html(_metadata_data.selectedData.formatted);
-            } else {
-                $details.find('.meta-entry.formatted').removeClass('show');
-                $details.find('.meta-entry.formatted .val').html('');
-            }
-            if(_metadata_data.selectedData.format){
-                $details.find('.meta-entry.format').addClass('show');
-                $details.find('.meta-entry.format .val').html(_metadata_data.selectedData.format);
-            } else {
-                $details.find('.meta-entry.format').removeClass('show');
-                $details.find('.meta-entry.format .val').html('');
-            }
-            $details.find('.inner-details').addClass('show');
-        } else {
-            $details.find('.inner-details').removeClass('show');
-        }
-    }
+    })();
 
     /****************************************************************************************************************/
 
@@ -1940,12 +1856,310 @@
 
     var SlideMetadata = (function(){
 
+        var $form = $(".tabbed-content.metadata form.set-meta-value");
+        var $details = $('.column-details');
+
+        var _METADATA_DATA = {
+            unsavedChanges : false,
+            showForm : false,
+            listSelected : false,
+            selectedEntry : null,
+            selectedData : null,
+            listChanged : true, //(typeof _METADATA != 'undefined')
+            editMode : false
+        };
+
         function _updateMeta(key, value){
 
+            _METADATA_DATA.listChanged = true;
+            _METADATA_DATA.unsavedChanges = false;
+        }
+
+        function _initialize(){
+            $(".tabbed-nav .database-nav .num-flag").text(_getMetaCount());
+        }
+
+        function _setSelectedField(fieldData){
+            _METADATA_DATA.selectedData = fieldData;
+        }
+
+        function _getMetaCount(){
+            return Object.keys(_METADATA).length;
+        }
+
+        function _metadataEntrySelected(e){
+            e.preventDefault();
+            var
+              $entry = $(this),
+              slug = $entry.data('slug');
+            PubSub.publish('bindedBox.tabs.metadata.slugSelected', slug);
+
+            return false;
+        }
+
+        function _onMetaDataSelected(topic, slug){
+            // Mark list as selected
+            _METADATA_DATA.listSelected = true;
+            // Mark current entry as selected
+            _METADATA_DATA.selectedEntry = slug;
+            _METADATA_DATA.selectedData = _METADATA[slug];
+            // Run Render
+            _render();
+        }
+
+        function _onMetaDataAdding(topic, payload){
+            // Mark list as not selected
+            _METADATA_DATA.listSelected = false;
+            // Mark current entry as not selected
+            _METADATA_DATA.selectedEntry = null;
+            // Run Render
+            _setSelectedField(payload);
+            _render();
         }
 
         function _render(){
+            var $entries = $('.binded-trigger-box .tabbed-content.metadata .entries');
+            // Render list
+            if(_METADATA_DATA.listChanged){
+                var html = '';
+                var metaDataCount = 0;
+                for(var _slug in _METADATA){
+                    html += '<div class="entry clearfix" data-slug="' + _METADATA[_slug].slug + '">' + "\n";
+                    html += "\t" + '<span class="key truncate">' + _METADATA[_slug].field + '</span>' + "\n";
+                    html += "\t" + '<span class="value truncate">';
+                    var value = _METADATA[_slug].formatted || _METADATA[_slug].value;
+                    if(value != null){
+                        switch(_METADATA[_slug].type){
+                            case 'address':
+                                html += value;
+                                break;
+                            case 'array':
+                                if(value.length <= 0) {
+                                    html += '[ value not set ]';
+                                } else {
+                                    html += JSON.stringify(value);
+                                }
+                                break;
+                            default:
+                                html += value;
+                                break;
+                        }
+                    } else {
+                        html += '[ value not set ]';
+                    }
+                    html += '</span>' + "\n";
+                    html += "\t" + '<i class="fa fa-chevron-right"></i>' + "\n";
+                    html += '</div>' + "\n";
+                    metaDataCount ++;
+                }
 
+                $entries.html(html);
+                $(".tabbed-nav .database-nav .num-flag").text(metaDataCount);
+
+                // Reset listChanged
+                _METADATA_DATA.listChanged = false;
+            }
+
+            //console.log($entries.html());
+
+            // Set list selected class
+            if(_METADATA_DATA.listSelected) {
+                $entries.addClass('selected');
+            } else {
+                $entries.removeClass('selected');
+            }
+
+            // Set entry selected
+            if(_METADATA_DATA.selectedEntry){
+                $entries.find('.entry').removeClass('selected');
+                var $entry = $entries.find('[data-slug='+_METADATA_DATA.selectedEntry+']');
+                $entry.addClass('selected');
+            } else {
+                $entries.find('.entry').removeClass('selected');
+            }
+
+            // Render Details
+            _renderDetails();
+        }
+
+        function _renderDetails(){
+            console.log(_METADATA_DATA);
+            if(_METADATA_DATA.selectedData){
+                $details.find('h2').html(_METADATA_DATA.selectedData.field);
+                $details.find('.meta-entry.slug .val').html('job.' + _METADATA_DATA.selectedData.slug);
+                $details.find('.meta-entry.type .val').html(_METADATA_DATA.selectedData.type.capitalize());
+                switch(_METADATA_DATA.selectedData.type){
+                    case 'array':
+                    case 'address':
+                      if(_METADATA_DATA.selectedData.value && _METADATA_DATA.selectedData.value.length > 0){
+                        $details.find('.meta-entry.value .val').html('<pre>' + JSON.stringify(_METADATA_DATA.selectedData.value, undefined, 2) + '</pre>');
+                      }
+                        break;
+                    default:
+                        $details.find('.meta-entry.value .val').html(_METADATA_DATA.selectedData.value);
+                        break;
+                }
+                if(_METADATA_DATA.selectedData.formatted){
+                    $details.find('.meta-entry.formatted').addClass('show');
+                    $details.find('.meta-entry.formatted .val').html(_METADATA_DATA.selectedData.formatted);
+                } else {
+                    $details.find('.meta-entry.formatted').removeClass('show');
+                    $details.find('.meta-entry.formatted .val').html('');
+                }
+                if(_METADATA_DATA.selectedData.format){
+                    $details.find('.meta-entry.format').addClass('show');
+                    $details.find('.meta-entry.format .val').html(_METADATA_DATA.selectedData.format);
+                } else {
+                    $details.find('.meta-entry.format').removeClass('show');
+                    $details.find('.meta-entry.format .val').html('');
+                }
+
+                $details.find('.inner-details').addClass('show');
+            } else {
+                $details.find('.inner-details').removeClass('show');
+            }
+
+            if(_METADATA_DATA.showForm){
+                _showForm();
+            } else {
+                _hideForm();
+            }
+        }
+
+        function _drawFormField(){
+            var html = '', val = _METADATA_DATA.selectedData.value;
+            switch(_METADATA_DATA.selectedData.type.toLowerCase()){
+                case 'boolean':
+                    val = Boolean(val);
+                    html += '<input type="checkbox" name="' + _METADATA_DATA.selectedData.slug + '"';
+                    html += val ? ' checked="checked"' : '';
+                    html += ' />';
+                    break;
+                case 'string':
+                    html += '<input type="text" name="' + _METADATA_DATA.selectedData.slug + '"';
+                    html += ' placeholder="' + _METADATA_DATA.selectedData.field + '"';
+                    html += val ? ' value="' + val + '"' : '';
+                    html += ' />';
+                    break;
+            }
+
+            html += _drawIcons(_METADATA_DATA.selectedData.type);
+            $form.find('.inner-form').html(html);
+        }
+
+        function _showForm(){
+            if(_METADATA_DATA.selectedData) _drawFormField();
+            $form.show();
+            $details.find('.meta-entry.value .fa-pencil').hide();
+            //_enableForm();
+        }
+
+        function _hideForm(){
+            $form.hide();
+            $details.find('.meta-entry.value .fa-pencil').show();
+            //_disableForm();
+        }
+
+        function _enableForm(){
+            $form.find('button').prop('disabled',null);
+        }
+
+        function _disableForm(){
+            $form.find('button').prop('disabled','disabled');
+        }
+
+        function _drawIcons(type){
+            // Validation Icon
+            // Save Icon (change indicator)
+            return '';
+        }
+
+        function _validateNewField(meta){
+            var errorFields = [], logs = {debug:[], errors:[]};
+            // Must not be empty
+            if(meta.field === '') {
+                errorFields.push('input[type=text]');
+                logs.errors.push('Must enter a valid meta key');
+            }
+            // Must be at least 3 characters long
+
+            // Must be less than 32 characters long
+            // Type must be valid
+            // Must be unique
+            // Slug must be valid & unique
+            // Must start with letter
+            return {
+                response : {
+                    errorFields : errorFields,
+                    success : true
+                },
+                logs : logs,
+                errors : logs.errors.length > 0
+            };
+        }
+
+        function _handleClickSubmitNewMetaKeyForm(e){
+            e.preventDefault();
+            var $this = $(this),
+              $form = $this.parents('form.tab-form'),
+              $input = $form.find('input'),
+              $select = $form.find('select'),
+              meta = {
+                  field : $input.val().trim().capitalize(),
+                  type : $select.val(),
+                  value : null,
+                  formatted : null,
+                  format: null
+              };
+
+            meta.slug = removeSpecialChars(meta.field);
+            meta.slug = meta.slug.toCamelCase();
+
+            // Validate
+            var validationResponse = _validateNewField(meta);
+            if(validationResponse.errors === false){
+                PubSub.publish('bindedBox.tabs.metadata.addNewTriggered', meta);
+            } else {
+                _handleError(validationResponse.logs.errors[0]);
+            }
+            //console.log(meta);
+        }
+
+        function _handleError(error){
+            console.error(error);
+        }
+
+        function _handleClickEditMetaValue(e){
+            e.preventDefault();
+            _showForm();
+        }
+
+        function _activate(){
+            _render();
+            $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+            $(document).on('click', '.tabbed-content.metadata .tab-form button[type=submit]', _handleClickSubmitNewMetaKeyForm);
+            $(document).on('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
+            PubSub.subscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
+            PubSub.subscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
+        }
+
+        function _deactivate(){
+            $(document).off('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+            $(document).off('click', '.tabbed-content.metadata .tab-form button[type=submit]', _handleClickSubmitNewMetaKeyForm);
+            $(document).off('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
+            PubSub.unsubscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
+            PubSub.unsubscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
+        }
+
+        PubSub.subscribe('bindedBox.tabs.metadata.openTriggered', _activate);
+        PubSub.subscribe('bindedBox.tabs.metadata.closeTriggered', _deactivate);
+        PubSub.subscribe('bindedBox.closed', _deactivate);
+
+        _initialize();
+
+        return {
+            updateMeta : _updateMeta,
+            showForm : _showForm
         }
     })();
 
