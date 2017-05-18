@@ -53,7 +53,17 @@
                 var _TASK_JSON = []; // Task data
                 var _BINDED_BOX = { // Popup data
                     activeTaskId : null,
-                    activeTabId : null
+                    activeTabId : null,
+                    /**
+                    * When this is set, all click events are subject to the lock. This is to avoid the accidental loss
+                    * of information that hasn't yet been persisted.
+                    */
+                    activeLock : null,
+                  /**
+                   * Keep the binding box open even when has been clicked outside or anything else.
+                   */
+                  keepOpen : false,
+                    userAcc : {acc:5}
                 };
             </script>
             <?php
@@ -85,11 +95,8 @@
         </div>
     </div><!--/.main-mid-section-inner-->
 </div><!--/#main-mid-section-->
+<script type="text/javascript" src="<?php echo base_url('assets/js')?>/WFMetaData.js"></script>
 <script type="text/javascript">
-
-    PubSub.subscribe('task.updated', _handleTaskUpdates);
-    PubSub.subscribe('meta.updated', _handleMetaUpdates);
-    PubSub.subscribe('project.updated', _handleProjectUpdates);
 
     var
         $bindedBox = $(".binded-trigger-box"),
@@ -457,7 +464,11 @@
         });
     }
 
-    //console.log(_TASK_JSON);
+</script>
+<script type="text/javascript" src="<?php echo base_url('assets/js')?>/ProjectTaskBindedBox.js"></script>
+<script type="text/javascript">
+    /****************************************************************************************************************/
+
 
     function _getTaskDataById(id){
         for(var i in _TASK_JSON){
@@ -550,7 +561,7 @@
     $(document).on('click', '.task-name', _handleTaskBindedTrigger);
 
     $(document).on('click', function(event){
-        if (!$(event.target).closest('.binded-trigger-box').length) {
+        if (!$(event.target).closest(BindedBox.selector).length) {
             _triggerBoxClose();
         }
     });
@@ -577,10 +588,9 @@
                 PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
                 PubSub.subscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
                 PubSub.subscribe('bindedBox.resize', _handleBindedBoxViewportResize);
+                PubSub.subscribe('bindedBox.activeLockCollision', _handleActiveLockCollision);
                 _PROJECT.triggerBoxOpen = true;
-                PubSub.publish('bindedBox.opened', {
-                    _PROJECT : _PROJECT
-                });
+                PubSub.publish('bindedBox.opened', null);
             }
             _renderTriggerBoxProjectAndTaskData(task);
             _renderTaskTabbedContent(task);
@@ -593,6 +603,13 @@
     }
 
     function _triggerBoxClose(){
+        console.log(_BINDED_BOX);
+//        if(_BINDED_BOX.activeLock && !_BINDED_BOX.keepOpen){
+//            PubSub.publish('bindedBox.activeLockCollision.action.closeBindedBox', {
+//                continueCallback : _triggerBoxClose
+//            });
+//            return;
+//        }
         var $overlay = $(".binded-trigger-box-overlay");
         if($overlay.is('.show') || _PROJECT.triggerBoxOpen){
             //console.log('trigger box closed');
@@ -610,13 +627,36 @@
             PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
             PubSub.unsubscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
             PubSub.unsubscribe('bindedBox.resize', _handleBindedBoxViewportResize);
+            PubSub.unsubscribe('bindedBox.activeLockCollision', _handleActiveLockCollision);
             _PROJECT.triggerBoxOpen = false;
             _BINDED_BOX.activeTaskId = null;
-            PubSub.publish('bindedBox.closed', {
-                _PROJECT : _PROJECT
-            });
+            PubSub.publish('bindedBox.closed', null);
 
         }
+    }
+
+    function _handleActiveLockCollision(topic, payload){
+        console.log(topic, payload);
+        if(_BINDED_BOX.activeLock){
+            if(typeof _BINDED_BOX.activeLock.message != 'undefined'){
+                alertify.confirm(
+                    'Data Loss Warning!',
+                    _BINDED_BOX.activeLock.message,
+                    function(){
+                        _BINDED_BOX.activeLock = null;
+                        if(typeof payload.continueCallback != 'undefined') payload.continueCallback();
+                    },
+                    function(){
+                        switch(topic){
+                            case 'bindedBox.activeLockCollision.action.closeBindedBox':
+                            _BINDED_BOX.keepOpen = true;
+                            break;
+                        }
+                    }
+                ).set('labels', {ok: 'I understand', cancel: 'Cancel'});
+            }
+        }
+        return false;
     }
 
     function _handleBindedBoxViewportResize(topic, payload){
@@ -1178,13 +1218,6 @@
        console.log(topic, payload)
     });
 
-    var _BoxTriggerSettings = {
-        showTaskCount : true,
-        showTimer : false,
-        elapsedTime : null,
-        settingsDropdown : []
-    };
-
     function _renderTriggerBoxProjectAndTaskData(taskData){
         //console.log(projectData, taskData);
         var $triggerBox = $('.binded-trigger-box');
@@ -1210,7 +1243,7 @@
           $taskCountText = $lowerHeader.find('.task-count-txt');
 
         // Show/hide task counts
-        if(_BoxTriggerSettings.showTaskCount
+        if(BindedBox.getOption('showTaskCount')
           && taskData.data.sortOrder
           && _TASK_JSON.length > 0){
             $taskCountText.find('.task-num').html(taskData.data.sortOrder);
@@ -1221,8 +1254,8 @@
         }
 
         // Show/hide timer
-        if(_BoxTriggerSettings.showTimer){
-            if(!_BoxTriggerSettings.elapsedTime) _BoxTriggerSettings.elapsedTime = 0;
+        if(BindedBox.getOption('showTimer')){
+            if(!BindedBox.getOption('elapsedTime')) BindedBox.setOption('elapsedTime', 0);
             $lowerHeader.find('.time-tracker-btn').show();
         } else {
             $lowerHeader.find('.time-tracker-btn').hide();
@@ -1518,649 +1551,18 @@
 
 
 
-    /****************************************************************************************************************/
-
-    var BindedBox = (function(){
-
-    })();
 
     /****************************************************************************************************************/
 
-    var BindedBoxScreens = (function(){
 
-        var _options = {
-            screensActivated : false,
-            activeScreen : 1,
-            screenChangesMade : false,
-            screenNavChangesMade : false,
-            $taskInset : $(".task-inset")
-        };
-        var _screens = [
-            {
-                slug : 'screens',
-                title : 'All Screens',
-                content : null,
-                isLoaded : false, // Whether content has been loaded to dom
-                isLoading : false, // If the content is in request mode
-                contentCallback : null, // Function to call to get content
-                scrollX : false,
-                scrollY : true,
-            },
-            {
-                slug : 'task_list',
-                title : 'Task List',
-                content : null,
-                isLoaded : false, // Whether content has been loaded to dom
-                isLoading : false, // If the content is in request mode
-                contentCallback : _renderInsetTaskList, // Function to call to get content
-                scrollX : false,
-                scrollY : true,
-            },
-            {
-                slug : 'logs',
-                title : 'Logs',
-                content : null,
-                isLoaded : false, // Whether content has been loaded to dom
-                isLoading : false, // If the content is in request mode
-                contentCallback : null, // Function to call to get content
-                scrollX : true,
-                scrollY : true,
-            },
-            {
-                slug : '_admin_task_dump',
-                title : 'Task Dump (Admin)',
-                content : null,
-                isLoaded : false, // Whether content has been loaded to dom
-                isLoading : false, // If the content is in request mode
-                contentCallback : null, // Function to call to get content
-                scrollX : true,
-                scrollY : true,
-            },
-            {
-                slug : '_admin_meta_dump',
-                title : 'Meta Dump (Admin)',
-                content : null,
-                isLoaded : false, // Whether content has been loaded to dom
-                isLoading : false, // If the content is in request mode
-                contentCallback : null, // Function to call to get content
-                scrollX : true,
-                scrollY : true,
-            }
-        ];
-
-        function _initialize(){
-            for(var i in _screens) _screens[i].index = parseInt(i);
-        }
-
-        function _renderInsetTaskList(){
-            var html = '<ol class="inset-tasklist">';
-            for(var i in _TASK_JSON){
-                var isComplete = _TASK_JSON[i].data.status == 'completed';
-                //console.log(_TASK_JSON[i].id);
-                var activeTask = _BINDED_BOX.activeTaskId == _TASK_JSON[i].id;
-                html += '<li data-status="' + _TASK_JSON[i].data.status + '" ';
-                html += 'data-task_id="' + _TASK_JSON[i].id + '" ';
-                html += 'class="' + (activeTask ? 'active':'') + '"';
-                html += '>';
-                if(isComplete){
-                    html += '<i class="fa fa-check-square"></i> &nbsp; ';
-                } else {
-                    html += '<i class="fa fa-square"></i> &nbsp; ';
-                }
-                html += '<span class="task-sort-order">' + _TASK_JSON[i].data.sortOrder + '.</span> ';
-                html += '<a href="#" class="task-name">';
-                if(isComplete) html += '<strike>';
-                html += _TASK_JSON[i].data.taskName;
-                if(isComplete) html += '</strike>';
-                html += '</a> ';
-                if(activeTask) html += ' <i class="fa fa-caret-left"></i>';
-                html += '</li>';
-            }
-            return html;
-        }
-
-        function _renderInsetTabs(){
-            console.log(_screens);
-        }
-
-        function _activateScreen(index){
-            if(index != +_options.activeScreen) {
-                _options.activeScreen = index;
-                _options.screenChangesMade = true;
-            }
-            _render();
-        }
-
-        function _setScreenData(index, data){
-            data.isLoaded = false;
-            for(var field in data){
-                _options.screenChangesMade = true;
-                if(field == 'title') _options.screenNavChangesMade = true;
-                _screens[index][field] = data[field];
-            }
-            //console.log(data);
-        }
-
-        function _setScreenDataBySlug(slug, data){
-            data.isLoaded = false;
-            for(var field in data){
-                _options.screenChangesMade = true;
-                if(field == 'title') _options.screenNavChangesMade = true;
-                var screen = _getScreenBySlug(slug);
-                _screens[screen.index][field] = data[field];
-            }
-            console.log(data);
-        }
-
-        function _getScreen(index){
-            for(var i in _screens){
-                if(i == index) return _screens[i];
-            }
-        }
-
-        function _getScreenBySlug(slug){
-            for(var i in _screens){
-                if(_screens[i].slug == slug) return _screens[i];
-            }
-        }
-
-        function _applyScreenContent(index, content){
-            data = {
-                content : content
-            };
-            _setScreenData(index, data);
-        }
-
-        function _loadContent(index, flush){
-            flush = flush || false;
-            // activate loading overlay
-            _setLoadingScreen(index);
-            // attempt to get returned content
-            var content = null;
-            var screen = _getScreen(index);
-            if(screen.content && !flush){
-                content = screen.content;
-            } else {
-                if(screen.contentCallback){
-                    content = screen.contentCallback();
-                }
-                if(!content && screen.content) content = screen.content;
-            }
-            if(content){
-                _applyScreenContent(index, content);
-                _unsetLoadingScreen(index);
-            }
-            return content;
-
-        }
-
-        function _renderNav(){
-            var html = '<ul>';
-
-            for(var i in _screens){
-                if(i > 0){
-                    html += '<li data-slug="' + _screens[i].slug + '"';
-
-                    html += '>';
-                    html += '<a class="inset-tab-link';
-                    if(_options.activeScreen == i) html += ' active';
-                    html += '" ';
-                    html += 'data-tab_id="' + i + '" ';
-                    html += 'href="#">';
-                    html += _screens[i].title;
-                    html += '</a>';
-                    html += '</li>';
-                }
-            }
-
-            html += '</ul>';
-            var $screensScreen = $(".inset-tab[data-tab_id=0]");
-            $screensScreen.attr('has_content', 1);
-            $screensScreen.html(html);
-            _options.screenNavChangesMade = false;
-        }
-
-        function _setLoadingScreen(index){
-            // Apply the loading ui to the given screen
-        }
-
-        function _unsetLoadingScreen(index){
-            // Remove the loading ui from the given screen
-        }
-
-        function _activate(){
-            _initialize();
-            $(document).on('click', '.inset-tab-link', _handleInsetBtnClick);
-            $(document).on('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
-            PubSub.subscribe('bindedBox.newTaskActivated', _handleNewTaskActivated);
-            PubSub.subscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
-            //console.log('Inset Tasklist', _BINDED_BOX.activeTaskId);
-            _render();
-        }
-
-        function _deactivate(){
-            $(document).off('click', '.inset-tab-link', _handleInsetBtnClick);
-            $(document).off('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
-            PubSub.unsubscribe('bindedBox.newTaskActivated', _handleNewTaskActivated);
-            PubSub.unsubscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
-        }
-
-        function _handleTaskDataChanges(topic, payload){
-            var redrawStatuses = ['completed','new','active','skipped','force_skipped'];
-            // Check if tabbed-content.tasks is the active screen
-                if(_BINDED_BOX.activeTabId == 'tasks'){
-                    console.log(redrawStatuses.indexOf(payload.updates.status));
-                    // Check if taskNames changed
-                    var taskNameChanged = typeof payload.updates.taskName != 'undefined';
-                    // Check if status changed
-                    var statusChanged = typeof payload.updates.status != 'undefined';
-                    var newStatusRequiresRender = statusChanged && (redrawStatuses.indexOf(payload.updates.status) >= 0);
-                    // If necessary, redraw task list
-                    if(taskNameChanged || newStatusRequiresRender){
-                        _handleNewTaskActivated();
-                    }
-                }
-
-        }
-
-        function _handleNewTaskActivated(topic, payload){
-            var taskListScreen = 1;
-            var content = _loadContent(taskListScreen, true);
-            if(content) _options.$taskInset.find('.inset-tab[data-tab_id=' + taskListScreen + ']').html(content);
-        }
-
-        function _handleInsetTaskBtnClick(e){
-            e.preventDefault();
-            var $this = $(this),
-              $li = $this.parents('li'),
-              taskId = $li.data('task_id');
-
-            var isActiveTask = _BINDED_BOX.activeTaskId == taskId;
-            var boxOpen = _PROJECT.triggerBoxOpen === true;
-
-            if(!boxOpen || !isActiveTask) _triggerBoxOpen(taskId);
-        }
-
-        function _handleInsetBtnClick(e){
-            e.preventDefault();
-            var $this = $(this);
-            _activateScreen(parseInt($this.attr('data-tab_id')));
-        }
-
-        function _updateScreenCount(topic, screenCount){
-            screenCount = screenCount || _screens.length;
-            _options.$taskInset.find('.screen-count').html((screenCount - 1));
-        }
-
-        function _render(){
-            //console.log(_options);
-            if(_options.screenNavChangesMade || !_options.screensActivated) _renderNav();
-
-            _renderInsetTabs();
-
-            // Set screen count
-            _updateScreenCount();
-
-            if(_options.screenChangesMade || !_options.screensActivated){
-
-                var $screen = _options.$taskInset.find('.inset-tab[data-tab_id=' + _options.activeScreen + ']');
-
-                // Get Rendered content
-                _loadContent(_options.activeScreen);
-
-                var screen = _getScreen(_options.activeScreen);
-
-
-                // Activate Screen name
-                if(_options.activeScreen > 0){
-                    _options.$taskInset.find('.tab-name').html(screen.title);
-                } else {
-                    _options.$taskInset.find('.tab-name').html('');
-                }
-                if(screen.isLoading){
-                    _setLoadingScreen(_options.activeScreen);
-                }
-
-                if(screen.content && !screen.loaded){
-                    // Load screen
-                    $screen.html(screen.content);
-
-                    // Mark screen loaded
-                    _screens[_options.activeScreen].isLoaded = true;
-                }
-
-                // Activate active tab
-                _options.$taskInset.find('.inset-tab').removeClass('active');
-                $screen.addClass('active');
-
-                if(screen.scrollX){
-                    $screen.css('overflow-x', 'scroll');
-                }
-
-                if(screen.scrollY){
-                    $screen.css('overflow-y', 'scroll');
-                }
-
-                _options.screenChangesMade = false;
-            }
-
-            _options.screensActivated = true;
-        }
-
-        PubSub.subscribe('bindedBox.opened', _activate);
-        PubSub.subscribe('bindedBox.closed', _deactivate);
-
-    })();
 
     /****************************************************************************************************************/
 
-    var SlideMetadata = (function(){
+    PubSub.subscribe('task.updated', _handleTaskUpdates);
+    PubSub.subscribe('meta.updated', _handleMetaUpdates);
+    PubSub.subscribe('project.updated', _handleProjectUpdates);
 
-        var $form = $(".tabbed-content.metadata form.set-meta-value");
-        var $details = $('.column-details');
-
-        var _METADATA_DATA = {
-            unsavedChanges : false,
-            showForm : false,
-            listSelected : false,
-            selectedEntry : null,
-            selectedData : null,
-            listChanged : true, //(typeof _METADATA != 'undefined')
-            editMode : false
-        };
-
-        function _updateMeta(key, value){
-
-            _METADATA_DATA.listChanged = true;
-            _METADATA_DATA.unsavedChanges = false;
-        }
-
-        function _initialize(){
-            $(".tabbed-nav .database-nav .num-flag").text(_getMetaCount());
-        }
-
-        function _setSelectedField(fieldData){
-            _METADATA_DATA.selectedData = fieldData;
-        }
-
-        function _getMetaCount(){
-            return Object.keys(_METADATA).length;
-        }
-
-        function _metadataEntrySelected(e){
-            e.preventDefault();
-            var
-              $entry = $(this),
-              slug = $entry.data('slug');
-            PubSub.publish('bindedBox.tabs.metadata.slugSelected', slug);
-
-            return false;
-        }
-
-        function _onMetaDataSelected(topic, slug){
-            // Mark list as selected
-            _METADATA_DATA.listSelected = true;
-            // Mark current entry as selected
-            _METADATA_DATA.selectedEntry = slug;
-            _METADATA_DATA.selectedData = _METADATA[slug];
-            // Run Render
-            _render();
-        }
-
-        function _onMetaDataAdding(topic, payload){
-            // Mark list as not selected
-            _METADATA_DATA.listSelected = false;
-            // Mark current entry as not selected
-            _METADATA_DATA.selectedEntry = null;
-            // Run Render
-            _setSelectedField(payload);
-            _render();
-        }
-
-        function _render(){
-            var $entries = $('.binded-trigger-box .tabbed-content.metadata .entries');
-            // Render list
-            if(_METADATA_DATA.listChanged){
-                var html = '';
-                var metaDataCount = 0;
-                for(var _slug in _METADATA){
-                    html += '<div class="entry clearfix" data-slug="' + _METADATA[_slug].slug + '">' + "\n";
-                    html += "\t" + '<span class="key truncate">' + _METADATA[_slug].field + '</span>' + "\n";
-                    html += "\t" + '<span class="value truncate">';
-                    var value = _METADATA[_slug].formatted || _METADATA[_slug].value;
-                    if(value != null){
-                        switch(_METADATA[_slug].type){
-                            case 'address':
-                                html += value;
-                                break;
-                            case 'array':
-                                if(value.length <= 0) {
-                                    html += '[ value not set ]';
-                                } else {
-                                    html += JSON.stringify(value);
-                                }
-                                break;
-                            default:
-                                html += value;
-                                break;
-                        }
-                    } else {
-                        html += '[ value not set ]';
-                    }
-                    html += '</span>' + "\n";
-                    html += "\t" + '<i class="fa fa-chevron-right"></i>' + "\n";
-                    html += '</div>' + "\n";
-                    metaDataCount ++;
-                }
-
-                $entries.html(html);
-                $(".tabbed-nav .database-nav .num-flag").text(metaDataCount);
-
-                // Reset listChanged
-                _METADATA_DATA.listChanged = false;
-            }
-
-            //console.log($entries.html());
-
-            // Set list selected class
-            if(_METADATA_DATA.listSelected) {
-                $entries.addClass('selected');
-            } else {
-                $entries.removeClass('selected');
-            }
-
-            // Set entry selected
-            if(_METADATA_DATA.selectedEntry){
-                $entries.find('.entry').removeClass('selected');
-                var $entry = $entries.find('[data-slug='+_METADATA_DATA.selectedEntry+']');
-                $entry.addClass('selected');
-            } else {
-                $entries.find('.entry').removeClass('selected');
-            }
-
-            // Render Details
-            _renderDetails();
-        }
-
-        function _renderDetails(){
-            console.log(_METADATA_DATA);
-            if(_METADATA_DATA.selectedData){
-                $details.find('h2').html(_METADATA_DATA.selectedData.field);
-                $details.find('.meta-entry.slug .val').html('job.' + _METADATA_DATA.selectedData.slug);
-                $details.find('.meta-entry.type .val').html(_METADATA_DATA.selectedData.type.capitalize());
-                switch(_METADATA_DATA.selectedData.type){
-                    case 'array':
-                    case 'address':
-                      if(_METADATA_DATA.selectedData.value && _METADATA_DATA.selectedData.value.length > 0){
-                        $details.find('.meta-entry.value .val').html('<pre>' + JSON.stringify(_METADATA_DATA.selectedData.value, undefined, 2) + '</pre>');
-                      }
-                        break;
-                    default:
-                        $details.find('.meta-entry.value .val').html(_METADATA_DATA.selectedData.value);
-                        break;
-                }
-                if(_METADATA_DATA.selectedData.formatted){
-                    $details.find('.meta-entry.formatted').addClass('show');
-                    $details.find('.meta-entry.formatted .val').html(_METADATA_DATA.selectedData.formatted);
-                } else {
-                    $details.find('.meta-entry.formatted').removeClass('show');
-                    $details.find('.meta-entry.formatted .val').html('');
-                }
-                if(_METADATA_DATA.selectedData.format){
-                    $details.find('.meta-entry.format').addClass('show');
-                    $details.find('.meta-entry.format .val').html(_METADATA_DATA.selectedData.format);
-                } else {
-                    $details.find('.meta-entry.format').removeClass('show');
-                    $details.find('.meta-entry.format .val').html('');
-                }
-
-                $details.find('.inner-details').addClass('show');
-            } else {
-                $details.find('.inner-details').removeClass('show');
-            }
-
-            if(_METADATA_DATA.showForm){
-                _showForm();
-            } else {
-                _hideForm();
-            }
-        }
-
-        function _drawFormField(){
-            var html = '', val = _METADATA_DATA.selectedData.value;
-            switch(_METADATA_DATA.selectedData.type.toLowerCase()){
-                case 'boolean':
-                    val = Boolean(val);
-                    html += '<input type="checkbox" name="' + _METADATA_DATA.selectedData.slug + '"';
-                    html += val ? ' checked="checked"' : '';
-                    html += ' />';
-                    break;
-                case 'string':
-                    html += '<input type="text" name="' + _METADATA_DATA.selectedData.slug + '"';
-                    html += ' placeholder="' + _METADATA_DATA.selectedData.field + '"';
-                    html += val ? ' value="' + val + '"' : '';
-                    html += ' />';
-                    break;
-            }
-
-            html += _drawIcons(_METADATA_DATA.selectedData.type);
-            $form.find('.inner-form').html(html);
-        }
-
-        function _showForm(){
-            if(_METADATA_DATA.selectedData) _drawFormField();
-            $form.show();
-            $details.find('.meta-entry.value .fa-pencil').hide();
-            //_enableForm();
-        }
-
-        function _hideForm(){
-            $form.hide();
-            $details.find('.meta-entry.value .fa-pencil').show();
-            //_disableForm();
-        }
-
-        function _enableForm(){
-            $form.find('button').prop('disabled',null);
-        }
-
-        function _disableForm(){
-            $form.find('button').prop('disabled','disabled');
-        }
-
-        function _drawIcons(type){
-            // Validation Icon
-            // Save Icon (change indicator)
-            return '';
-        }
-
-        function _validateNewField(meta){
-            var errorFields = [], logs = {debug:[], errors:[]};
-            // Must not be empty
-            if(meta.field === '') {
-                errorFields.push('input[type=text]');
-                logs.errors.push('Must enter a valid meta key');
-            }
-            // Must be at least 3 characters long
-
-            // Must be less than 32 characters long
-            // Type must be valid
-            // Must be unique
-            // Slug must be valid & unique
-            // Must start with letter
-            return {
-                response : {
-                    errorFields : errorFields,
-                    success : true
-                },
-                logs : logs,
-                errors : logs.errors.length > 0
-            };
-        }
-
-        function _handleClickSubmitNewMetaKeyForm(e){
-            e.preventDefault();
-            var $this = $(this),
-              $form = $this.parents('form.tab-form'),
-              $input = $form.find('input'),
-              $select = $form.find('select'),
-              meta = {
-                  field : $input.val().trim().capitalize(),
-                  type : $select.val(),
-                  value : null,
-                  formatted : null,
-                  format: null
-              };
-
-            meta.slug = removeSpecialChars(meta.field);
-            meta.slug = meta.slug.toCamelCase();
-
-            // Validate
-            var validationResponse = _validateNewField(meta);
-            if(validationResponse.errors === false){
-                PubSub.publish('bindedBox.tabs.metadata.addNewTriggered', meta);
-            } else {
-                _handleError(validationResponse.logs.errors[0]);
-            }
-            //console.log(meta);
-        }
-
-        function _handleError(error){
-            console.error(error);
-        }
-
-        function _handleClickEditMetaValue(e){
-            e.preventDefault();
-            _showForm();
-        }
-
-        function _activate(){
-            _render();
-            $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
-            $(document).on('click', '.tabbed-content.metadata .tab-form button[type=submit]', _handleClickSubmitNewMetaKeyForm);
-            $(document).on('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
-            PubSub.subscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
-            PubSub.subscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
-        }
-
-        function _deactivate(){
-            $(document).off('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
-            $(document).off('click', '.tabbed-content.metadata .tab-form button[type=submit]', _handleClickSubmitNewMetaKeyForm);
-            $(document).off('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
-            PubSub.unsubscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
-            PubSub.unsubscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
-        }
-
-        PubSub.subscribe('bindedBox.tabs.metadata.openTriggered', _activate);
-        PubSub.subscribe('bindedBox.tabs.metadata.closeTriggered', _deactivate);
-        PubSub.subscribe('bindedBox.closed', _deactivate);
-
-        _initialize();
-
-        return {
-            updateMeta : _updateMeta,
-            showForm : _showForm
-        }
-    })();
 
 </script>
+<script type="text/javascript" src="<?php echo base_url('assets/js')?>/BindedBoxScreens.js"></script>
+<script type="text/javascript" src="<?php echo base_url('assets/js')?>/SlideMetadata.js"></script>

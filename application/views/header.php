@@ -7,6 +7,9 @@
   <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/jquery-ui.min.css"/>
   <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/alertify.min.css"/>
   <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/alertify.default.min.css"/>
+<!--  <link type="text/css" rel="stylesheet" href="--><?php //echo base_url()?><!--assets/css/jquery.datetimepicker.min.css"/>-->
+<!--  <link type="text/css" rel="stylesheet" href="--><?php //echo base_url()?><!--assets/css/jquery.periodpicker.min.css"/>-->
+<!--  <link type="text/css" rel="stylesheet" href="--><?php //echo base_url()?><!--assets/css/jquery.simple-dtpicker.css"/>-->
   <?php if(offline_mode()){ ?>
     <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/font-awesome.min.css"/>
     <link type="text/css" rel="stylesheet" href="<?php echo base_url()?>assets/css/fontsOpenSans.css"/>
@@ -32,6 +35,12 @@
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-3.1.1.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-migrate-3.0.0.min.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/jquery.maskedinput.min.js"></script>
+<!--  <script type="text/javascript" src="--><?php //echo base_url('assets/js')?><!--/jquery.mousewheel.min.js"></script>-->
+<!--  <script type="text/javascript" src="--><?php //echo base_url('assets/js')?><!--/moment.min.js"></script>-->
+<!--  <script type="text/javascript" src="--><?php //echo base_url('assets/js')?><!--/jquery.datetimepickerx.min.js"></script>-->
+<!--  <script type="text/javascript" src="--><?php //echo base_url('assets/js')?><!--/jquery.periodpicker.min.js"></script>-->
+<!--  <script type="text/javascript" src="--><?php //echo base_url('assets/js')?><!--/jquery.simple-dtpicker.js"></script>-->
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/alertify.min.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/handlebars-v4.0.5.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_API.js"></script>

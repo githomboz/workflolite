@@ -76,8 +76,11 @@
                 <?php
                 $metaTypes = ['string','number','date',
                   'datetime' => 'Date &amp; Time',
-                  'url' => 'URL',
-                  'boolean','phone','text','array','address',
+                  'url' => 'URL (Link)',
+                  'boolean','phone',
+                  'text' => 'Long Text',
+                  'array' => 'Array (data set)',
+                  'address',
                   'twitterHandle' => 'Twitter Handle'
                 ];
                 foreach($metaTypes as $i => $val){

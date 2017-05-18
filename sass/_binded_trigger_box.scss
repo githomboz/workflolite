@@ -799,6 +799,30 @@ $alertRed : rgba(208, 106, 106, 1);
 
         form {
 
+          .icon-set {
+            font-size: 13px;
+            position: absolute;
+            bottom: 5px;
+            left: 1px;
+            text-align: center;
+            width: 100%;
+            line-height: 1.4em;
+
+            a {
+              padding: 0 4px;
+
+              &.enabled-only {
+                display: none;
+              }
+            }
+
+            &.enabled {
+              a.enabled-only {
+                display: inline;
+              }
+            }
+          }
+
           button {
             position: absolute;
             bottom: -33px;

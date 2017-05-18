@@ -3939,6 +3939,20 @@ span.checkbox {
           width: 100%;
           max-height: 150px;
           overflow: scroll; }
+      .binded-trigger-box .tabbed-content.metadata .column-details form .icon-set {
+        font-size: 13px;
+        position: absolute;
+        bottom: 5px;
+        left: 1px;
+        text-align: center;
+        width: 100%;
+        line-height: 1.4em; }
+        .binded-trigger-box .tabbed-content.metadata .column-details form .icon-set a {
+          padding: 0 4px; }
+          .binded-trigger-box .tabbed-content.metadata .column-details form .icon-set a.enabled-only {
+            display: none; }
+        .binded-trigger-box .tabbed-content.metadata .column-details form .icon-set.enabled a.enabled-only {
+          display: inline; }
       .binded-trigger-box .tabbed-content.metadata .column-details form button {
         position: absolute;
         bottom: -33px;
