@@ -3575,7 +3575,7 @@ span.checkbox {
       color: #92f38b;
       background: #555;
       margin: 0;
-      margin-left: 8px;
+      margin-left: 10px;
       -webkit-user-select: none;
       /* Chrome all / Safari all */
       -moz-user-select: none;
@@ -3912,19 +3912,30 @@ span.checkbox {
         -webkit-border-radius: 5px;
                 border-radius: 5px;
         position: relative;
-        top: -1px; }
+        top: -1px;
+        color: #333; }
+        .binded-trigger-box .tabbed-content.metadata .column-list .tab-form button:hover {
+          color: #222; }
+        .binded-trigger-box .tabbed-content.metadata .column-list .tab-form button:active {
+          top: 0px; }
     .binded-trigger-box .tabbed-content.metadata .column-details {
       width: 27%;
       float: right;
       position: relative;
       top: -42px;
       min-height: 318px; }
+      .binded-trigger-box .tabbed-content.metadata .column-details .add-to-template {
+        line-height: 1.4em;
+        font-size: 14px; }
       .binded-trigger-box .tabbed-content.metadata .column-details .inner-details {
         display: none; }
         .binded-trigger-box .tabbed-content.metadata .column-details .inner-details.show {
           display: block; }
       .binded-trigger-box .tabbed-content.metadata .column-details h2 {
         margin-bottom: 1em; }
+        .binded-trigger-box .tabbed-content.metadata .column-details h2 .pending {
+          color: #e8d540;
+          font-size: 12px; }
       .binded-trigger-box .tabbed-content.metadata .column-details .meta-meta {
         font-size: 14px;
         line-height: 1.3; }
@@ -3939,7 +3950,15 @@ span.checkbox {
           width: 100%;
           max-height: 150px;
           overflow: scroll; }
-      .binded-trigger-box .tabbed-content.metadata .column-details form .icon-set {
+      .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value input, .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value select {
+        margin-bottom: 10px; }
+      .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .help-details {
+        display: block;
+        font-size: 12px;
+        line-height: 1.2em;
+        color: #afaeae;
+        margin-bottom: 6px; }
+      .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set {
         font-size: 13px;
         position: absolute;
         bottom: 5px;
@@ -3947,13 +3966,27 @@ span.checkbox {
         text-align: center;
         width: 100%;
         line-height: 1.4em; }
-        .binded-trigger-box .tabbed-content.metadata .column-details form .icon-set a {
+        .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set a {
           padding: 0 4px; }
-          .binded-trigger-box .tabbed-content.metadata .column-details form .icon-set a.enabled-only {
+          .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set a.disable {
+            -webkit-user-select: none;
+            /* Chrome all / Safari all */
+            -moz-user-select: none;
+            /* Firefox all */
+            -ms-user-select: none;
+            /* IE 10+ */
+            -o-user-select: none;
+            user-select: none;
+            cursor: default; }
+          .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set a.error {
+            color: #d06a6a; }
+          .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set a.active {
+            color: #f2f2f2; }
+          .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set a.enabled-only {
             display: none; }
-        .binded-trigger-box .tabbed-content.metadata .column-details form .icon-set.enabled a.enabled-only {
+        .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set.enabled a.enabled-only {
           display: inline; }
-      .binded-trigger-box .tabbed-content.metadata .column-details form button {
+      .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value button {
         position: absolute;
         bottom: -33px;
         left: 1px; }

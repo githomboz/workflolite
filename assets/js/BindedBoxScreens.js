@@ -95,7 +95,7 @@ var BindedBoxScreens = (function(){
     }
 
     function _renderInsetTabs(){
-        console.log(_screens);
+        //console.log(_screens);
     }
 
     function _activateScreen(index){

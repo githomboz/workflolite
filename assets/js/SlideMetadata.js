@@ -3,9 +3,19 @@
  */
 var SlideMetadata = (function(){
 
-    var $form = $(".tabbed-content.metadata form.set-meta-value");
+    var formSelector = ".tabbed-content.metadata form.set-meta-value";
+    var $form = $(formSelector);
     var $btn = $form.find('button');
     var $details = $('.column-details');
+    var currFormData = null;
+    var formVal = null;
+    var formIcons = {};
+
+    var options = {
+        loadingIcon : '<i class="fa fa-spin fa-spinner"></i>',
+        btnAddTxt : '<i class="fa fa-plus"></i> Add',
+        btnUpdateTxt : '<i class="fa fa-save"></i> Update'
+    };
 
     var _METADATA_DATA = {
         unsavedChanges : false,
@@ -16,6 +26,7 @@ var SlideMetadata = (function(){
         listChanged : true, //(typeof _METADATA != 'undefined')
         actionMode : null, // update, add, remove
         formEnabled : false,
+        selectedDataNew : false, // Whether this is data for update, or add
     };
 
     function _updateMeta(key, value){
@@ -30,13 +41,14 @@ var SlideMetadata = (function(){
      */
     function _initialize(){
         $(".tabbed-nav .database-nav .num-flag").text(_getMetaCount());
-        $(".js-us-phone-mask").mask("(999) 999-9999", {autoclear: false});
-        $(".js-twitter-handle-mask").mask("@***************", {autoclear: false});
-
+        // $(".js-us-phone-mask").mask("(999) 999-9999", {autoclear: false});
+        // $(".js-twitter-handle-mask").mask("@***************", {autoclear: false});
+        return false;
     }
 
     function _setSelectedField(fieldData){
         _METADATA_DATA.selectedData = fieldData;
+        return false;
     }
 
     function _getMetaCount(){
@@ -54,23 +66,32 @@ var SlideMetadata = (function(){
     }
 
     function _onMetaDataSelected(topic, slug){
+        $btn.html(options.btnUpdateTxt);
         // Mark list as selected
         _METADATA_DATA.listSelected = true;
         // Mark current entry as selected
         _METADATA_DATA.selectedEntry = slug;
         _METADATA_DATA.selectedData = _METADATA[slug];
+        _METADATA_DATA.selectedDataNew = false;
+        _METADATA_DATA.showForm = false;
         // Run Render
         _render();
+        return false;
     }
 
     function _onMetaDataAdding(topic, payload){
+        $btn.html(options.btnAddTxt);
         // Mark list as not selected
         _METADATA_DATA.listSelected = false;
         // Mark current entry as not selected
         _METADATA_DATA.selectedEntry = null;
+        _METADATA_DATA.selectedDataNew = true;
+        _METADATA_DATA.showForm = true;
         // Run Render
         _setSelectedField(payload);
         _render();
+        //_enableFormSubmit();
+        return false;
     }
 
     function _render(){
@@ -142,12 +163,13 @@ var SlideMetadata = (function(){
 
         // Render Details
         _renderDetails();
+        return false;
     }
 
     function _renderDetails(){
-        console.log(_METADATA_DATA);
+        //console.log(_METADATA_DATA);
         if(_METADATA_DATA.selectedData){
-            $details.find('h2').html(_METADATA_DATA.selectedData.field);
+            $details.find('h2').html(_METADATA_DATA.selectedData.field + (_METADATA_DATA.selectedDataNew ? ' <span class="pending">(pending)</span>' : ''));
             $details.find('.meta-entry.slug .val').html('job.' + _METADATA_DATA.selectedData.slug);
             $details.find('.meta-entry.type .val').html(_METADATA_DATA.selectedData.type.capitalize());
             switch(_METADATA_DATA.selectedData.type){
@@ -194,20 +216,23 @@ var SlideMetadata = (function(){
         } else {
             _hideForm();
         }
+        return false;
     }
 
     function _drawFormField(data){
         data = data || _METADATA_DATA.selectedData;
         var html = '', val = data.value;
+
         switch(data.type.toLowerCase()){
             case 'boolean':
                 val = Boolean(val);
-                html += '<input type="checkbox" name="' + data.slug + '"';
+                html += 'Mark True <input type="checkbox" class="metaField" name="' + data.slug + '"';
                 html += val ? ' checked="checked"' : '';
                 html += ' />';
+                html += '<span class="help-details">Check the box for "true". Leave unchecked for "false".</span>';
                 break;
             case 'string':
-                html += '<input type="text" name="' + data.slug + '"';
+                html += '<input type="text" class="metaField" name="' + data.slug + '"';
                 html += ' placeholder="' + data.field + '"';
                 html += val ? ' value="' + ( val === null ? '' : val ) + '"' : '';
                 html += ' />';
@@ -215,42 +240,42 @@ var SlideMetadata = (function(){
             case 'date':
             case 'datetime':
                 html += '<input type="text" name="' + data.slug + '_date"';
-                html += ' class="js-date-mask"';
+                html += ' class="js-date-mask metaField"';
                 html += val ? ' value="' + ( val === null ? '' : val ) + '"' : '';
                 html += ' />';
                 if(data.type == 'datetime'){
                     html += '<input type="text" name="' + data.slug + '_time"';
-                    html += ' class="js-time-mask"';
+                    html += ' class="js-time-mask metaField"';
                     html += val ? ' value="' + ( val === null ? '' : val ) + '"' : '';
                     html += ' />';
-                    html += '<select name="amOrPm"><option value="am">AM</option><option value="pm">PM</option></select>';
+                    html += '<select class="metaField" name="amOrPm"><option value="am">AM</option><option value="pm">PM</option></select>';
                 }
                 break;
             case 'number':
-                html += '<input type="text" name="' + data.slug + '"';
+                html += '<input class="metaField" type="text" name="' + data.slug + '"';
                 html += ' placeholder="' + data.field + '"';
                 html += val ? ' value="' + ( val === null ? '' : val ) + '"' : '';
                 html += ' />';
-                html += '<span class="help-details">Value must be numeric.</span>'
+                html += '<span class="help-details">Value must be numeric.</span>';
                 break;
             case 'phone':
                 html += '<input type="text" name="' + data.slug + '"';
-                html += ' class="js-us-phone-mask"';
+                html += ' class="js-us-phone-mask metaField"';
                 html += val ? ' value="' + ( val === null ? '' : val ) + '"' : '';
                 html += ' />';
                 break;
             case 'twitterhandle':
                 html += '<input type="text" name="' + data.slug + '"';
-                html += ' class="js-twitter-handle-mask"';
+                html += ' class="js-twitter-handle-mask metaField"';
                 html += val ? ' value="' + ( val === null ? '' : val ) + '"' : '';
                 html += ' />';
                 break;
             case 'text':
-                html += '<textarea name="' + data.slug + '"';
+                html += '<textarea class="metaField" name="' + data.slug + '"';
                 html += ' placeholder="' + data.field + '">' + ( val === null ? '' : val ) + '</textarea>';
                 break;
             case 'url':
-                html += '<input type="text" name="' + data.slug + '"';
+                html += '<input class="metaField" type="text" name="' + data.slug + '"';
                 html += ' placeholder="Enter a valid URL" value="' + ( val === null ? '' : val ) + '" />';
                 html += '<span class="help-details">URL must begin with "http://" or "https://" in order to validate.</span>'
                 break;
@@ -261,8 +286,8 @@ var SlideMetadata = (function(){
                     switch(addressFields[f]){
                         case 'state':
                             var states = get50States();
-                            html += '<select name="' + data.slug + '__' + addressFields[f] + '">';
-                            html += '<option>Select State</option>';
+                            html += '<select class="metaField" name="' + data.slug + '__' + addressFields[f] + '">';
+                            html += '<option value="">Select State</option>';
                             for(var i in states){
                                 html += '<option value="' + i + '"';
                                 if(val && val[addressFields[f]] == i) html += ' selected="selected"';
@@ -271,7 +296,7 @@ var SlideMetadata = (function(){
                             html += '</select>';
                             break;
                         default:
-                            html += '<input type="text" name="' + data.slug + '__' + addressFields[f] + '"';
+                            html += '<input class="metaField" type="text" name="' + data.slug + '__' + addressFields[f] + '"';
                             html += ' placeholder="' + addressFields[f].capitalize() + '" value="' + (val && typeof val[addressFields[f]] != 'undefined' ? val[addressFields[f]] : '') + '" />';
                             break;
                     }
@@ -279,8 +304,23 @@ var SlideMetadata = (function(){
                 break;
         }
 
+        if(_METADATA_DATA.selectedDataNew && BindedBox.allowed(5)){
+            html += '<div class="add-to-template"><input type="checkbox" id="addMetaKey" name="addMetaKey" /> <label for="addMetaKey">Add this meta key to the template</label>  </div>';
+        }
+
         html += _drawIcons(data);
         $form.find('.inner-form').html(html);
+
+        $form.find('.icon-set a').each(function(i, item){
+            var $item = $(item),
+                btnText = $item.text().trim();
+
+            formIcons[btnText.toLowerCase()] = {
+                $       : $item,
+                text    : btnText,
+                html    : $item.html()
+            };
+        });
 
         // Routines and listeners to set up once html has been added to DOM
         switch(data.type.toLowerCase()){
@@ -324,6 +364,11 @@ var SlideMetadata = (function(){
                 }
                 break;
             case 'remove':
+                if(_METADATA_DATA.selectedData){
+                    if(confirm('Are you sure you want to remove `' + _METADATA_DATA.selectedData.slug + '`?')){
+                        // Attempt meta data removal and subsequent re-renderings
+                    }
+                }
                 break;
             case 'cancel':
                 _hideForm();
@@ -332,18 +377,23 @@ var SlideMetadata = (function(){
         return false;
     }
 
-    function _handleFormSubmitClick(e){
-        e.preventDefault();
-    }
 
     function _showForm(){
         if(_METADATA_DATA.selectedData) _drawFormField();
+
         $form.show();
         // Hide Value
         $details.find('.meta-entry.value').hide();
         $(document).on('click', BindedBox.selector + ' .icon-set a', _handleFormIconClick);
-        $(document).on('click', BindedBox.selector + ' .set-meta-value button[type=submit]', _handleFormSubmitClick);
+        PubSub.subscribe(MetaData.pubSubRoot + 'form.checkForDataChange', _handleFormInteraction);
+        PubSub.subscribe(MetaData.pubSubRoot + 'form.changeTriggered', _handleFormChangesFound);
+        PubSub.subscribe(MetaData.pubSubRoot + 'form.changeCancelled', _handleFormChangesCancelled);
+        PubSub.subscribe(MetaData.pubSubRoot + 'update.validate.before', _handleValidationBefore);
+        PubSub.subscribe(MetaData.pubSubRoot + 'update.validate.error', _handleValidationError);
+        // Register form change listeners
+        _setFormChangeListeners(true);
         //_enableFormSubmit();
+        return false;
     }
 
     function _hideForm(){
@@ -352,20 +402,257 @@ var SlideMetadata = (function(){
 
         $details.find('.meta-entry.value').show();
         $(document).off('click', BindedBox.selector + ' .icon-set a', _handleFormIconClick);
-        $(document).off('click', BindedBox.selector + ' .set-meta-value button[type=submit]', _handleFormSubmitClick);
+        PubSub.unsubscribe(MetaData.pubSubRoot + 'form.checkForDataChange', _handleFormInteraction);
+        PubSub.unsubscribe(MetaData.pubSubRoot + 'form.changeTriggered', _handleFormChangesFound);
+        PubSub.unsubscribe(MetaData.pubSubRoot + 'form.changeCancelled', _handleFormChangesCancelled);
+        PubSub.unsubscribe(MetaData.pubSubRoot + 'update.validate.before', _handleValidationBefore);
+        PubSub.unsubscribe(MetaData.pubSubRoot + 'update.validate.error', _handleValidationError);
+        _setFormChangeListeners(false);
         _disableFormSubmit();
+        return false;
+    }
+
+    function _setFormChangeListeners(enable){
+        if(typeof enable == 'undefined' || enable === null) enable = true;
+        enable = Boolean(enable);
+        if(enable){
+            // Enable
+            $(document).on('keyup', formSelector + ' input[type=text].metaField', _handleFormChange);
+            $(document).on('change', formSelector + ' input[type=checkbox].metaField', _handleFormChange);
+            $(document).on('change', formSelector + ' select.metaField', _handleFormChange);
+        } else {
+            // Disable
+            $(document).off('keyup', formSelector + ' input[type=text].metaField', _handleFormChange);
+            $(document).off('change', formSelector + ' input[type=checkbox].metaField', _handleFormChange);
+            $(document).off('change', formSelector + ' select.metaField', _handleFormChange);
+        }
+        return false;
+    }
+
+    function _handleValidationBefore(topic, payload){
+        // Set validation icon to spinner, change color,
+        if(typeof formIcons.validate != 'undefined'){
+            formIcons.validate.$.find('.fa').removeClass('fa-check').addClass('fa-spin fa-spinner');
+            formIcons.validate.$.addClass('active disable').removeClass('error');
+        }
+    }
+
+    function _handleValidationError(topic, payload){
+        console.log(payload);
+        // Set validation icon to spinner, change color,
+        if(typeof formIcons.validate != 'undefined'){
+            formIcons.validate.$.find('.fa').addClass('fa-exclamation-triangle').removeClass('fa-check fa-spin fa-spinner');
+            formIcons.validate.$.removeClass('active').addClass('disable error');
+        }
+    }
+
+    function _handleFormChange(e){
+
+        var payload = {
+            formData : $form.serializeArray(),
+            field : _METADATA_DATA.selectedData.slug,
+            metaType : _METADATA_DATA.selectedData.type
+        };
+
+        PubSub.publish(MetaData.pubSubRoot + 'form.checkForDataChange', payload);
+        return false;
     }
 
     function _enableFormSubmit(){
-        _METADATA_DATA.formEnabled = true;
-        $form.find('.icon-set').addClass('enabled');
-        $btn.prop('disabled',null);
+        if(_METADATA_DATA.formEnabled !== true){ // to avoid creating tons of listeners
+            _METADATA_DATA.formEnabled = true;
+            _resetValidation();
+            $form.find('.icon-set').addClass('enabled');
+            $btn.prop('disabled',null);
+            $(document).on('click', formSelector + ' button[type=submit]', _handleClickFormSubmit);
+        }
+        return false;
     }
 
     function _disableFormSubmit(){
-        _METADATA_DATA.formEnabled = false;
-        $form.find('.icon-set').removeClass('enabled');
-        $btn.attr('disabled','disabled');
+        if(_METADATA_DATA.formEnabled !== false){
+            _METADATA_DATA.formEnabled = false;
+            $form.find('.icon-set').removeClass('enabled');
+            $btn.attr('disabled','disabled');
+            $(document).off('click', formSelector + ' button[type=submit]', _handleClickFormSubmit);
+        }
+        return false;
+    }
+
+    function _resetValidation(){
+        if(typeof formIcons.validate != 'undefined'){
+            formIcons.validate.$.removeClass('error active');
+            formIcons.validate.$.find('.fa').removeClass('fa-exclamation-triangle').addClass('fa-check');
+        }
+    }
+
+    function _handleClickFormSubmit(e){
+        e.preventDefault();
+
+        MetaData.trySave(currFormData.field, currFormData);
+
+        if(_METADATA_DATA.selectedDataNew){
+            // Handle Add
+        } else {
+            // Handle Update
+        }
+        return false;
+    }
+
+    function _handleFormInteraction(topic, payload){
+        console.log(topic);
+        if(typeof payload.formData != 'undefined'){
+            if(typeof payload.field != 'undefined'){
+                if(typeof payload.metaType != 'undefined'){
+
+                    // Parse value from input form
+                    var formData = _parseFormInputData(payload);
+
+                    if(formData){
+                        // Grab original meta data
+                        var meta = typeof _METADATA[payload.field] != 'undefined' ? _METADATA[payload.field] : null;
+
+                        var activateForm = false;
+
+                        //console.log(meta, formData, _METADATA);
+
+                        if(meta){
+                            activateForm = JSON.stringify(formData.value) != JSON.stringify(meta.value);
+                            //console.log(activateForm, formData.value, meta.value);
+                        } else {
+                            activateForm = formData.value !== null;
+                            //console.log(activateForm, formData.value);
+                        }
+
+                        // Check to see if current input value is the same as original meta data
+                        if(activateForm){
+                            // If not the same, publish MetaData.pubSubRoot + 'form.changeTriggered' with formData
+                            //console.log('Publishing to ' + MetaData.pubSubRoot + 'form.changeTriggered');
+                            PubSub.publish(MetaData.pubSubRoot + 'form.changeTriggered', {
+                                field : payload.field,
+                                formData : formData
+                            });
+                        } else {
+                            //console.log('Publishing to ' + MetaData.pubSubRoot + 'form.changeCancelled');
+                            PubSub.publish(MetaData.pubSubRoot + 'form.changeCancelled', {
+                                field : payload.field,
+                                formData : formData
+                            });
+                        }
+                    } else {
+                        console.error('Form data provided is invalid');
+                    }
+                } else {
+                    console.error('Invalid meta type provided');
+                }
+            } else {
+                console.error('Invalid meta field provided');
+            }
+        } else {
+            console.error('Invalid form data provided');
+        }
+        return false;
+    }
+
+    function _handleFormChangesFound(topic, payload){
+        // Store formData to the object to avoid having to re-parse the form data
+
+        console.log(topic, payload, MetaData.getValue(payload.field));
+        var meta = MetaData.getValue(payload.field);
+        
+        if((meta && meta.slug == payload.field) || meta === null){
+            currFormData = {};
+            currFormData.value = payload.formData.value;
+            console.log(currFormData.value);
+            formVal = currFormData.value;
+
+            // @todo; If fields set, add them to currFormData [field, slug, sort, type]
+
+            _enableFormSubmit();
+        }
+
+        //
+        // //if(_METADATA_DATA.selectedData && typeof payload.formData != 'undefined' && typeof payload.formData.value != 'undefined'){
+        //     currFormData = payload,//_METADATA_DATA.selectedData;
+        //     //
+        // //}
+        return false;
+    }
+
+    function _handleFormChangesCancelled(topic, payload){
+
+        currFormData = null;
+        formVal = null;
+
+        _disableFormSubmit();
+        return false;
+    }
+
+    /**
+     *
+     * @param formData
+     * @private
+     */
+    function _parseFormInputData(payload){
+        var rtn = {
+            field : payload.field,
+            value : null
+        };
+        // Check if formData is set for given field
+        var validDataChange = false;
+        for(var i in payload.formData){
+            if(!validDataChange && payload.formData[i].name.indexOf(payload.field) === 0) validDataChange = true;
+        }
+        if(validDataChange || payload.metaType == 'boolean'){ // Checkboxes will not return formData at all if unchecked
+            switch(payload.metaType){
+                case 'datetime':
+                    break;
+                case 'date':
+                    break;
+                case 'address':
+                    rtn.value = {};
+                    for(var i in payload.formData){
+                        var key = payload.formData[i].name.replace(payload.field + '__', '');
+                        rtn.value[key] = payload.formData[i].value;
+                    }
+                    var fieldCount = Object.keys(rtn.value).length;
+                    //console.log(fieldCount);
+                    for(var field in rtn.value){
+                        var fieldSet = [undefined, null, ''].indexOf(rtn.value[field]) < 0;
+                        //console.log('yup', fieldSet, field, rtn.value[field]);
+                        if(!fieldSet) fieldCount --;
+                    }
+                    //console.log(fieldCount);
+                    if(fieldCount <= 0) rtn.value = null;
+                    console.log(payload, rtn);
+                    break;
+                case 'number':
+                    break;
+                case 'boolean':
+                    //console.log(payload.formData);
+                    var formFieldValid = typeof payload.formData[0] != 'undefined'
+                        && typeof payload.formData[0].name != 'undefined'
+                        && payload.formData[i].name.indexOf(payload.field) === 0;
+                    rtn.value = Boolean(formFieldValid);
+                    break;
+                case 'text':
+                    break;
+                case 'array':
+                    break;
+                case 'phone':
+                    rtn.value = payload.formData[i].value.replace([' ','-','(',')'],'').trim().match(/[0-9]+/g).join('');
+                    console.log(rtn.value);
+                    if(rtn.value == '') rtn.value = null;
+                    break;
+                case 'twitterhandle':
+                case 'url':
+                case 'string':
+                    rtn.value = payload.formData[i].value.trim();
+                    if(rtn.value == '') rtn.value = null;
+                    break;
+            }
+        } else return false;
+        return rtn;
     }
 
     function _drawIcons(data){
@@ -373,7 +660,7 @@ var SlideMetadata = (function(){
         // Validation icon
         html += '<a href="#" class="enabled-only"><i class="fa fa-check"></i> Validate <span class="extra"></span></a>';
         // Save icon (change indicator)
-        html += '<a href="#" class="enabled-only"><i class="fa fa-save"></i> Save <span class="extra"></span></a>';
+        //html += '<a href="#" class="enabled-only"><i class="fa fa-save"></i> Save <span class="extra"></span></a>';
         if(data.value != null){
             // clear icon
             html += '<a href="#"><i class="fa fa-eraser"></i> Clear <span class="extra"></span></a>';
@@ -433,19 +720,24 @@ var SlideMetadata = (function(){
         var validationResponse = _validateNewField(meta);
         if(validationResponse.errors === false){
             PubSub.publish('bindedBox.tabs.metadata.addNewTriggered', meta);
+            $input.val('');
+            $form.find('select option').removeAttr('selected');
         } else {
             _handleError(validationResponse.logs.errors[0]);
         }
         //console.log(meta);
+        return false;
     }
 
     function _handleError(error){
         console.error(error);
+        return false;
     }
 
     function _handleClickEditMetaValue(e){
         e.preventDefault();
         _showForm();
+        return false;
     }
 
     function _activate(){
@@ -455,6 +747,7 @@ var SlideMetadata = (function(){
         $(document).on('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
         PubSub.subscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
         PubSub.subscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
+        return false;
     }
 
     function _deactivate(){
@@ -463,6 +756,7 @@ var SlideMetadata = (function(){
         $(document).off('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
         PubSub.unsubscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
         PubSub.unsubscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
+        return false;
     }
 
     PubSub.subscribe('bindedBox.tabs.metadata.openTriggered', _activate);

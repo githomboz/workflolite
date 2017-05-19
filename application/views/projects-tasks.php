@@ -603,7 +603,7 @@
     }
 
     function _triggerBoxClose(){
-        console.log(_BINDED_BOX);
+        //console.log(_BINDED_BOX);
 //        if(_BINDED_BOX.activeLock && !_BINDED_BOX.keepOpen){
 //            PubSub.publish('bindedBox.activeLockCollision.action.closeBindedBox', {
 //                continueCallback : _triggerBoxClose
@@ -1215,7 +1215,7 @@
     }
 
     PubSub.subscribe('bindedBox.tabs', function(topic, payload){
-       console.log(topic, payload)
+      // console.log(topic, payload)
     });
 
     function _renderTriggerBoxProjectAndTaskData(taskData){

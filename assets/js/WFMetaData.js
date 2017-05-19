@@ -3,12 +3,14 @@
  */
 var MetaData = (function(){
 
-    var pubsubRoot = 'metaData.';
+    var pubSubRoot = 'metaData.';
     var runSaveUponSuccessfulValidation = false;
 
     function _attemptUpdate(field, fieldData){
         // PubSub.publish('metadata.update.pending', field);
         runSaveUponSuccessfulValidation = true;
+        _apiValidateMeta(fieldData);
+        return true;
     }
 
     function _handleValidationAPIResponse(topic, payload){
@@ -33,19 +35,28 @@ var MetaData = (function(){
     function _apiValidateMeta(fieldData){
         CS_API.call('ajax/validate_meta_field',
             function(){
-                PubSub.publish(pubsubRoot + 'update.validate.before', {
+                PubSub.publish(pubSubRoot + 'update.validate.before', {
                     fieldData : fieldData
                 });
             },
             function(data){
-                PubSub.publish(pubsubRoot + 'update.validate.response', {
-                    data : data,
-                    fieldData : fieldData
-                });
+                if(data.errors === false){
+                    PubSub.publish(pubSubRoot + 'update.validate.response', {
+                        data : data,
+                        fieldData : fieldData
+                    });
+                } else {
+                    PubSub.publish(pubSubRoot + 'update.validate.error', {
+                        context: 'api_validation_error',
+                        errors: data.errors
+                    });
+                    console.error(data.errors[0]);
+                }
             },
             function(){
-                PubSub.publish(pubsubRoot + 'update.error', {
-                    context: 'api_request_error'
+                PubSub.publish(pubSubRoot + 'update.validate.error', {
+                    context: 'api_request_error',
+                    errors: ['API Request Error has occurred']
                 });
                 console.error('An error has occurred');
             },
@@ -60,18 +71,18 @@ var MetaData = (function(){
     function _apiSaveMeta(fieldData){
         CS_API.call('ajax/save_meta_field',
             function(){
-                PubSub.publish(pubsubRoot + 'update.save.before', {
+                PubSub.publish(pubSubRoot + 'update.save.before', {
                     fieldData : fieldData
                 });
             },
             function(data){
-                PubSub.publish(pubsubRoot + 'update.save.response', {
+                PubSub.publish(pubSubRoot + 'update.save.response', {
                     data : data,
                     fieldData : fieldData
                 });
             },
             function(){
-                PubSub.publish(pubsubRoot + 'update.error', {
+                PubSub.publish(pubSubRoot + 'update.save.error', {
                     context: 'api_request_error'
                 });
                 console.error('An error has occurred');
@@ -88,7 +99,7 @@ var MetaData = (function(){
         $.extend(_METADATA[field], {}, fieldData);
 
         // Notify interested parties in the new field value
-        PubSub.publish(pubsubRoot + 'update.updated', {
+        PubSub.publish(pubSubRoot + 'update.updated', {
             field : field,
             data : fieldData
         });
@@ -99,14 +110,14 @@ var MetaData = (function(){
     }
 
     function init(){
-        PubSub.subscribe(pubsubRoot + 'update.validate.response', _handleValidationAPIResponse);
-        PubSub.subscribe(pubsubRoot + 'update.save.response', _handleSaveAPIResponse);
+        PubSub.subscribe(pubSubRoot + 'update.validate.response', _handleValidationAPIResponse);
+        PubSub.subscribe(pubSubRoot + 'update.save.response', _handleSaveAPIResponse);
     }
 
     init();
 
     return {
-        pubSubRoot      : pubsubRoot,
+        pubSubRoot      : pubSubRoot,
         setValue        : _setNewValue,
         getValue        : _getValue,
         validate        : _apiValidateMeta,

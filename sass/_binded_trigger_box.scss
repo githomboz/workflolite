@@ -217,7 +217,7 @@ $alertRed : rgba(208, 106, 106, 1);
       color: $lightGreen;
       background: $normalBtnGray;
       margin: 0;
-      margin-left: $padding - 2;
+      margin-left: $padding;
       -webkit-user-select: none;  /* Chrome all / Safari all */
       -moz-user-select: none;     /* Firefox all */
       -ms-user-select: none;      /* IE 10+ */
@@ -741,6 +741,15 @@ $alertRed : rgba(208, 106, 106, 1);
             border-radius: 5px;
             position: relative;
             top: -1px;
+            color: #333;
+
+            &:hover {
+              color: #222;
+            }
+
+            &:active {
+              top: 0px;
+            }
 
           }
         }
@@ -753,6 +762,11 @@ $alertRed : rgba(208, 106, 106, 1);
         top: -42px;
         min-height: 318px;
 
+        .add-to-template {
+          line-height: 1.4em;
+          font-size: 14px;
+        }
+
         .inner-details {
           display: none;
 
@@ -763,6 +777,11 @@ $alertRed : rgba(208, 106, 106, 1);
 
         h2 {
           margin-bottom: 1em;
+
+          .pending {
+            color: $yellow;
+            font-size: 12px;
+          }
         }
 
         .meta-meta {
@@ -797,7 +816,18 @@ $alertRed : rgba(208, 106, 106, 1);
           }
         }
 
-        form {
+        form.set-meta-value {
+          input, select {
+            margin-bottom: $padding;
+          }
+
+          .help-details {
+            display: block;
+            font-size: 12px;
+            line-height: 1.2em;
+            color: $txtLightGray;
+            margin-bottom: 6px;
+          }
 
           .icon-set {
             font-size: 13px;
@@ -810,6 +840,24 @@ $alertRed : rgba(208, 106, 106, 1);
 
             a {
               padding: 0 4px;
+
+              &.disable {
+                -webkit-user-select: none;  /* Chrome all / Safari all */
+                -moz-user-select: none;     /* Firefox all */
+                -ms-user-select: none;      /* IE 10+ */
+
+                -o-user-select: none;
+                user-select: none;
+                cursor: default;
+              }
+
+              &.error {
+                color: $alertRed;
+              }
+
+              &.active {
+                color: #f2f2f2;
+              }
 
               &.enabled-only {
                 display: none;
