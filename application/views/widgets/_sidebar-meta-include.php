@@ -1,5 +1,5 @@
 <div class="panel">
-  <h1><i class="fa fa-list"></i> <?php echo project() ? 'Project' : 'Job' ?> Details</h1>
+  <h1><i class="fa fa-list"></i> Job<?php  //echo project() ? 'Project' : 'Job' ?> Details</h1>
   <?php
   $entity = entity();
   $metaRecords = $entity->getMeta();

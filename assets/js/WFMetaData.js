@@ -9,20 +9,26 @@ var MetaData = (function(){
     function _attemptUpdate(field, fieldData){
         // PubSub.publish('metadata.update.pending', field);
         runSaveUponSuccessfulValidation = true;
+        console.log(PubSub);
         _apiValidateMeta(fieldData);
-        return true;
     }
 
     function _handleValidationAPIResponse(topic, payload){
         var successful = payload.data.response.success == true;
+        console.log(payload);
         if(typeof payload.fieldData != 'undefined'){
             if(successful && runSaveUponSuccessfulValidation) {
+                console.log('getting here 1?');
                 _apiSaveMeta(payload.fieldData);
+            } else {
+                console.log('getting here 2?');
+                // should we handle error again here? it is already handled elsewhere but maybe backup?
             }
 
         } else {
             console.error('No fieldData passed along with api payload');
         }
+        return false;
     }
 
     function _handleSaveAPIResponse(topic, payload){
@@ -30,6 +36,7 @@ var MetaData = (function(){
 
         // Set back to default value after run.
         runSaveUponSuccessfulValidation = false;
+        return false;
     }
 
     function _apiValidateMeta(fieldData){
@@ -66,9 +73,11 @@ var MetaData = (function(){
                 preferCache : false
             }
         );
+        return false;
     }
 
     function _apiSaveMeta(fieldData){
+        console.log(fieldData);
         CS_API.call('ajax/save_meta_field',
             function(){
                 PubSub.publish(pubSubRoot + 'update.save.before', {
@@ -93,6 +102,7 @@ var MetaData = (function(){
                 preferCache : false
             }
         );
+        return false;
     }
 
     function _setNewValue(field, fieldData){
@@ -103,24 +113,36 @@ var MetaData = (function(){
             field : field,
             data : fieldData
         });
+        return false;
     }
 
     function _getValue(field){
         return typeof _METADATA[field] != 'undefined' ? _METADATA[field] : null;
     }
 
-    function init(){
+    function _activate(){
+        _deactivate();
         PubSub.subscribe(pubSubRoot + 'update.validate.response', _handleValidationAPIResponse);
         PubSub.subscribe(pubSubRoot + 'update.save.response', _handleSaveAPIResponse);
+        return false;
     }
 
-    init();
+    function _deactivate(){
+        PubSub.unsubscribe(pubSubRoot + 'update.validate.response', _handleValidationAPIResponse);
+        PubSub.unsubscribe(pubSubRoot + 'update.save.response', _handleSaveAPIResponse);
+        return false;
+    }
+
+    _activate();
 
     return {
-        pubSubRoot      : pubSubRoot,
-        setValue        : _setNewValue,
-        getValue        : _getValue,
-        validate        : _apiValidateMeta,
-        trySave         : _attemptUpdate
+        pubSubRoot              : pubSubRoot,
+        setValue                : _setNewValue,
+        getValue                : _getValue,
+        validate                : _apiValidateMeta,
+        trySave                 : _attemptUpdate,
+        validationResponse      : _handleValidationAPIResponse,
+        activate                : _activate,
+        deactivate              : _deactivate,
     }
 })();

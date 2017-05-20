@@ -241,4 +241,8 @@ https://github.com/mroderick/PubSubJS
 
 		return result;
 	};
+
+	PubSub.getSubscriptions = function(){
+		return messages;
+	}
 }));

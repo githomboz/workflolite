@@ -999,3 +999,45 @@ function generate_completion_script_results_required_fields(){
   return array('projectId','taskTemplateId');
 }
 
+function validate_meta_field(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $response['response']['success'] = false;
+  $project = Project::Get($data['projectId']);
+
+  $metaArray = $project->getRawMeta();
+  $response['response']['rawMeta'] = $metaArray;
+  $field = $data['field'];
+  if($project){
+    $meta = new $data['metaObject']($data['value']);
+    if(!$meta->errors()){
+      $metaArray[$field] = $meta->get();
+      $project->meta()->set('meta', $metaArray)->save('meta');
+      $response['response']['raw'] = $meta->get();
+      $response['response']['display'] = $meta->display();
+      $response['response']['success'] = true;
+    } else {
+      if(!is_array($response['errors'])) $response['errors'] = [];
+      $response['errors'] = array_merge($response['errors'], (array) $meta->errors());
+    }
+  } else {
+    $response['errors'][] = 'Invalid entity id provided';
+  }
+
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function validate_meta_field_args_map(){
+  return array('metaObject','projectId','field','value','type');
+}
+
+// Field names of fields required
+function validate_meta_field_required_fields(){
+  return array('metaObject','projectId','field','value','type');
+}
+

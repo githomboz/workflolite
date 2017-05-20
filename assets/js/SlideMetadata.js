@@ -10,6 +10,13 @@ var SlideMetadata = (function(){
     var currFormData = null;
     var formVal = null;
     var formIcons = {};
+    var
+        $tabForm = $('form.tab-form'),
+        $tabFormInput = $tabForm.find('input[type=text]'),
+        $tabFormSelect = $tabForm.find('select');
+    var messageContainerSelector = '.message-container';
+    var $messageContainer = $(messageContainerSelector);
+
 
     var options = {
         loadingIcon : '<i class="fa fa-spin fa-spinner"></i>',
@@ -380,33 +387,38 @@ var SlideMetadata = (function(){
 
     function _showForm(){
         if(_METADATA_DATA.selectedData) _drawFormField();
-
         $form.show();
-        // Hide Value
         $details.find('.meta-entry.value').hide();
         $(document).on('click', BindedBox.selector + ' .icon-set a', _handleFormIconClick);
         PubSub.subscribe(MetaData.pubSubRoot + 'form.checkForDataChange', _handleFormInteraction);
         PubSub.subscribe(MetaData.pubSubRoot + 'form.changeTriggered', _handleFormChangesFound);
         PubSub.subscribe(MetaData.pubSubRoot + 'form.changeCancelled', _handleFormChangesCancelled);
         PubSub.subscribe(MetaData.pubSubRoot + 'update.validate.before', _handleValidationBefore);
+        PubSub.subscribe(MetaData.pubSubRoot + 'update.validate.response', _handleValidationResponse);
+        PubSub.subscribe(MetaData.pubSubRoot + 'update.validate.response', MetaData.validationResponse);
         PubSub.subscribe(MetaData.pubSubRoot + 'update.validate.error', _handleValidationError);
-        // Register form change listeners
+        PubSub.subscribe(MetaData.pubSubRoot + 'update.save.before', _handleSaveBefore);
+        PubSub.subscribe(MetaData.pubSubRoot + 'update.save.response', _handleSaveResponse);
+        PubSub.subscribe(MetaData.pubSubRoot + 'update.save.error', _handleSaveError);
         _setFormChangeListeners(true);
-        //_enableFormSubmit();
+        _disableFormSubmit();
         return false;
     }
 
     function _hideForm(){
         $form.hide();
-        // Show Value
-
         $details.find('.meta-entry.value').show();
         $(document).off('click', BindedBox.selector + ' .icon-set a', _handleFormIconClick);
         PubSub.unsubscribe(MetaData.pubSubRoot + 'form.checkForDataChange', _handleFormInteraction);
         PubSub.unsubscribe(MetaData.pubSubRoot + 'form.changeTriggered', _handleFormChangesFound);
         PubSub.unsubscribe(MetaData.pubSubRoot + 'form.changeCancelled', _handleFormChangesCancelled);
         PubSub.unsubscribe(MetaData.pubSubRoot + 'update.validate.before', _handleValidationBefore);
+        PubSub.unsubscribe(MetaData.pubSubRoot + 'update.validate.response', _handleValidationResponse);
+        PubSub.unsubscribe(MetaData.pubSubRoot + 'update.validate.response', MetaData.validationResponse);
         PubSub.unsubscribe(MetaData.pubSubRoot + 'update.validate.error', _handleValidationError);
+        PubSub.unsubscribe(MetaData.pubSubRoot + 'update.save.before', _handleSaveBefore);
+        PubSub.unsubscribe(MetaData.pubSubRoot + 'update.save.response', _handleSaveResponse);
+        PubSub.unsubscribe(MetaData.pubSubRoot + 'update.save.error', _handleSaveError);
         _setFormChangeListeners(false);
         _disableFormSubmit();
         return false;
@@ -429,6 +441,14 @@ var SlideMetadata = (function(){
         return false;
     }
 
+    function _handleValidationResponse(topic, payload) {
+        console.log(topic, payload);
+        if(payload.data.response.success){
+            formIcons.validate.$.find('.fa').addClass('fa-check').removeClass('fa-spin fa-spinner fa-exclamation-triangle');
+            formIcons.validate.$.addClass('success disable').removeClass('active error');
+        }
+    }
+
     function _handleValidationBefore(topic, payload){
         // Set validation icon to spinner, change color,
         if(typeof formIcons.validate != 'undefined'){
@@ -439,10 +459,45 @@ var SlideMetadata = (function(){
 
     function _handleValidationError(topic, payload){
         console.log(payload);
+        if(typeof payload.errors != 'undefined' && payload.errors.length > 0){
+            _setMessage('error', payload.errors[0], 'meta_validation');
+        }
         // Set validation icon to spinner, change color,
         if(typeof formIcons.validate != 'undefined'){
             formIcons.validate.$.find('.fa').addClass('fa-exclamation-triangle').removeClass('fa-check fa-spin fa-spinner');
             formIcons.validate.$.removeClass('active').addClass('disable error');
+        }
+    }
+
+    function _handleSaveResponse(topic, payload) {
+        console.log(topic, payload);
+        if(payload.data.errors !== false) {
+            if(payload.data.response.success){
+                $btn.html(_METADATA_DATA.selectedDataNew ? options.btnAddTxt : options.btnUpdateTxt);
+                _setMessage('success', payload.fieldData.field + ' updated successfully', 'meta_save');
+                _disableFormSubmit();
+            } else {
+                $btn.html((_METADATA_DATA.selectedDataNew ? options.btnAddTxt : options.btnUpdateTxt) + ' &nbsp; <i class="fa fa-exclamation-triangle"></i>');
+                var error = (typeof payload.data.errors != 'undefined' && payload.data.errors.length > 0) ? payload.data.errors[0] + '.' : 'Please try again.';
+                _setMessage('error', payload.fieldData.field + ' update failed. ' + error, 'meta_save');
+            }
+        } else {
+            $btn.html((_METADATA_DATA.selectedDataNew ? options.btnAddTxt : options.btnUpdateTxt) + ' &nbsp; <i class="fa fa-exclamation-triangle"></i>');
+            _setMessage('error', payload.errors[0], 'meta_save');
+        }
+    }
+
+    function _handleSaveBefore(topic, payload){
+        // Set validation icon to spinner, change color,
+        $btn.html((_METADATA_DATA.selectedDataNew ? options.btnAddTxt : options.btnUpdateTxt) + ' ' + options.loadingIcon);
+        return false;
+    }
+
+    function _handleSaveError(topic, payload){
+        console.log(payload);
+        if(typeof payload.errors != 'undefined' && payload.errors.length > 0){
+            $btn.html((_METADATA_DATA.selectedDataNew ? options.btnAddTxt : options.btnUpdateTxt) + ' &nbsp; <i class="fa fa-exclamation-triangle"></i>');
+            _setMessage('error', payload.errors[0], 'meta_save');
         }
     }
 
@@ -463,6 +518,7 @@ var SlideMetadata = (function(){
             _METADATA_DATA.formEnabled = true;
             _resetValidation();
             $form.find('.icon-set').addClass('enabled');
+            $btn.removeClass('error success');
             $btn.prop('disabled',null);
             $(document).on('click', formSelector + ' button[type=submit]', _handleClickFormSubmit);
         }
@@ -488,15 +544,31 @@ var SlideMetadata = (function(){
 
     function _handleClickFormSubmit(e){
         e.preventDefault();
-
+        _closeMessage('meta_validation'); // close any validation related error messages
+        _closeMessage('meta_save'); // close any validation related error messages
+        console.log(currFormData);
+        currFormData.projectId = _CS_Get_Project_ID();
+        currFormData.metaObject = _getMetaClass(currFormData.type);
         MetaData.trySave(currFormData.field, currFormData);
-
-        if(_METADATA_DATA.selectedDataNew){
-            // Handle Add
-        } else {
-            // Handle Update
-        }
         return false;
+    }
+
+    function _getMetaClass(type){
+        var className = null;
+        switch(type){
+            case 'address': className = 'MetaAddress'; break;
+            case 'array': className = 'MetaArray'; break;
+            case 'boolean': className = 'MetaBoolean'; break;
+            case 'datetime': className = 'MetaDateTime'; break;
+            case 'date': className = 'MetaDateTime'; break;
+            case 'number': className = 'MetaNumber'; break;
+            case 'string': className = 'MetaString'; break;
+            case 'phone': className = 'MetaPhone'; break;
+            case 'text': className = 'MetaText'; break;
+            case 'twitterhandle': className = 'MetaTwitterHandle'; break;
+            case 'url': className = 'MetaUrl'; break;
+        }
+        return className;
     }
 
     function _handleFormInteraction(topic, payload){
@@ -557,9 +629,9 @@ var SlideMetadata = (function(){
     function _handleFormChangesFound(topic, payload){
         // Store formData to the object to avoid having to re-parse the form data
 
-        console.log(topic, payload, MetaData.getValue(payload.field));
         var meta = MetaData.getValue(payload.field);
-        
+        console.log(topic, payload, meta, _METADATA_DATA.selectedData);
+
         if((meta && meta.slug == payload.field) || meta === null){
             currFormData = {};
             currFormData.value = payload.formData.value;
@@ -567,6 +639,12 @@ var SlideMetadata = (function(){
             formVal = currFormData.value;
 
             // @todo; If fields set, add them to currFormData [field, slug, sort, type]
+            if(meta){
+                currFormData.type = meta.type;
+                currFormData.field = meta.field;
+                currFormData.slug = meta.slug;
+                if(typeof meta.sort != 'undefined') currFormData.sort = meta.sort;
+            }
 
             _enableFormSubmit();
         }
@@ -677,22 +755,72 @@ var SlideMetadata = (function(){
 
     function _validateNewField(meta){
         var errorFields = [], logs = {debug:[], errors:[]};
+        var inputField = 'input[type=text]';
+        var selectField = 'select';
+
+        var metaTypes = [];
+        $(BindedBox.selector + " .tab-form select option").each(function(i, item){
+            var $item = $(item);
+            var val = $item.val().trim();
+            if(val != '') metaTypes.push(val);
+        });
+
         // Must not be empty
         if(meta.field === '') {
-            errorFields.push('input[type=text]');
-            logs.errors.push('Must enter a valid meta key');
+            if(errorFields.indexOf(inputField) === -1) errorFields.push(inputField);
+            logs.errors.push('Meta key can\'t be an empty value');
         }
+
         // Must be at least 3 characters long
+        if(meta.field.length < 3){
+            if(errorFields.indexOf(inputField) === -1) errorFields.push(inputField);
+            logs.errors.push('Meta key must be 3 or more characters');
+        }
 
         // Must be less than 32 characters long
-        // Type must be valid
+        if(meta.field.length > 32){
+            if(errorFields.indexOf(inputField) === -1) errorFields.push(inputField);
+            logs.errors.push('Meta keys have a 32 character limit');
+        }
+
         // Must be unique
+        if(typeof _METADATA[meta.slug] !== 'undefined'){
+            if(errorFields.indexOf(inputField) === -1) errorFields.push(inputField);
+            logs.errors.push('Meta key slugs must be unique');
+        }
+
         // Slug must be valid & unique
+        var found = false;
+        for(var i in _METADATA){
+            if(meta.field.toLowerCase() == _METADATA[i].field) found = true;
+        }
+        if(found){
+            if(errorFields.indexOf(inputField) === -1) errorFields.push(inputField);
+            logs.errors.push('Meta keys must be unique');
+        }
+
         // Must start with letter
+        if(typeof meta.slug[0] != 'undefined' && meta.slug[0].match(/[a-z]/i) === null){
+            if(errorFields.indexOf(inputField) === -1) errorFields.push(inputField);
+            logs.errors.push('Meta key name must begin with a number');
+        }
+
+        // Must not be empty
+        if(meta.type === '') {
+            if(errorFields.indexOf(selectField) === -1) errorFields.push(selectField);
+            logs.errors.push('A valid "type" must be selected');
+        }
+
+        // Type must be valid
+        if(metaTypes.indexOf(meta.type) === -1){
+            if(errorFields.indexOf(selectField) === -1) errorFields.push(selectField);
+            logs.errors.push('Invalid meta type provided');
+        }
+
         return {
             response : {
                 errorFields : errorFields,
-                success : true
+                success : errorFields.length > 0
             },
             logs : logs,
             errors : logs.errors.length > 0
@@ -701,13 +829,9 @@ var SlideMetadata = (function(){
 
     function _handleClickSubmitNewMetaKeyForm(e){
         e.preventDefault();
-        var $this = $(this),
-            $form = $this.parents('form.tab-form'),
-            $input = $form.find('input'),
-            $select = $form.find('select'),
-            meta = {
-                field : $input.val().trim().capitalize(),
-                type : $select.val(),
+        var meta = {
+                field : $tabFormInput.val().trim().capitalize(),
+                type : $tabFormSelect.val(),
                 value : null,
                 formatted : null,
                 format: null
@@ -718,26 +842,82 @@ var SlideMetadata = (function(){
 
         // Validate
         var validationResponse = _validateNewField(meta);
+
+        var messageBoxContext = 'add_meta_validation';
+        _closeMessage(messageBoxContext);
+
         if(validationResponse.errors === false){
             PubSub.publish('bindedBox.tabs.metadata.addNewTriggered', meta);
-            $input.val('');
-            $form.find('select option').removeAttr('selected');
+            _resetTabForm(true);
         } else {
-            _handleError(validationResponse.logs.errors[0]);
+            _resetTabForm(false);
+            $tabForm.find(validationResponse.response.errorFields[0]).addClass('error');
+            _setMessage('error', validationResponse.logs.errors[0], messageBoxContext);
+            console.error(validationResponse.logs.errors[0]);
+
         }
         //console.log(meta);
         return false;
     }
 
-    function _handleError(error){
-        console.error(error);
-        return false;
+    function _resetTabForm(clearVals){
+        // var $tabForm = $('form.tab-form'),
+        //     $input = $tabForm.find('input'),
+        //     $select = $tabForm.find('select');
+        if(typeof clearVals == 'undefined') clearVals = true;
+        clearVals = Boolean(clearVals);
+        $tabForm.find('select,  input').removeClass('error');
+        if(clearVals){
+            $tabFormInput.val('');
+            $tabFormSelect.find('option').removeAttr('selected');
+        }
     }
 
     function _handleClickEditMetaValue(e){
         e.preventDefault();
         _showForm();
         return false;
+    }
+
+    function _setMessage(type, message, context){
+        var classes = ['error','success'].indexOf(type) === -1 ? 'general' : type;
+
+        $messageContainer.attr('data-context',context);
+        $messageContainer.addClass(classes + ' show');
+        $messageContainer.find('.message').html(message);
+        $(document).on('click', BindedBox.selector + ' ' + messageContainerSelector + ' .fa-close', _handleClickCloseMessage);
+        return false;
+    }
+
+    /**
+     * Close message box
+     * @param context Context in which to close message. Will not close message if data-context doesn't match
+     * @returns {boolean}
+     * @private
+     */
+    function _closeMessage(context){
+        var currentContext = $messageContainer.attr('data-context');
+        var runClose = true;
+        if(context){
+            runClose = currentContext == context;
+        }
+
+        console.log(context);
+        console.log(currentContext);
+        console.log(runClose);
+
+        if(runClose){
+            $messageContainer.attr('data-context','');
+            $messageContainer.removeClass('show error success general');
+            $messageContainer.find('.message').html('');
+            $(document).off('click', BindedBox.selector + ' ' + messageContainerSelector + ' .fa-close', _handleClickCloseMessage);
+        }
+        return false;
+    }
+
+    function _handleClickCloseMessage(e){
+        e.preventDefault();
+        _closeMessage();
     }
 
     function _activate(){
@@ -771,5 +951,7 @@ var SlideMetadata = (function(){
         hideForm : _hideForm,
         enableFormSubmit : _enableFormSubmit,
         disableFormSubmit : _disableFormSubmit,
+        setMessage : _setMessage,
+        closeMessage : _closeMessage,
     };
 })();

@@ -60,6 +60,11 @@
         </section>
         <section class="tabbed-content metadata clearfix" data-slide="metadata">
           <h1>Job Data</h1>
+          <div class="message-container clearfix" data-context="">
+            <a href="#" class="fa fa-close"></a>
+            <div class="message">
+            </div>
+          </div>
           <div class="column-list meta">
             <div class="meta-fields">
               <div class="head-links clearfix">
@@ -72,7 +77,7 @@
             <form class="tab-form clearfix">
               <input type="text" placeholder="Enter new meta key" />
               <select>
-                <option>Select Type</option>
+                <option value="">Select Type</option>
                 <?php
                 $metaTypes = ['string','number','date',
                   'datetime' => 'Date &amp; Time',
@@ -81,7 +86,7 @@
                   'text' => 'Long Text',
                   'array' => 'Array (data set)',
                   'address',
-                  'twitterHandle' => 'Twitter Handle'
+                  'twitterhandle' => 'Twitter Handle'
                 ];
                 foreach($metaTypes as $i => $val){
                   if(is_numeric($i)){

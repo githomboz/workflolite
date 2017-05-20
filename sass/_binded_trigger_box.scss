@@ -708,6 +708,65 @@ $alertRed : rgba(208, 106, 106, 1);
     &.metadata {
       padding-bottom: 0;
 
+      .message-container {
+        position: absolute;
+        top: $padding;
+        width: 70%;
+        display: none;
+
+        &.show {
+          display: block;
+        }
+
+        .fa-close {
+          position: absolute;
+          color: $gray-darkest;
+          right : 6px;
+          top: 3px;
+          z-index: 5;
+        }
+
+        .message {
+          position: relative;
+          float: right;
+          padding: 4px 6px;
+          border: 1px solid #333;
+          font-size: 12px;
+          line-height: 1.2em;
+          border-radius: 3px;
+          background: #b2b2b2;
+          color: #393939;
+          padding-right: 24px;
+          margin-left: 100px;
+          max-height: 3.4em;
+        }
+
+        &.error {
+          .message {
+            border: 1px solid $error_red;
+            background: #ddb8b8;
+            color: #860e23;
+          }
+
+          .fa-close {
+            color: #860e23;
+          }
+
+        }
+
+        &.success {
+          .message {
+            border: 1px solid $success_green;
+            background: #b1ccad;
+            color: #115a11;
+          }
+
+          .fa-close {
+            color: #115a11;
+          }
+        }
+      }
+
       .column-list {
         width: 72%;
         float: left;
@@ -723,6 +782,10 @@ $alertRed : rgba(208, 106, 106, 1);
             border: 1px solid rgba(0, 0, 0, .5);
             border-radius: 5px;
             margin-right: 2px;
+
+            &.error {
+              border: 1px solid rgba(184, 11, 13, 1);
+            }
           }
 
           select {
@@ -730,6 +793,10 @@ $alertRed : rgba(208, 106, 106, 1);
             border: 1px solid rgba(0, 0, 0, .5);
             border-radius: 5px;
             margin-right: 2px;
+
+            &.error {
+              border: 1px solid rgba(184, 11, 13, 1);
+            }
           }
 
           button {
@@ -763,7 +830,7 @@ $alertRed : rgba(208, 106, 106, 1);
         min-height: 318px;
 
         .add-to-template {
-          line-height: 1.4em;
+          line-height: 0em;
           font-size: 14px;
         }
 
@@ -827,6 +894,8 @@ $alertRed : rgba(208, 106, 106, 1);
             line-height: 1.2em;
             color: $txtLightGray;
             margin-bottom: 6px;
+            position: relative;
+            top: -6px;
           }
 
           .icon-set {
@@ -857,6 +926,14 @@ $alertRed : rgba(208, 106, 106, 1);
 
               &.active {
                 color: #f2f2f2;
+              }
+
+              &.success {
+                color: #f2f2f2;
+
+                .fa-check {
+                  color: $lightGreen;
+                }
               }
 
               &.enabled-only {

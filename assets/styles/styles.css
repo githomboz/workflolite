@@ -3884,6 +3884,45 @@ span.checkbox {
             box-shadow: 0px -6px 8px 0px rgba(0, 0, 0, 0.1); }
   .binded-trigger-box .tabbed-content.metadata {
     padding-bottom: 0; }
+    .binded-trigger-box .tabbed-content.metadata .message-container {
+      position: absolute;
+      top: 10px;
+      width: 70%;
+      display: none; }
+      .binded-trigger-box .tabbed-content.metadata .message-container.show {
+        display: block; }
+      .binded-trigger-box .tabbed-content.metadata .message-container .fa-close {
+        position: absolute;
+        color: #282828;
+        right: 6px;
+        top: 3px;
+        z-index: 5; }
+      .binded-trigger-box .tabbed-content.metadata .message-container .message {
+        position: relative;
+        float: right;
+        padding: 4px 6px;
+        border: 1px solid #333;
+        font-size: 12px;
+        line-height: 1.2em;
+        -webkit-border-radius: 3px;
+                border-radius: 3px;
+        background: #b2b2b2;
+        color: #393939;
+        padding-right: 24px;
+        margin-left: 100px;
+        max-height: 3.4em; }
+      .binded-trigger-box .tabbed-content.metadata .message-container.error .message {
+        border: 1px solid rgba(147, 8, 16, 0.42);
+        background: #ddb8b8;
+        color: #860e23; }
+      .binded-trigger-box .tabbed-content.metadata .message-container.error .fa-close {
+        color: #860e23; }
+      .binded-trigger-box .tabbed-content.metadata .message-container.success .message {
+        border: 1px solid #159215;
+        background: #b1ccad;
+        color: #115a11; }
+      .binded-trigger-box .tabbed-content.metadata .message-container.success .fa-close {
+        color: #115a11; }
     .binded-trigger-box .tabbed-content.metadata .column-list {
       width: 72%;
       float: left;
@@ -3897,12 +3936,16 @@ span.checkbox {
         -webkit-border-radius: 5px;
                 border-radius: 5px;
         margin-right: 2px; }
+        .binded-trigger-box .tabbed-content.metadata .column-list .tab-form input.error {
+          border: 1px solid #b80b0d; }
       .binded-trigger-box .tabbed-content.metadata .column-list .tab-form select {
         font-size: 14px;
         border: 1px solid rgba(0, 0, 0, 0.5);
         -webkit-border-radius: 5px;
                 border-radius: 5px;
         margin-right: 2px; }
+        .binded-trigger-box .tabbed-content.metadata .column-list .tab-form select.error {
+          border: 1px solid #b80b0d; }
       .binded-trigger-box .tabbed-content.metadata .column-list .tab-form button {
         font-size: 12px;
         text-align: center;
@@ -3925,7 +3968,7 @@ span.checkbox {
       top: -42px;
       min-height: 318px; }
       .binded-trigger-box .tabbed-content.metadata .column-details .add-to-template {
-        line-height: 1.4em;
+        line-height: 0em;
         font-size: 14px; }
       .binded-trigger-box .tabbed-content.metadata .column-details .inner-details {
         display: none; }
@@ -3957,7 +4000,9 @@ span.checkbox {
         font-size: 12px;
         line-height: 1.2em;
         color: #afaeae;
-        margin-bottom: 6px; }
+        margin-bottom: 6px;
+        position: relative;
+        top: -6px; }
       .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set {
         font-size: 13px;
         position: absolute;
@@ -3982,6 +4027,10 @@ span.checkbox {
             color: #d06a6a; }
           .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set a.active {
             color: #f2f2f2; }
+          .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set a.success {
+            color: #f2f2f2; }
+            .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set a.success .fa-check {
+              color: #92f38b; }
           .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set a.enabled-only {
             display: none; }
         .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .icon-set.enabled a.enabled-only {
