@@ -102,6 +102,7 @@ var SlideMetadata = (function(){
     }
 
     function _render(){
+        _closeMessage();
         var $entries = $('.binded-trigger-box .tabbed-content.metadata .entries');
         // Render list
         if(_METADATA_DATA.listChanged){
@@ -355,9 +356,10 @@ var SlideMetadata = (function(){
         e.preventDefault();
         var $this = $(this),
             btnName = $this.text().toLowerCase().trim();
-        console.log(btnName);
         switch(btnName){
             case 'validate':
+                MetaData.autoRun(false);
+                MetaData.validate(currFormData);
                 break;
             case 'save':
                 break;
@@ -443,9 +445,24 @@ var SlideMetadata = (function(){
 
     function _handleValidationResponse(topic, payload) {
         console.log(topic, payload);
-        if(payload.data.response.success){
-            formIcons.validate.$.find('.fa').addClass('fa-check').removeClass('fa-spin fa-spinner fa-exclamation-triangle');
-            formIcons.validate.$.addClass('success disable').removeClass('active error');
+        if(typeof payload.errors != 'undefined' && payload.errors.length > 0){
+            _setMessage('error', payload.errors[0], 'meta_validation');
+            if(typeof formIcons.validate != 'undefined'){
+                formIcons.validate.$.find('.fa').addClass('fa-exclamation-triangle').removeClass('fa-check fa-spin fa-spinner');
+                formIcons.validate.$.removeClass('active disable success').addClass('error');
+            }
+        } else {
+            if(payload.data.response.success){
+                _setMessage('success', payload.fieldData.field + ' is valid','meta_validation');
+                formIcons.validate.$.find('.fa').addClass('fa-check').removeClass('fa-spin fa-spinner fa-exclamation-triangle');
+                formIcons.validate.$.addClass('success disable').removeClass('active error');
+            } else {
+                _setMessage('error', 'An error has occurred. Please try again.', 'meta_validation');
+                if(typeof formIcons.validate != 'undefined'){
+                    formIcons.validate.$.find('.fa').addClass('fa-exclamation-triangle').removeClass('fa-check fa-spin fa-spinner');
+                    formIcons.validate.$.removeClass('active disable success').addClass('error');
+                }
+            }
         }
     }
 
@@ -465,7 +482,7 @@ var SlideMetadata = (function(){
         // Set validation icon to spinner, change color,
         if(typeof formIcons.validate != 'undefined'){
             formIcons.validate.$.find('.fa').addClass('fa-exclamation-triangle').removeClass('fa-check fa-spin fa-spinner');
-            formIcons.validate.$.removeClass('active').addClass('disable error');
+            formIcons.validate.$.removeClass('active disable success').addClass('error');
         }
     }
 
@@ -546,9 +563,7 @@ var SlideMetadata = (function(){
         e.preventDefault();
         _closeMessage('meta_validation'); // close any validation related error messages
         _closeMessage('meta_save'); // close any validation related error messages
-        console.log(currFormData);
-        currFormData.projectId = _CS_Get_Project_ID();
-        currFormData.metaObject = _getMetaClass(currFormData.type);
+        $btn.html((_METADATA_DATA.selectedDataNew ? options.btnAddTxt : options.btnUpdateTxt));
         MetaData.trySave(currFormData.field, currFormData);
         return false;
     }
@@ -638,6 +653,8 @@ var SlideMetadata = (function(){
             console.log(currFormData.value);
             formVal = currFormData.value;
 
+            currFormData.projectId = _CS_Get_Project_ID();
+
             // @todo; If fields set, add them to currFormData [field, slug, sort, type]
             if(meta){
                 currFormData.type = meta.type;
@@ -646,6 +663,31 @@ var SlideMetadata = (function(){
                 if(typeof meta.sort != 'undefined') currFormData.sort = meta.sort;
             }
 
+            if(typeof currFormData.type == 'undefined' && typeof _METADATA_DATA.selectedData != 'undefined'){
+                currFormData.type = _METADATA_DATA.selectedData.type;
+                currFormData.field = _METADATA_DATA.selectedData.field;
+                currFormData.slug = _METADATA_DATA.selectedData.slug;
+            }
+
+            currFormData.metaObject = _getMetaClass(currFormData.type);
+
+            // Display what a user sees when a change has been made to the form
+            var cachedValidation = MetaData.getValidationFromCache(currFormData.slug, currFormData.value);
+            console.log(cachedValidation);
+            if(cachedValidation && typeof formIcons.validate != 'undefined'){
+                if(cachedValidation.results.response.success === true){
+                    // Set validate link to success
+                    formIcons.validate.$.find('.fa').addClass('fa-check').removeClass('fa-spin fa-spinner fa-exclamation-triangle');
+                    formIcons.validate.$.addClass('success disable').removeClass('active error');
+                } else {
+                    // Make sure validate link is default
+                    formIcons.validate.$.find('.fa').addClass('fa-exclamation-triangle').removeClass('fa-spin fa-spinner fa-check');
+                    formIcons.validate.$.addClass('error').removeClass('success disable active');
+                }
+            } else {
+                formIcons.validate.$.find('.fa').addClass('fa-check').removeClass('fa-spin fa-spinner fa-exclamation-triangle');
+                formIcons.validate.$.removeClass('success disable active error');
+            }
             _enableFormSubmit();
         }
 
@@ -883,7 +925,7 @@ var SlideMetadata = (function(){
         var classes = ['error','success'].indexOf(type) === -1 ? 'general' : type;
 
         $messageContainer.attr('data-context',context);
-        $messageContainer.addClass(classes + ' show');
+        $messageContainer.removeClass('error success').addClass(classes + ' show');
         $messageContainer.find('.message').html(message);
         $(document).on('click', BindedBox.selector + ' ' + messageContainerSelector + ' .fa-close', _handleClickCloseMessage);
         return false;
@@ -936,6 +978,8 @@ var SlideMetadata = (function(){
         $(document).off('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
         PubSub.unsubscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
         PubSub.unsubscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
+        _closeMessage();
+        _hideForm();
         return false;
     }
 

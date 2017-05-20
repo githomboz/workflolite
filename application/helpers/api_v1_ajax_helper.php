@@ -1006,25 +1006,12 @@ function validate_meta_field(){
   if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
   $response['response']['success'] = false;
-  $project = Project::Get($data['projectId']);
-
-  $metaArray = $project->getRawMeta();
-  $response['response']['rawMeta'] = $metaArray;
-  $field = $data['field'];
-  if($project){
-    $meta = new $data['metaObject']($data['value']);
-    if(!$meta->errors()){
-      $metaArray[$field] = $meta->get();
-      $project->meta()->set('meta', $metaArray)->save('meta');
-      $response['response']['raw'] = $meta->get();
-      $response['response']['display'] = $meta->display();
-      $response['response']['success'] = true;
-    } else {
-      if(!is_array($response['errors'])) $response['errors'] = [];
-      $response['errors'] = array_merge($response['errors'], (array) $meta->errors());
-    }
+  $meta = new $data['metaObject']($data['value']);
+  if(!$meta->errors()){
+    $response['response']['success'] = true;
   } else {
-    $response['errors'][] = 'Invalid entity id provided';
+    if(!is_array($response['errors'])) $response['errors'] = [];
+    $response['errors'] = array_merge($response['errors'], (array) $meta->errors());
   }
 
   $response['recordCount'] = 1;
@@ -1033,11 +1020,11 @@ function validate_meta_field(){
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function validate_meta_field_args_map(){
-  return array('metaObject','projectId','field','value','type');
+  return array('metaObject','field','value','type');
 }
 
 // Field names of fields required
 function validate_meta_field_required_fields(){
-  return array('metaObject','projectId','field','value','type');
+  return array('metaObject','field','value','type');
 }
 

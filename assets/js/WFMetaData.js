@@ -5,12 +5,22 @@ var MetaData = (function(){
 
     var pubSubRoot = 'metaData.';
     var runSaveUponSuccessfulValidation = false;
+    var validationCache = {
+
+    };
+
+    function _autoRun(value){
+        if([undefined,null,''].indexOf(value) >= 0) value = true;
+        runSaveUponSuccessfulValidation = Boolean(value);
+        return false;
+    }
 
     function _attemptUpdate(field, fieldData){
         // PubSub.publish('metadata.update.pending', field);
-        runSaveUponSuccessfulValidation = true;
+        _autoRun(true);
         console.log(PubSub);
         _apiValidateMeta(fieldData);
+        return false;
     }
 
     function _handleValidationAPIResponse(topic, payload){
@@ -39,40 +49,54 @@ var MetaData = (function(){
         return false;
     }
 
+    function _apiValidateMetaResponseHandler(data, fieldData){
+        if(data.errors === false){
+            PubSub.publish(pubSubRoot + 'update.validate.response', {
+                data : data,
+                fieldData : fieldData
+            });
+        } else {
+            PubSub.publish(pubSubRoot + 'update.validate.error', {
+                context: 'api_validation_error',
+                errors: data.errors
+            });
+            console.error(data.errors[0]);
+        }
+        return false;
+    }
+
     function _apiValidateMeta(fieldData){
-        CS_API.call('ajax/validate_meta_field',
-            function(){
-                PubSub.publish(pubSubRoot + 'update.validate.before', {
-                    fieldData : fieldData
-                });
-            },
-            function(data){
-                if(data.errors === false){
-                    PubSub.publish(pubSubRoot + 'update.validate.response', {
-                        data : data,
-                        fieldData : fieldData
-                    });
-                } else {
+        console.log(fieldData);
+        var cachedData = _getValidationFromCache(fieldData.slug, fieldData.value);
+        //console.log(cachedData);
+        PubSub.publish(pubSubRoot + 'update.validate.before', {
+            fieldData : fieldData
+        });
+        if(cachedData){
+            _apiValidateMetaResponseHandler(cachedData.results, fieldData);
+        } else {
+            CS_API.call('ajax/validate_meta_field',
+                function(){
+                    // Before.
+                },
+                function(data){
+                    _addValidationToCache(fieldData.slug, fieldData.value, data);
+                    _apiValidateMetaResponseHandler(data, fieldData);
+                },
+                function(){
                     PubSub.publish(pubSubRoot + 'update.validate.error', {
-                        context: 'api_validation_error',
-                        errors: data.errors
+                        context: 'api_request_error',
+                        errors: ['API Request Error has occurred']
                     });
-                    console.error(data.errors[0]);
+                    console.error('An error has occurred');
+                },
+                fieldData,
+                {
+                    method: 'POST',
+                    preferCache : false
                 }
-            },
-            function(){
-                PubSub.publish(pubSubRoot + 'update.validate.error', {
-                    context: 'api_request_error',
-                    errors: ['API Request Error has occurred']
-                });
-                console.error('An error has occurred');
-            },
-            fieldData,
-            {
-                method: 'POST',
-                preferCache : false
-            }
-        );
+            );
+        }
         return false;
     }
 
@@ -120,6 +144,26 @@ var MetaData = (function(){
         return typeof _METADATA[field] != 'undefined' ? _METADATA[field] : null;
     }
 
+    function _addValidationToCache(slug, value, validationResults){
+        var key = md5(slug) + md5(JSON.stringify(value));
+        validationCache[key] = {
+            slug : slug,
+            value : value,
+            results : validationResults
+        };
+        return false;
+    }
+
+    function _getValidationFromCache(slug, value){
+        var key = md5(slug) + md5(JSON.stringify(value));
+        for(var k in validationCache){
+            if(k == key){
+                return validationCache[k];
+            }
+        }
+        return false;
+    }
+
     function _activate(){
         _deactivate();
         PubSub.subscribe(pubSubRoot + 'update.validate.response', _handleValidationAPIResponse);
@@ -144,5 +188,7 @@ var MetaData = (function(){
         validationResponse      : _handleValidationAPIResponse,
         activate                : _activate,
         deactivate              : _deactivate,
+        autoRun                 : _autoRun,
+        getValidationFromCache  : _getValidationFromCache
     }
 })();
