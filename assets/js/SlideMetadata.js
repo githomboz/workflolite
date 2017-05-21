@@ -10,12 +10,14 @@ var SlideMetadata = (function(){
     var currFormData = null;
     var formVal = null;
     var formIcons = {};
+    var $metaList = $(".meta-fields .entries");
     var
         $tabForm = $('form.tab-form'),
         $tabFormInput = $tabForm.find('input[type=text]'),
         $tabFormSelect = $tabForm.find('select');
     var messageContainerSelector = '.message-container';
     var $messageContainer = $(messageContainerSelector);
+    var messageBoxOpen = false;
 
 
     var options = {
@@ -101,6 +103,37 @@ var SlideMetadata = (function(){
         return false;
     }
 
+    function _renderMetaListRow(fieldData){
+        var html = '';
+        html += '<div class="entry clearfix" data-slug="' + fieldData.slug + '">' + "\n";
+        html += "\t" + '<span class="key truncate">' + fieldData.field + '</span>' + "\n";
+        html += "\t" + '<span class="value truncate">';
+        var value = fieldData.formatted || fieldData.value;
+        if(value != null){
+            switch(fieldData.type){
+                case 'address':
+                    html += value;
+                    break;
+                case 'array':
+                    if(value.length <= 0) {
+                        html += '[ value not set ]';
+                    } else {
+                        html += JSON.stringify(value);
+                    }
+                    break;
+                default:
+                    html += value;
+                    break;
+            }
+        } else {
+            html += '[ value not set ]';
+        }
+        html += '</span>' + "\n";
+        html += "\t" + '<i class="fa fa-chevron-right"></i>' + "\n";
+        html += '</div>' + "\n";
+        return html;
+    }
+
     function _render(){
         _closeMessage();
         var $entries = $('.binded-trigger-box .tabbed-content.metadata .entries');
@@ -109,32 +142,7 @@ var SlideMetadata = (function(){
             var html = '';
             var metaDataCount = 0;
             for(var _slug in _METADATA){
-                html += '<div class="entry clearfix" data-slug="' + _METADATA[_slug].slug + '">' + "\n";
-                html += "\t" + '<span class="key truncate">' + _METADATA[_slug].field + '</span>' + "\n";
-                html += "\t" + '<span class="value truncate">';
-                var value = _METADATA[_slug].formatted || _METADATA[_slug].value;
-                if(value != null){
-                    switch(_METADATA[_slug].type){
-                        case 'address':
-                            html += value;
-                            break;
-                        case 'array':
-                            if(value.length <= 0) {
-                                html += '[ value not set ]';
-                            } else {
-                                html += JSON.stringify(value);
-                            }
-                            break;
-                        default:
-                            html += value;
-                            break;
-                    }
-                } else {
-                    html += '[ value not set ]';
-                }
-                html += '</span>' + "\n";
-                html += "\t" + '<i class="fa fa-chevron-right"></i>' + "\n";
-                html += '</div>' + "\n";
+                html += _renderMetaListRow(_METADATA[_slug]);
                 metaDataCount ++;
             }
 
@@ -431,11 +439,13 @@ var SlideMetadata = (function(){
         enable = Boolean(enable);
         if(enable){
             // Enable
+            $(document).on('keyup', formSelector + ' textarea.metaField', _handleFormChange);
             $(document).on('keyup', formSelector + ' input[type=text].metaField', _handleFormChange);
             $(document).on('change', formSelector + ' input[type=checkbox].metaField', _handleFormChange);
             $(document).on('change', formSelector + ' select.metaField', _handleFormChange);
         } else {
             // Disable
+            $(document).off('keyup', formSelector + ' textarea.metaField', _handleFormChange);
             $(document).off('keyup', formSelector + ' input[type=text].metaField', _handleFormChange);
             $(document).off('change', formSelector + ' input[type=checkbox].metaField', _handleFormChange);
             $(document).off('change', formSelector + ' select.metaField', _handleFormChange);
@@ -453,7 +463,8 @@ var SlideMetadata = (function(){
             }
         } else {
             if(payload.data.response.success){
-                _setMessage('success', payload.fieldData.field + ' is valid','meta_validation');
+                // If this is a validate->save routine, do not send a validation success message since a message will be sent for the save event
+                if(!MetaData.isAutoRun()) _setMessage('success', payload.fieldData.field + ' is valid','meta_validation');
                 formIcons.validate.$.find('.fa').addClass('fa-check').removeClass('fa-spin fa-spinner fa-exclamation-triangle');
                 formIcons.validate.$.addClass('success disable').removeClass('active error');
             } else {
@@ -488,10 +499,11 @@ var SlideMetadata = (function(){
 
     function _handleSaveResponse(topic, payload) {
         console.log(topic, payload);
-        if(payload.data.errors !== false) {
+        if(payload.data.errors === false) {
             if(payload.data.response.success){
                 $btn.html(_METADATA_DATA.selectedDataNew ? options.btnAddTxt : options.btnUpdateTxt);
                 _setMessage('success', payload.fieldData.field + ' updated successfully', 'meta_save');
+                MetaData.setValue(payload.fieldData.slug, payload.fieldData);
                 _disableFormSubmit();
             } else {
                 $btn.html((_METADATA_DATA.selectedDataNew ? options.btnAddTxt : options.btnUpdateTxt) + ' &nbsp; <i class="fa fa-exclamation-triangle"></i>');
@@ -500,7 +512,7 @@ var SlideMetadata = (function(){
             }
         } else {
             $btn.html((_METADATA_DATA.selectedDataNew ? options.btnAddTxt : options.btnUpdateTxt) + ' &nbsp; <i class="fa fa-exclamation-triangle"></i>');
-            _setMessage('error', payload.errors[0], 'meta_save');
+            _setMessage('error', payload.data.errors[0], 'meta_save');
         }
     }
 
@@ -512,9 +524,9 @@ var SlideMetadata = (function(){
 
     function _handleSaveError(topic, payload){
         console.log(payload);
-        if(typeof payload.errors != 'undefined' && payload.errors.length > 0){
+        if(typeof payload.data.errors != 'undefined' && payload.data.errors.length > 0){
             $btn.html((_METADATA_DATA.selectedDataNew ? options.btnAddTxt : options.btnUpdateTxt) + ' &nbsp; <i class="fa fa-exclamation-triangle"></i>');
-            _setMessage('error', payload.errors[0], 'meta_save');
+            _setMessage('error', payload.data.errors[0], 'meta_save');
         }
     }
 
@@ -660,13 +672,14 @@ var SlideMetadata = (function(){
                 currFormData.type = meta.type;
                 currFormData.field = meta.field;
                 currFormData.slug = meta.slug;
-                if(typeof meta.sort != 'undefined') currFormData.sort = meta.sort;
+                currFormData.sort = meta.sort;
             }
 
             if(typeof currFormData.type == 'undefined' && typeof _METADATA_DATA.selectedData != 'undefined'){
                 currFormData.type = _METADATA_DATA.selectedData.type;
                 currFormData.field = _METADATA_DATA.selectedData.field;
                 currFormData.slug = _METADATA_DATA.selectedData.slug;
+                // @todo: Create a function that calculates the current sort index
             }
 
             currFormData.metaObject = _getMetaClass(currFormData.type);
@@ -921,13 +934,27 @@ var SlideMetadata = (function(){
         return false;
     }
 
-    function _setMessage(type, message, context){
-        var classes = ['error','success'].indexOf(type) === -1 ? 'general' : type;
+    function _handleMetaDataUpdated(topic, payload){
+        console.log(payload);
+        // update the html for the meta entry
+        var $entry = $metaList.find('.entry[data-slug=' + payload.data.slug + ']');
+        var newHTML = $(_renderMetaListRow(payload.data)).html();
+        $entry.html(newHTML);
+        _renderDetails();
+    }
 
-        $messageContainer.attr('data-context',context);
-        $messageContainer.removeClass('error success').addClass(classes + ' show');
-        $messageContainer.find('.message').html(message);
-        $(document).on('click', BindedBox.selector + ' ' + messageContainerSelector + ' .fa-close', _handleClickCloseMessage);
+
+    function _setMessage(type, message, context){
+        if(message && message.trim() != ''){
+            messageBoxOpen = true;
+            var classes = ['error','success'].indexOf(type) === -1 ? 'general' : type;
+
+            $messageContainer.removeClass('error success');
+            $messageContainer.attr('data-context',context);
+            $messageContainer.addClass(classes + ' show');
+            $messageContainer.find('.message').html(message);
+            $(document).on('click', BindedBox.selector + ' ' + messageContainerSelector + ' .fa-close', _handleClickCloseMessage);
+        }
         return false;
     }
 
@@ -938,21 +965,24 @@ var SlideMetadata = (function(){
      * @private
      */
     function _closeMessage(context){
-        var currentContext = $messageContainer.attr('data-context');
-        var runClose = true;
-        if(context){
-            runClose = currentContext == context;
-        }
+        if(messageBoxOpen){
+            var currentContext = $messageContainer.attr('data-context');
+            var runClose = true;
+            if(context){
+                runClose = currentContext == context;
+            }
 
-        console.log(context);
-        console.log(currentContext);
-        console.log(runClose);
+            console.log(context);
+            console.log(currentContext);
+            console.log(runClose);
 
-        if(runClose){
-            $messageContainer.attr('data-context','');
-            $messageContainer.removeClass('show error success general');
-            $messageContainer.find('.message').html('');
-            $(document).off('click', BindedBox.selector + ' ' + messageContainerSelector + ' .fa-close', _handleClickCloseMessage);
+            if(runClose){
+                messageBoxOpen = false;
+                $messageContainer.attr('data-context','');
+                $messageContainer.removeClass('show error success general');
+                $messageContainer.find('.message').html('');
+                $(document).off('click', BindedBox.selector + ' ' + messageContainerSelector + ' .fa-close', _handleClickCloseMessage);
+            }
         }
         return false;
     }
@@ -969,6 +999,7 @@ var SlideMetadata = (function(){
         $(document).on('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
         PubSub.subscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
         PubSub.subscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
+        PubSub.subscribe(MetaData.pubSubRoot + 'update.updated', _handleMetaDataUpdated);
         return false;
     }
 
@@ -978,6 +1009,7 @@ var SlideMetadata = (function(){
         $(document).off('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
         PubSub.unsubscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
         PubSub.unsubscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
+        PubSub.unsubscribe(MetaData.pubSubRoot + 'update.updated', _handleMetaDataUpdated);
         _closeMessage();
         _hideForm();
         return false;

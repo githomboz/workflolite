@@ -15,6 +15,10 @@ var MetaData = (function(){
         return false;
     }
 
+    function _isAutoRun(){
+        return runSaveUponSuccessfulValidation;
+    }
+
     function _attemptUpdate(field, fieldData){
         // PubSub.publish('metadata.update.pending', field);
         _autoRun(true);
@@ -130,6 +134,8 @@ var MetaData = (function(){
     }
 
     function _setNewValue(field, fieldData){
+        fieldData = _performDataTransformationsForReturn(fieldData);
+        console.log(_METADATA, field, fieldData);
         $.extend(_METADATA[field], {}, fieldData);
 
         // Notify interested parties in the new field value
@@ -138,6 +144,19 @@ var MetaData = (function(){
             data : fieldData
         });
         return false;
+    }
+
+    function _performDataTransformationsForReturn(fieldData){
+        switch(fieldData.type){
+            // for address, rewrite the `formatted` string.
+            case 'address':
+                fieldData.formatted = fieldData.value.street + ', ';
+                fieldData.formatted += fieldData.value.city + ', ';
+                fieldData.formatted += fieldData.value.state + ' ';
+                fieldData.formatted += fieldData.value.zip;
+                break;
+        }
+        return fieldData;
     }
 
     function _getValue(field){
@@ -189,6 +208,7 @@ var MetaData = (function(){
         activate                : _activate,
         deactivate              : _deactivate,
         autoRun                 : _autoRun,
+        isAutoRun                 : _isAutoRun,
         getValidationFromCache  : _getValidationFromCache
     }
 })();

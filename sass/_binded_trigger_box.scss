@@ -884,7 +884,7 @@ $alertRed : rgba(208, 106, 106, 1);
         }
 
         form.set-meta-value {
-          input, select {
+          input, select, textarea {
             margin-bottom: $padding;
           }
 

@@ -1020,11 +1020,53 @@ function validate_meta_field(){
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
 function validate_meta_field_args_map(){
-  return array('metaObject','field','value','type');
+  return array('metaObject','value');
 }
 
 // Field names of fields required
 function validate_meta_field_required_fields(){
-  return array('metaObject','field','value','type');
+  return array('metaObject','value');
+}
+
+function save_meta_field(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $project = Project::Get($data['projectId']);
+
+  $response['response']['success'] = false;
+
+  if($project){
+    $metaArray = $project->getRawMeta();
+    $meta = new $data['metaObject']($data['value']);
+    if(!$meta->errors()){
+      $metaArray[$data['slug']] = $meta->get();
+      //var_dump($metaArray);
+      $project->meta()->set('meta', $metaArray)->save('meta');
+      $response['response']['success'] = true;
+    } else {
+      if(!is_array($response['errors'])) $response['errors'] = [];
+      $response['errors'] = array_merge($response['errors'], (array) $meta->errors());
+    }
+
+  } else {
+    $response['errors'][] = 'Invalid projectId provided';
+  }
+
+
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function save_meta_field_args_map(){
+  return array('metaObject','projectId','slug','value');
+}
+
+// Field names of fields required
+function save_meta_field_required_fields(){
+  return array('metaObject','projectId','slug','value');
 }
 

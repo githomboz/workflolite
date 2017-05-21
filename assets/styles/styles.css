@@ -3993,7 +3993,7 @@ span.checkbox {
           width: 100%;
           max-height: 150px;
           overflow: scroll; }
-      .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value input, .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value select {
+      .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value input, .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value select, .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value textarea {
         margin-bottom: 10px; }
       .binded-trigger-box .tabbed-content.metadata .column-details form.set-meta-value .help-details {
         display: block;
