@@ -205,6 +205,7 @@ class Task2
   }
 
   public function update(){
+    //var_dump($this->_current, __FILE__, __LINE__);
     return $this->project->setTask($this->id(), $this->_current);
   }
 

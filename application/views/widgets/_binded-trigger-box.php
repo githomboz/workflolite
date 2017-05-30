@@ -84,7 +84,7 @@
                   'url' => 'URL (Link)',
                   'boolean','phone',
                   'text' => 'Long Text',
-                  'array' => 'Array (data set)',
+                  'array' => 'Array (Data Set)',
                   'address',
                   'twitterhandle' => 'Twitter Handle'
                 ];

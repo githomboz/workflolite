@@ -294,7 +294,8 @@ class Project extends WorkflowFactory
      */
     $taskMetaFields = array('startDate','completeDate','status','comments','assigneeId','completionReport');
 
-    //$taskMetaFields[] = 'dependenciesOKTimeStamp';
+    // Comment this next line to temporarily disable persistence of dependenciesOKTimeStamp field
+    $taskMetaFields[] = 'dependenciesOKTimeStamp';
 
     if(isset($data['name'])) unset($data['name']); // Name should be specified; taskName, templateName
 
@@ -629,8 +630,10 @@ class Project extends WorkflowFactory
   }
 
   public function getMetaArray(){
-    $meta = $this->meta->getAll();
+    $meta = $this->meta->getAll(); // Get data from template
+    //var_dump($meta);
     $unset = ['html','hide','multiLine','validation'];
+
     foreach($meta as $slug => $metaData){
       foreach($unset as $field){
         if(key_exists($field, $meta[$slug])) {

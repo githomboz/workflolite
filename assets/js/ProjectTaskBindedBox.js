@@ -32,9 +32,7 @@ var BindedBox = (function(){
     function _accessAllowed(level){
         return _BINDED_BOX.userAcc.acc >= level;
     }
-
-
-
+    
     _init();
 
     return {

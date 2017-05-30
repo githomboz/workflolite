@@ -114,6 +114,14 @@ class Meta
     if($templateSource){
       if(!$this->_settings) $this->_settings = $templateSource->getValue('metaFields');
 
+      // Adding this to merge in local meta fields
+      $localMetaField = $this->project()->getValue('localMetaFields');
+      if(empty($localMetaField)) $localMetaField = [];
+      // Add in meta values
+
+      $this->_settings = array_merge($this->_settings, $localMetaField);
+      //var_dump($this->_settings, $this->project()->getValue('meta'));
+
       // Return values
       if($field) {
         foreach($this->_settings as $i => $fieldData){

@@ -19,7 +19,6 @@ var SlideMetadata = (function(){
     var $messageContainer = $(messageContainerSelector);
     var messageBoxOpen = false;
 
-
     var options = {
         loadingIcon : '<i class="fa fa-spin fa-spinner"></i>',
         btnAddTxt : '<i class="fa fa-plus"></i> Add',
@@ -49,10 +48,14 @@ var SlideMetadata = (function(){
      * @private
      */
     function _initialize(){
-        $(".tabbed-nav .database-nav .num-flag").text(_getMetaCount());
+        _updateMetaCount();
         // $(".js-us-phone-mask").mask("(999) 999-9999", {autoclear: false});
         // $(".js-twitter-handle-mask").mask("@***************", {autoclear: false});
         return false;
+    }
+
+    function _updateMetaCount(){
+        $(".tabbed-nav .database-nav .num-flag").text(_getMetaCount());
     }
 
     function _setSelectedField(fieldData){
@@ -399,6 +402,21 @@ var SlideMetadata = (function(){
         if(_METADATA_DATA.selectedData) _drawFormField();
         $form.show();
         $details.find('.meta-entry.value').hide();
+        _formListenersStop();
+        _formListenersStart();
+        _disableFormSubmit();
+        return false;
+    }
+
+    function _hideForm(){
+        $form.hide();
+        $details.find('.meta-entry.value').show();
+        _formListenersStop();
+        _disableFormSubmit();
+        return false;
+    }
+
+    function _formListenersStart(){
         $(document).on('click', BindedBox.selector + ' .icon-set a', _handleFormIconClick);
         PubSub.subscribe(MetaData.pubSubRoot + 'form.checkForDataChange', _handleFormInteraction);
         PubSub.subscribe(MetaData.pubSubRoot + 'form.changeTriggered', _handleFormChangesFound);
@@ -411,13 +429,9 @@ var SlideMetadata = (function(){
         PubSub.subscribe(MetaData.pubSubRoot + 'update.save.response', _handleSaveResponse);
         PubSub.subscribe(MetaData.pubSubRoot + 'update.save.error', _handleSaveError);
         _setFormChangeListeners(true);
-        _disableFormSubmit();
-        return false;
     }
 
-    function _hideForm(){
-        $form.hide();
-        $details.find('.meta-entry.value').show();
+    function _formListenersStop(){
         $(document).off('click', BindedBox.selector + ' .icon-set a', _handleFormIconClick);
         PubSub.unsubscribe(MetaData.pubSubRoot + 'form.checkForDataChange', _handleFormInteraction);
         PubSub.unsubscribe(MetaData.pubSubRoot + 'form.changeTriggered', _handleFormChangesFound);
@@ -430,8 +444,6 @@ var SlideMetadata = (function(){
         PubSub.unsubscribe(MetaData.pubSubRoot + 'update.save.response', _handleSaveResponse);
         PubSub.unsubscribe(MetaData.pubSubRoot + 'update.save.error', _handleSaveError);
         _setFormChangeListeners(false);
-        _disableFormSubmit();
-        return false;
     }
 
     function _setFormChangeListeners(enable){
@@ -623,16 +635,19 @@ var SlideMetadata = (function(){
                             //console.log(activateForm, formData.value);
                         }
 
+
                         // Check to see if current input value is the same as original meta data
                         if(activateForm){
                             // If not the same, publish MetaData.pubSubRoot + 'form.changeTriggered' with formData
                             //console.log('Publishing to ' + MetaData.pubSubRoot + 'form.changeTriggered');
+
                             PubSub.publish(MetaData.pubSubRoot + 'form.changeTriggered', {
                                 field : payload.field,
                                 formData : formData
                             });
                         } else {
                             //console.log('Publishing to ' + MetaData.pubSubRoot + 'form.changeCancelled');
+
                             PubSub.publish(MetaData.pubSubRoot + 'form.changeCancelled', {
                                 field : payload.field,
                                 formData : formData
@@ -666,6 +681,9 @@ var SlideMetadata = (function(){
             formVal = currFormData.value;
 
             currFormData.projectId = _CS_Get_Project_ID();
+            //@todo: get addMetaKey working
+            // currFormData.addMetaKey = $('.add-to-template #addMetaKey').is(":checked");
+            // console.log(currFormData.addMetaKey);
 
             // @todo; If fields set, add them to currFormData [field, slug, sort, type]
             if(meta){
@@ -829,7 +847,7 @@ var SlideMetadata = (function(){
         // Must be at least 3 characters long
         if(meta.field.length < 3){
             if(errorFields.indexOf(inputField) === -1) errorFields.push(inputField);
-            logs.errors.push('Meta key must be 3 or more characters');
+            logs.errors.push('Meta key must be 3 characters or more');
         }
 
         // Must be less than 32 characters long
@@ -857,7 +875,7 @@ var SlideMetadata = (function(){
         // Must start with letter
         if(typeof meta.slug[0] != 'undefined' && meta.slug[0].match(/[a-z]/i) === null){
             if(errorFields.indexOf(inputField) === -1) errorFields.push(inputField);
-            logs.errors.push('Meta key name must begin with a number');
+            logs.errors.push('Meta key name must begin with a letter');
         }
 
         // Must not be empty
@@ -935,11 +953,20 @@ var SlideMetadata = (function(){
     }
 
     function _handleMetaDataUpdated(topic, payload){
-        console.log(payload);
+        //console.log(payload);
         // update the html for the meta entry
+        // Generate HTML
+        var HTML = _renderMetaListRow(payload.data);
+        var innerHTML = $(HTML).html();
+
+        //
         var $entry = $metaList.find('.entry[data-slug=' + payload.data.slug + ']');
-        var newHTML = $(_renderMetaListRow(payload.data)).html();
-        $entry.html(newHTML);
+        if($entry.length > 0){
+            $entry.html(innerHTML);
+        } else {
+            $metaList.append(HTML);
+        }
+        _updateMetaCount();
         _renderDetails();
     }
 
@@ -1028,6 +1055,6 @@ var SlideMetadata = (function(){
         enableFormSubmit : _enableFormSubmit,
         disableFormSubmit : _disableFormSubmit,
         setMessage : _setMessage,
-        closeMessage : _closeMessage,
+        closeMessage : _closeMessage
     };
 })();

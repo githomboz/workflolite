@@ -1043,7 +1043,18 @@ function save_meta_field(){
     $meta = new $data['metaObject']($data['value']);
     if(!$meta->errors()){
       $metaArray[$data['slug']] = $meta->get();
-      //var_dump($metaArray);
+      $field = $data;
+      unset($field['metaObject']);
+      unset($field['projectId']);
+
+      var_dump($data, $metaArray);
+      // Check if local or template store
+
+
+      // If local, save meta field data to localMetaFields
+      // If template, save to metaFields in template
+
+      // Save value to project
       $project->meta()->set('meta', $metaArray)->save('meta');
       $response['response']['success'] = true;
     } else {

@@ -46,6 +46,8 @@
             <button type="submit" class="btn submit"><i class="fa fa-plus"></i> Add Task</button>
         </form>
 
+        <?php //var_dump($this->project->getMetaArray()); ?>
+
         <div class="tasklist">
             <script class="projectData">
                 var _PROJECT = <?php echo json_encode($this->project->getProjectData()) ?>;
@@ -1332,9 +1334,13 @@
         $taskTab.find('h1 .num').html(task.data.sortOrder);
         $taskTab.find('h1 .group').html(task.data.taskGroup);
         var hasDependencies = task.data.dependencies.length >= 1;
-        var unlocked = !hasDependencies || task.data.dependenciesOKTimeStamp;
-        var icon = '<i class="fa lock-status ' + (!unlocked ? 'fa-lock':'fa-unlock') + '"></i>';
-        $taskTab.find('h1 .icon').html(icon);
+        if(hasDependencies){
+            var locked = hasDependencies && !task.data.dependenciesOKTimeStamp;
+            var icon = '<i class="fa lock-status ' + (locked ? 'fa-lock':'fa-unlock') + '"></i>';
+            $taskTab.find('h1 .icon').html(icon);
+        } else {
+            $taskTab.find('h1 .icon').html('');
+        }
         //if(task.data.dependencies.length >= 1 && unlocked) _renderTriggerRoutineUIChanges(0, 'done'); // Mark "Validate Task Dependencies" done
         $taskTab.find('h1 .name').html(task.data.taskName);
         $taskTab.find('.status-info .status').html(task.data.status.capitalize());

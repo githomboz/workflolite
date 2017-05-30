@@ -9,8 +9,9 @@
 class WF
 {
 
-  public static function MetaDataIsSet(MetaObject $metaObject = null){
+  public static function MetaDataIsSet($metaObject = null){
     if(!$metaObject) return false;
+    if($metaObject && !($metaObject instanceOf MetaObject)) return false;
     if($metaObject->ok()) return true;
     return false;
   }

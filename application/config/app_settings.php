@@ -203,6 +203,7 @@ $config['mongo_schema'] = array(
     'availStatuses', // Statuses available for this particular project
     'script',
     'meta',
+    'localMetaFields', // Meta data that is specific to project and not template
     'notes',
     'nativeId',
     'settings',

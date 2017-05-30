@@ -39,7 +39,7 @@
       <div class="field links">
         <a class="link-blue" href="#"><i class="fa fa-fast-forward"></i> Skip</a> |
         <a class="link-blue" href="#"><i class="fa fa-trash"></i> Delete</a> <?php //@todo unset templateId or update template ?>
-      </div>
+       </div>
       <button type="submit" class="btn submit"><i class="fa fa-save"></i> Save Settings</button>
     </form>
   </div>

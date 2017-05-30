@@ -5,9 +5,9 @@ var MetaData = (function(){
 
     var pubSubRoot = 'metaData.';
     var runSaveUponSuccessfulValidation = false;
-    var validationCache = {
+    var validationCache = {};
+    var addMetaKeyFieldsToTemplate = [];
 
-    };
 
     function _autoRun(value){
         if([undefined,null,''].indexOf(value) >= 0) value = true;
@@ -135,8 +135,22 @@ var MetaData = (function(){
 
     function _setNewValue(field, fieldData){
         fieldData = _performDataTransformationsForReturn(fieldData);
+        //$.extend(_METADATA[field], {}, fieldData);
+        // @todo: Set clientView, (format, formatDefault & formatted if applicable), and sort
+        // @todo: Unset metaObject and projectId
+
+        $.extend(fieldData, _getFieldTypeDefaults(fieldData.type));
+
+        if(typeof fieldData.projectId != 'undefined') delete fieldData.projectId;
+        if(typeof fieldData.metaObject != 'undefined') delete fieldData.metaObject;
+
+        if(typeof fieldData.clientView == 'undefined') fieldData.clientView = true;
+        if(typeof fieldData.sort == 'undefined') fieldData.sort = _getNextSortOrder();
+        
+        
+        // Add to _METADATA
+        _METADATA[field] = fieldData;
         console.log(_METADATA, field, fieldData);
-        $.extend(_METADATA[field], {}, fieldData);
 
         // Notify interested parties in the new field value
         PubSub.publish(pubSubRoot + 'update.updated', {
@@ -144,6 +158,29 @@ var MetaData = (function(){
             data : fieldData
         });
         return false;
+    }
+
+    function _getFieldTypeDefaults(type){
+        var defaults = {};
+        switch(type){
+            case 'string':
+                defaults._ = 32;
+                break;
+            case 'date':
+                defaults.format = 'n/J/Y';
+                defaults.formatDefault = 'n/j/Y';
+                //@todo; Add this
+                break;
+        }
+        return defaults;
+    }
+
+    function _getNextSortOrder(){
+        var highestSortOrder = 0;
+        for(var slug in _METADATA){
+            if(_METADATA[slug].sort >= highestSortOrder) highestSortOrder = _METADATA[slug].sort;
+        }
+        return highestSortOrder + 1;
     }
 
     function _performDataTransformationsForReturn(fieldData){

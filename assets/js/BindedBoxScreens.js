@@ -83,6 +83,9 @@ var BindedBoxScreens = (function(){
                 html += '<i class="fa fa-square"></i> &nbsp; ';
             }
             html += '<span class="task-sort-order">' + _TASK_JSON[i].data.sortOrder + '.</span> ';
+            if(_hasDependencies(_TASK_JSON[i]) === true){
+                html += '<i class="fa fa-' + (_isLocked(_TASK_JSON[i]) === true ? 'lock' : 'unlock') + '"></i> ';
+            }
             html += '<a href="#" class="task-name">';
             if(isComplete) html += '<strike>';
             html += _TASK_JSON[i].data.taskName;
@@ -92,6 +95,23 @@ var BindedBoxScreens = (function(){
             html += '</li>';
         }
         return html;
+    }
+
+    function _hasDependencies(task){
+        if(typeof task.data != 'undefined'){
+            var hasDependencies = task.data.dependencies && task.data.dependencies.length >= 1;
+            return hasDependencies;
+        }
+        console.error('Invalid task provided');
+    }
+
+    function _isLocked(task){
+        if(typeof task.data != 'undefined'){
+            var hasDependencies = task.data.dependencies && task.data.dependencies.length >= 1;
+            var locked = hasDependencies && !task.data.dependenciesOKTimeStamp;
+            return locked;
+        }
+        console.error('Invalid task provided');
     }
 
     function _renderInsetTabs(){
@@ -207,20 +227,22 @@ var BindedBoxScreens = (function(){
         _initialize();
         $(document).on('click', '.inset-tab-link', _handleInsetBtnClick);
         $(document).on('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
-        PubSub.subscribe('bindedBox.newTaskActivated', _handleNewTaskActivated);
+        PubSub.subscribe('bindedBox.newTaskActivated', _handleRequestForReRender);
         PubSub.subscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
-        //console.log('Inset Tasklist', _BINDED_BOX.activeTaskId);
+        PubSub.subscribe('task.updated', _handleTaskDataChanges);
         _render();
     }
 
     function _deactivate(){
         $(document).off('click', '.inset-tab-link', _handleInsetBtnClick);
         $(document).off('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
-        PubSub.unsubscribe('bindedBox.newTaskActivated', _handleNewTaskActivated);
+        PubSub.unsubscribe('bindedBox.newTaskActivated', _handleRequestForReRender);
         PubSub.unsubscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
+        PubSub.unsubscribe('task.updated', _handleTaskDataChanges);
     }
 
     function _handleTaskDataChanges(topic, payload){
+        console.log(payload);
         var redrawStatuses = ['completed','new','active','skipped','force_skipped'];
         // Check if tabbed-content.tasks is the active screen
         if(_BINDED_BOX.activeTabId == 'tasks'){
@@ -230,15 +252,16 @@ var BindedBoxScreens = (function(){
             // Check if status changed
             var statusChanged = typeof payload.updates.status != 'undefined';
             var newStatusRequiresRender = statusChanged && (redrawStatuses.indexOf(payload.updates.status) >= 0);
+            var dependenciesChanged = typeof payload.updates.dependenciesOKTimeStamp != 'undefined';
             // If necessary, redraw task list
-            if(taskNameChanged || newStatusRequiresRender){
-                _handleNewTaskActivated();
+            if(taskNameChanged || newStatusRequiresRender || dependenciesChanged){
+                _handleRequestForReRender();
             }
         }
 
     }
 
-    function _handleNewTaskActivated(topic, payload){
+    function _handleRequestForReRender(topic, payload){
         var taskListScreen = 1;
         var content = _loadContent(taskListScreen, true);
         if(content) _options.$taskInset.find('.inset-tab[data-tab_id=' + taskListScreen + ']').html(content);
@@ -324,5 +347,10 @@ var BindedBoxScreens = (function(){
 
     PubSub.subscribe('bindedBox.opened', _activate);
     PubSub.subscribe('bindedBox.closed', _deactivate);
+
+    return {
+        taskIsLocked : _isLocked, 
+        render: _handleRequestForReRender
+    }
 
 })();
