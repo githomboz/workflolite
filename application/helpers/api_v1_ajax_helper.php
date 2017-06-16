@@ -1047,7 +1047,7 @@ function save_meta_field(){
       unset($field['metaObject']);
       unset($field['projectId']);
 
-      var_dump($data, $metaArray);
+      //var_dump($data, $metaArray);
       // Check if local or template store
 
 

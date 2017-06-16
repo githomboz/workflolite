@@ -325,6 +325,8 @@ var BindedBoxScreens = (function(){
 
                 // Mark screen loaded
                 _screens[_options.activeScreen].isLoaded = true;
+
+                if(_options.activeScreen === 1) _calculateActiveScrollPositions();
             }
 
             // Activate active tab
@@ -343,6 +345,14 @@ var BindedBoxScreens = (function(){
         }
 
         _options.screensActivated = true;
+    }
+
+    function _calculateActiveScrollPositions(){
+        // console.log('this is a task list screen', actionBtns);
+        // var $screen = $('.inset-tab[data-tab_id=' + _options.activeScreen + ']');
+        // var $taskLI = $('.inset-tasklist li[data-task_id=' + actionBtns.curr.id + ']');
+        // console.log('taskLi', $taskLI.offset( ), $taskLI.position(), $taskLI.scrollTop());
+        // console.log('screen', $screen.offset(), $screen.position(), $screen.scrollTop());
     }
 
     PubSub.subscribe('bindedBox.opened', _activate);

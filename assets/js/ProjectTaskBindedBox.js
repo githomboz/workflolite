@@ -9,8 +9,9 @@ var BindedBox = (function(){
         showTaskCount : true,
         showTimer : false,
         elapsedTime : null,
-        settingsDropdown : []
-    }
+        settingsDropdown : [],
+        keyboardDirectionalBtnsActive : true
+    };
 
     function _init(){
 

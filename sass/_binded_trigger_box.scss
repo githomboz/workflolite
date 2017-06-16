@@ -628,6 +628,7 @@ $alertRed : rgba(208, 106, 106, 1);
             font-weight: 100;
             margin-top: $padding;
             line-height: 1.3em;
+            position: relative;
 
             &[data-tab_id="1"] {
               font-size: 12px;
@@ -641,6 +642,10 @@ $alertRed : rgba(208, 106, 106, 1);
                 -o-user-select: none;
                 user-select: none;
                 cursor: default;
+
+                li {
+                  position: relative;
+                }
 
                 .task-sort-order {
                 }

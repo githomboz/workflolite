@@ -471,6 +471,8 @@
 <script type="text/javascript">
     /****************************************************************************************************************/
 
+    var
+      actionBtns = null;
 
     function _getTaskDataById(id){
         for(var i in _TASK_JSON){
@@ -585,6 +587,7 @@
                 $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
                 $(document).on('click', '.binded-trigger-box button.js-directional', _handleDirectionalBtnClick);
                 $(document).on('click', '.binded-trigger-box .action-btns .mark-complete', _handleMarkCompleteClick);
+                $(document).on('keydown', _handleBindedBoxKeydown);
                 PubSub.subscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
                 PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
                 PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
@@ -624,6 +627,7 @@
             $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
             $(document).off('click', '.binded-trigger-box button.js-directional', _handleDirectionalBtnClick);
             $(document).off('click', '.binded-trigger-box .action-btns .mark-complete', _handleMarkCompleteClick);
+            $(document).off('keydown', _handleBindedBoxKeydown);
             PubSub.unsubscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
@@ -634,6 +638,19 @@
             _BINDED_BOX.activeTaskId = null;
             PubSub.publish('bindedBox.closed', null);
 
+        }
+    }
+
+    function _handleBindedBoxKeydown(e){
+        switch(e.which){
+            case 37: // left
+            //case 38: // up
+                if(actionBtns.prev && BindedBox.getOption('keyboardDirectionalBtnsActive')) _triggerBoxOpen(actionBtns.prev.id);
+                break;
+            case 39: // right
+            //case 40: // down
+                if(actionBtns.next && BindedBox.getOption('keyboardDirectionalBtnsActive')) _triggerBoxOpen(actionBtns.next.id);
+                break;
         }
     }
 
@@ -1082,9 +1099,14 @@
               returnReport : 'condensed'
           },
           task = _getTaskDataById(post.taskId),
-          triggerType = task.data.trigger.type;
+          triggerType = task.data.trigger.type,
+          dependencyCount = task.data.dependencies.length;
 
-        var errorMsg01 = '<i class="fa fa-exclamation-triangle"></i> Dependencies have not been satisfied. This task can not be started until dependency checks pass. <a href="#" class="check-dependencies-btn br"> Re-check</a>';
+        var errorMsg01 = '<i class="fa fa-exclamation-triangle"></i> ';
+        errorMsg01 += 'Dependencies have not been satisfied. This task can not be started until (' + dependencyCount + ')';
+        errorMsg01 += ' dependency check' + (dependencyCount == 1 ? '' : 's') + ' pass' + (dependencyCount == 1 ? 'es' : '');
+        errorMsg01 += '<a href="#" class="check-dependencies-btn br"> Re-check</a>';
+
         CS_API.call('ajax/check_task_dependencies',
         function(){
           // beforeSend
@@ -1268,36 +1290,40 @@
         //return false;
     }
 
-
-    function _renderTaskActionBtns(task){
+    function _calculateActionBtns(task){
         var
-          prevTaskId = null,
-          currTaskId = null,
-          nextTaskId;
-        var $actionBtns = $(".action-btns");
-
-        var output = '';
-        for(var i in _TASK_JSON){
-            if(currTaskId) prevTaskId = currTaskId;
-            currTaskId = _TASK_JSON[i].id;
-            var nextIndex = (parseInt(i) + 1).toString();
-            nextTaskId = typeof _TASK_JSON[nextIndex] != 'undefined' ? _TASK_JSON[nextIndex].id : null ;
-            if(task.id == currTaskId){
-                //console.log(prevTaskId, currTaskId, nextTaskId);
-                var prevTask = _getTaskDataById(prevTaskId);
-                var prevTask = prevTask ? prevTask : null;
-                var nextTask = _getTaskDataById(nextTaskId);
-                var nextTask = nextTask ? nextTask : null;
-                    output += '<button class="prev-task js-directional' + (prevTask ? '':' inactive') + '" ';
-                    output += 'data-target_id="' + prevTaskId + '">';
-                    output += '<i class="fa fa-fast-backward"></i>';
-                    output += '&nbsp; Prev. Task</button>';
-                    output += '<button class="next-task js-directional' + (nextTask ? '':' inactive') + '" ';
-                    output += 'data-target_id="' + nextTaskId + '">';
-                    output += '<i class="fa fa-fast-forward"></i>';
-                    output += '&nbsp; Next Task</button>';
+          prevIndex,
+          nextIndex,
+          btns = {
+            curr : null,
+            prev : null,
+            next : null
+        };
+        for(var i in _TASK_JSON) {
+            if(task.id == _TASK_JSON[i].id){
+                btns.curr = task;
+                prevIndex = (parseInt(i) - 1).toString();
+                btns.prev = typeof _TASK_JSON[prevIndex] != 'undefined' ? _getTaskDataById(_TASK_JSON[prevIndex].id) : null;
+                nextIndex = (parseInt(i) + 1).toString();
+                btns.next = typeof _TASK_JSON[nextIndex] != 'undefined' ? _getTaskDataById(_TASK_JSON[nextIndex].id) : null;
             }
         }
+        return btns;
+    }
+
+    function _renderTaskActionBtns(task){
+        var $actionBtns = $(".action-btns");
+
+        actionBtns = _calculateActionBtns(task);
+        var output = '';
+        output += '<button class="prev-task js-directional' + (actionBtns.prev ? '':' inactive') + '" ';
+        output += 'data-target_id="' + (actionBtns.prev ? actionBtns.prev.id : '') + '">';
+        output += '<i class="fa fa-fast-backward"></i>';
+        output += '&nbsp; Prev. Task</button>';
+        output += '<button class="next-task js-directional' + (actionBtns.next ? '':' inactive') + '" ';
+        output += 'data-target_id="' + (actionBtns.next ? actionBtns.next.id : '')+ '">';
+        output += '<i class="fa fa-fast-forward"></i>';
+        output += '&nbsp; Next Task</button>';
 
         var classes = 'mark-complete inverse';
         var dependencyHold = task.data.dependencies && !task.data.dependenciesOKTimeStamp;

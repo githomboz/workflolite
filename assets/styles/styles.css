@@ -3829,7 +3829,8 @@ span.checkbox {
       min-height: 324px;
       font-weight: 100;
       margin-top: 10px;
-      line-height: 1.3em; }
+      line-height: 1.3em;
+      position: relative; }
       .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="1"] {
         font-size: 12px;
         line-height: 2em; }
@@ -3843,6 +3844,8 @@ span.checkbox {
           -o-user-select: none;
           user-select: none;
           cursor: default; }
+          .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="1"] .inset-tasklist li {
+            position: relative; }
           .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="1"] .inset-tasklist .task-name {
             color: #afaeae; }
           .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="1"] .inset-tasklist li.active .task-name {
