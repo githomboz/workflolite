@@ -100,58 +100,6 @@
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/WFMetaData.js"></script>
 <script type="text/javascript">
 
-    var
-        $bindedBox = $(".binded-trigger-box"),
-        $bindedBoxInnerHead = $bindedBox.find('.inner-head'),
-        dimensions  = {
-            padding : 10,
-            actionBtnHeight : 46,
-            slideNavWidth : $(".tabbed-nav .item").outerWidth(),
-    };
-
-    $(window).load(function(){
-        $(window).resize(function(){
-            triggerResize();
-        });
-    });
-
-    function triggerResize(){
-        var payload = {
-            padding : dimensions.padding,
-            windowWidth : $(window).width(),
-            windowHeight : $(window).height(),
-            windowChanges : {
-                width: null,
-                height: null
-            },
-            boxOuterWidth : $bindedBox.outerWidth(),
-            boxOuterHeight : $bindedBox.outerHeight(),
-            headerOuterHeight : $bindedBoxInnerHead.outerHeight(),
-            actionBtnHeight : dimensions.actionBtnHeight,
-            slideNavWidth : dimensions.slideNavWidth
-        };
-
-        payload.newTaskTabHeight = payload.boxOuterHeight - payload.headerOuterHeight - payload.actionBtnHeight - (payload.padding * 3) - 2;
-        payload.tabContainerWidth = payload.boxOuterWidth - payload.slideNavWidth - (payload.padding * 2) - 2;
-        payload.preElementHeight = payload.newTaskTabHeight - (payload.padding * 4) - 6;
-
-        if(typeof _PROJECT.dimensions != 'undefined'){
-            payload.windowChanges.width = null;
-            if(payload.windowWidth != _PROJECT.dimensions.windowWidth){
-                payload.windowChanges.width = (payload.windowWidth > _PROJECT.dimensions.windowWidth) ? 'grow' : 'shrink';
-            }
-            payload.windowChanges.height = null;
-            if(payload.windowHeight != _PROJECT.dimensions.windowHeight){
-                payload.windowChanges.height = (payload.windowHeight > _PROJECT.dimensions.windowWidth) ? 'grow' : 'shrink';
-            }
-        }
-
-
-
-        PubSub.publish('bindedBox.resize', payload);
-        _PROJECT.dimensions = payload
-    }
-
     var TASK_CACHE = {};
 
     $(document).on('click', ".task-option-links .task-settings", function(e){
@@ -468,5 +416,6 @@
 
 </script>
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/ProjectTaskBindedBox.js"></script>
+<script type="text/javascript" src="<?php echo base_url('assets/js')?>/SlideTasks.js"></script>
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/BindedBoxScreens.js"></script>
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/SlideMetadata.js"></script>
