@@ -169,8 +169,8 @@ class Task2
   }
 
   public function complete($runPostRoutines = true){
-    $logger = new WFLogger(__METHOD__, __FILE__);
-    $logger->setLine(__LINE__)->addDebug('Entering ...');
+    //$logger = new WFLogger(__METHOD__, __FILE__);
+    //$logger->setLine(__LINE__)->addDebug('Entering ...');
     $now = new MongoDate();
     $update = array(
       'completeDate' => $now,
@@ -179,7 +179,29 @@ class Task2
     if(empty($this->_current['startDate'])) $update['startDate'] = $now;
     $this->_current = array_merge($this->_current, $update);
     if($runPostRoutines) $this->runPostRoutines($this->getValue('name'));
-    $logger->setLine(__LINE__)->addDebug('Exiting ...');
+    //$logger->setLine(__LINE__)->addDebug('Exiting ...');
+    return $this->update();
+  }
+
+  public function incomplete($runPostRoutines = true){
+    //$logger = new WFLogger(__METHOD__, __FILE__);
+    //$logger->setLine(__LINE__)->addDebug('Entering ...');
+    $update = array(
+      'completeDate' => null,
+      'completionReport' => null,
+      'status' => Task2::$statusActive
+    );
+    $this->_current = array_merge($this->_current, $update);
+    if($runPostRoutines) $this->runPostRoutines($this->getValue('name'));
+    //$logger->setLine(__LINE__)->addDebug('Exiting ...');
+    return $this->update();
+  }
+
+  public function clearDependencyChecks(){
+    $update = array(
+      'dependenciesOKTimeStamp' => null,
+    );
+    $this->_current = array_merge($this->_current, $update);
     return $this->update();
   }
 

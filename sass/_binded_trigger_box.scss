@@ -110,6 +110,27 @@ $alertRed : rgba(208, 106, 106, 1);
     padding: $padding;
   }
 
+  .admin-tools {
+    position: absolute;
+    left: 70px;
+    bottom: 26px;
+
+    .tool {
+      line-height: 1em;
+      padding-left: $padding;
+      margin-left: $padding;
+      border-left: 1px solid #e1e1e1;
+
+      &:first-child {
+        border: none;
+        padding-left: 0;
+        margin-left: 0;
+      }
+    }
+
+
+  }
+
   .tabbed-nav {
     float: left;
     width: 50 + $padding;

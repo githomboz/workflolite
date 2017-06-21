@@ -570,6 +570,13 @@
         }
     });
 
+    function _reloadBindedBox(){
+        if(_BINDED_BOX.activeTaskId){
+            _renderTaskTabbedContent(_getTaskDataById(_BINDED_BOX.activeTaskId));
+            //_triggerBoxOpen(_BINDED_BOX.activeTaskId);
+        }
+    }
+
     function _triggerBoxOpen(taskId){
         var task = _getTaskDataById(taskId);
         _LAMBDA_PROGRESS = 0;
@@ -579,6 +586,8 @@
             if(!_PROJECT.triggerBoxOpen){
                 //console.log('trigger box opened');
                 $(".binded-trigger-box-overlay").addClass('show');
+                $(document).on('click', '.admin-tools .tool.clear-dependency-checks', _handleAdminClearDependencyCheck);
+                $(document).on('click', '.admin-tools .tool.mark-incomplete', _handleAdminMarkIncomplete);
                 $(document).on('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
                 //$(document).on('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
                 $(document).on('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
@@ -619,6 +628,8 @@
         if($overlay.is('.show') || _PROJECT.triggerBoxOpen){
             //console.log('trigger box closed');
             $overlay.removeClass('show');
+            $(document).off('click', '.admin-tools .tool.clear-dependency-checks', _handleAdminClearDependencyCheck);
+            $(document).off('click', '.admin-tools .tool.mark-incomplete', _handleAdminMarkIncomplete);
             $(document).off('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
             //$(document).off('click', '.tabbed-content.tasks .task-data-block a', _handleTriggerBoxPreviewData);
             $(document).off('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
@@ -702,6 +713,100 @@
         } else {
             console.error('projectId is not defined');
         }
+
+    }
+
+    function _handleAdminClearDependencyCheck(e){
+        e.preventDefault();
+
+        var taskData = {};
+
+        taskData.taskId = $(".tabbed-content.tasks .dynamic-content").attr('data-task_template_id');
+        taskData.entityId = _CS_Get_Entity_ID();
+        taskData.type = _CS_Get_Entity();
+
+        CS_API.call('ajax/clear_dependency_checks',
+          function(){
+              // beforeSend
+          },
+          function(data){
+              // success
+              console.log(data);
+              if(data.errors == false){
+                  if(typeof data.response.taskUpdates != 'undfined'){
+                      _setTaskDataById(taskData.taskId, data.response.taskUpdates);
+                      _triggerBoxOpen(taskData.taskId);
+                  }
+              } else {
+              }
+          },
+          function(){
+              // error
+          },
+          taskData,
+          {
+              method: 'POST',
+              preferCache : false
+          }
+        );
+
+    }
+
+    function _handleAdminMarkIncomplete(e){
+        e.preventDefault();
+        var taskData = {};
+
+        taskData.taskId = $(".tabbed-content.tasks .dynamic-content").attr('data-task_template_id');
+        taskData.entityId = _CS_Get_Entity_ID();
+        taskData.type = _CS_Get_Entity();
+
+        CS_API.call('ajax/mark_incomplete',
+          function(){
+              // beforeSend
+          },
+          function(data){
+              // success
+              console.log(data);
+              if(data.errors == false){
+                  _setTaskDataById(taskData.taskId, {
+                      completeDate : null,
+                      status: 'active'
+                  });
+                  _triggerBoxOpen(taskData.taskId);
+              } else {
+              }
+          },
+          function(){
+              // error
+          },
+          taskData,
+          {
+              method: 'POST',
+              preferCache : false
+          }
+        );
+
+//        CS_API.call('ajax/admin_mark_incomplete',
+//          function(){
+//              // beforeSend
+//          },
+//          function(data){
+//              // success
+//              if(data.errors == false && data.response.success){
+//                  console.log(data);
+//              } else {
+//                  // error
+//              }
+//          },
+//          function(){
+//              // error
+//          },
+//          post,
+//          {
+//              method: 'POST',
+//              preferCache : false
+//          }
+//        );
 
     }
 
@@ -1106,7 +1211,6 @@
         errorMsg01 += 'Dependencies have not been satisfied. This task can not be started until (' + dependencyCount + ')';
         errorMsg01 += ' dependency check' + (dependencyCount == 1 ? '' : 's') + ' pass' + (dependencyCount == 1 ? 'es' : '');
         errorMsg01 += '<a href="#" class="check-dependencies-btn br"> Re-check</a>';
-
         CS_API.call('ajax/check_task_dependencies',
         function(){
           // beforeSend
@@ -1285,8 +1389,6 @@
             $lowerHeader.find('.time-tracker-btn').hide();
         }
 
-        // Render directional and 'mark complete' buttons
-        _renderTaskActionBtns(taskData);
         //return false;
     }
 
@@ -1347,72 +1449,82 @@
     function _handleActiveTaskUpdated(topic, payload){
         _renderTaskTabbedContent(payload.newTask);
         PubSub.publish('taskData.updates.updatedTask', payload);
-        _renderTaskActionBtns(payload.newTask);
+    }
+
+    function _generateAndRenderAdminTools(task){
+        if(BindedBox.allowed(5)){
+
+            var $adminTools = $(".admin-tools"),
+              adminToolsHTML = '';
+            if(_taskHasDependencies(task) && !_taskIsLocked(task)) {
+                adminToolsHTML += '<a href="#" class="tool clear-dependency-checks">Clear Dependency Checks</a>';
+            }
+
+            if(task.data.status == 'completed'){
+                adminToolsHTML += '<a href="#" class="tool mark-incomplete">Mark Incomplete</a>';
+            }
+
+            $adminTools.html(adminToolsHTML);
+        }
+    }
+
+    function _taskHasDependencies(task){
+        if(task && typeof task.data != 'undefined'){
+            return task.data.dependencies.length >= 1;
+        }
+        return false;
+    }
+
+    function _taskIsLocked(task){
+        if(task && typeof task.data != 'undefined'){
+            return _taskHasDependencies(task) && !task.data.dependenciesOKTimeStamp;
+        }
+        return false;
     }
 
     function _renderTaskTabbedContent(task){
-        var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
-        //console.log(task.data);
-        //$taskTab.find('.dynamic-content').html('Loading content ... <i class="fa fa-spin fa-spinner"></i>');
-        $taskTab.find('.dynamic-content').attr('data-task_template_id', task.data.taskId);
-        $taskTab.attr('data-status', task.data.status);
-        $taskTab.find('.task-inset pre.task-data').html(JSON.stringify(task, undefined, 2));
-        $taskTab.find('h1 .num').html(task.data.sortOrder);
-        $taskTab.find('h1 .group').html(task.data.taskGroup);
-        var hasDependencies = task.data.dependencies.length >= 1;
-        if(hasDependencies){
-            var locked = hasDependencies && !task.data.dependenciesOKTimeStamp;
-            var icon = '<i class="fa lock-status ' + (locked ? 'fa-lock':'fa-unlock') + '"></i>';
-            $taskTab.find('h1 .icon').html(icon);
-        } else {
-            $taskTab.find('h1 .icon').html('');
-        }
-        //if(task.data.dependencies.length >= 1 && unlocked) _renderTriggerRoutineUIChanges(0, 'done'); // Mark "Validate Task Dependencies" done
-        $taskTab.find('h1 .name').html(task.data.taskName);
-        $taskTab.find('.status-info .status').html(task.data.status.capitalize());
-        $taskTab.find('.description').html(task.data.description);
-        $taskTab.find('.instructions').html(task.data.instructions);
+        var
+          $taskTab = $('.binded-trigger-box .tabbed-content.tasks'),
+          hasDependencies = _taskHasDependencies(task),
+          locked = _taskIsLocked(task),
+          dependenciesContent = _generateDependenciesHTML(task),
+          dynamicContent = _generateDynamicContentHTML(task);
 
-        if(!task.data.trigger){
-            $taskTab.find('.trigger-type').hide();
-        } else {
-            $taskTab.find('.trigger-type').show();
-            var triggerOptions = {
-                lambda : {
-                    name : 'Lambda Function'
-                },
-                form : {
-                    name : 'Dynamic Form',
-                    desc : 'Fill out the following form to complete the task.'
-                },
-                applet : {
-                    name : 'Visual Applet',
-                    desc : 'Utilize custom applet to complete this task.'
-                }
-            };
-
-            var autoRun = _PROJECT.template.settings.autoRun;
-
-            triggerOptions.lambda.desc = autoRun ? 'This task runs automatically. No action required.' : 'This task will run automatically once <span class="false-btn"><i class="fa fa-bolt"></i> Load</span> is clicked.';
-
-            $taskTab.find('.trigger-type-name').html(triggerOptions[task.data.trigger.type].name);
-            $taskTab.find('.trigger-type-desc').html(triggerOptions[task.data.trigger.type].desc);
-        }
-
-
-        var dependenciesContent = _generateDependenciesHTML(task);
-        var dynamicContent = _generateDynamicContentHTML(task);
         if(dynamicContent){
-
             PubSub.publish('newDynamicContent', {
                 task : task,
                 content : dependenciesContent + dynamicContent
             });
         }
 
+        $taskTab.find('.dynamic-content').attr('data-task_template_id', task.data.taskId);
+        $taskTab.attr('data-status', task.data.status);
+        $taskTab.find('.task-inset pre.task-data').html(JSON.stringify(task, undefined, 2));
+        $taskTab.find('h1 .num').html(task.data.sortOrder);
+        $taskTab.find('h1 .group').html(task.data.taskGroup);
+        $taskTab.find('h1 .name').html(task.data.taskName);
+        $taskTab.find('.status-info .status').html(task.data.status.capitalize());
+        $taskTab.find('.description').html(task.data.description);
+        $taskTab.find('.instructions').html(task.data.instructions);
 
+        if(hasDependencies){
+            var icon = '<i class="fa lock-status ' + (locked ? 'fa-lock':'fa-unlock') + '"></i>';
+            $taskTab.find('h1 .icon').html(icon);
+        } else {
+            $taskTab.find('h1 .icon').html('');
+        }
 
+        _generateAndRenderTriggerTypeAndDescription(task);
 
+        _generateAndRenderAdminTools(task);
+
+        _generateAndRenderCompletionTestLink(task);
+
+        _renderTaskActionBtns(task);
+    }
+
+    function _generateAndRenderCompletionTestLink(task){
+        var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
         var completionTestHTML = '';
         if(task.data.completionTests){
             completionTestHTML += '<i class="fa ' + (task.data.completionReport ? 'success fa-heart':'fa-heartbeat') + '"></i>';
@@ -1439,6 +1551,35 @@
             completionTestHTML += ' ]</span>';
         }
         $taskTab.find('.bottom-links').html(completionTestHTML);
+    }
+
+    function _generateAndRenderTriggerTypeAndDescription(task){
+        var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
+        if(!task.data.trigger){
+            $taskTab.find('.trigger-type').hide();
+        } else {
+            $taskTab.find('.trigger-type').show();
+            var triggerOptions = {
+                lambda : {
+                    name : 'Lambda Function'
+                },
+                form : {
+                    name : 'Dynamic Form',
+                    desc : 'Fill out the following form to complete the task.'
+                },
+                applet : {
+                    name : 'Visual Applet',
+                    desc : 'Utilize custom applet to complete this task.'
+                }
+            };
+
+            var autoRun = _PROJECT.template.settings.autoRun;
+
+            triggerOptions.lambda.desc = autoRun ? 'This task runs automatically. No action required.' : 'This task will run automatically once <span class="false-btn"><i class="fa fa-bolt"></i> Load</span> is clicked.';
+
+            $taskTab.find('.trigger-type-name').html(triggerOptions[task.data.trigger.type].name);
+            $taskTab.find('.trigger-type-desc').html(triggerOptions[task.data.trigger.type].desc);
+        }
 
     }
 

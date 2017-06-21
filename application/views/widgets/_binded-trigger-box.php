@@ -49,10 +49,12 @@
               </div>
               <div class="inset-tab" data-tab_id="1" data-has_content="1">
               </div>
-              <div class="inset-tab" data-tab_id="2" data-has_content="0">
-                <pre class="task-data"></pre>
+              <div class="inset-tab" data-tab_id="2" data-has_content="1">
               </div>
               <div class="inset-tab" data-tab_id="3" data-has_content="0">
+                <pre class="task-data"></pre>
+              </div>
+              <div class="inset-tab" data-tab_id="4" data-has_content="0">
                 <pre class="meta-data"></pre>
               </div>
             </div>
@@ -140,6 +142,8 @@
         </section>
       </div><!--/.tabbed-content-container-->
     </div><!--/.mid-section-->
+    <div class="admin-tools">
+    </div>
     <div class="action-btns clearfix"></div>
   </div><!--/.binded-trigger-box-->
 </div><!--/.binded-trigger-box-overlay-->

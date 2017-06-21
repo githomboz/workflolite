@@ -25,7 +25,10 @@ function mark_complete(){
     $task->complete();
     $response['response']['entityType'] = 'tasks';
     $response['response']['taskId'] = (string) $task->id();
-    $response['response']['endDate'] = date('m/d/y', $task->getValue('completeDate')->sec);
+    $response['response']['endDate'] = date('m/d/y', $task->getValue('completeDate')->sec); //@todo might still be in use
+    $response['response']['taskUpdates'] = [
+      'endDate' => date('m/d/y', $task->getValue('completeDate')->sec)
+    ];
   } else {
     $response['errors'][] = 'Invalid task id provided';
   }
@@ -43,6 +46,86 @@ function mark_complete_args_map(){
 
 // Field names of fields required
 function mark_complete_required_fields(){
+  return array('entityId', 'type', 'taskId');
+}
+
+function mark_incomplete(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $task = null;
+  if($data['type'] == 'Project'){
+    $entity = Project::Get($data['entityId']);
+    $task = $entity->getTaskById($data['taskId']);
+  } else {
+    $task = Task::Get($data['taskId']);
+  }
+
+  if($task){
+    $task->incomplete();
+    $response['response']['entityType'] = 'tasks';
+    $response['response']['taskId'] = (string) $task->id();
+    $response['response']['taskUpdates'] = [
+      'endDate' => null,
+      'completionReport' => null,
+      'status' => Task2::$statusActive
+    ];
+  } else {
+    $response['errors'][] = 'Invalid task id provided';
+  }
+
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function mark_incomplete_args_map(){
+  return array('entityId', 'type', 'taskId');
+}
+
+// Field names of fields required
+function mark_incomplete_required_fields(){
+  return array('entityId', 'type', 'taskId');
+}
+
+function clear_dependency_checks(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $task = null;
+  if($data['type'] == 'Project'){
+    $entity = Project::Get($data['entityId']);
+    $task = $entity->getTaskById($data['taskId']);
+  } else {
+    $task = Task::Get($data['taskId']);
+  }
+
+  if($task){
+    $task->clearDependencyChecks();
+    $response['response']['entityType'] = 'tasks';
+    $response['response']['taskId'] = (string) $task->id();
+    $response['response']['taskUpdates'] = [
+      'dependenciesOKTimeStamp' => false
+    ];
+  } else {
+    $response['errors'][] = 'Invalid task id provided';
+  }
+
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function clear_dependency_checks_args_map(){
+  return array('entityId', 'type', 'taskId');
+}
+
+// Field names of fields required
+function clear_dependency_checks_required_fields(){
   return array('entityId', 'type', 'taskId');
 }
 
@@ -912,7 +995,9 @@ function run_form_routines(){
         ];
 
         $typeMeta = $trigger->getValue('typeMeta');
-        $isEmbedded = $typeMeta['embedded'];
+        // Check if form is embedded or referenced
+        $isEmbedded = $typeMeta['embedded'] && !empty($typeMeta['form']);
+        // If embedded, return the embedded form, if not, get it from the db
         $formData = $isEmbedded ? $typeMeta['form'] : WFSimpleForm::GetFormData($typeMeta['formId']);
 
         switch ($data['slug']){

@@ -3492,6 +3492,19 @@ span.checkbox {
                 border-radius: 4px; }
   .binded-trigger-box .mid-section {
     padding: 10px; }
+  .binded-trigger-box .admin-tools {
+    position: absolute;
+    left: 70px;
+    bottom: 26px; }
+    .binded-trigger-box .admin-tools .tool {
+      line-height: 1em;
+      padding-left: 10px;
+      margin-left: 10px;
+      border-left: 1px solid #e1e1e1; }
+      .binded-trigger-box .admin-tools .tool:first-child {
+        border: none;
+        padding-left: 0;
+        margin-left: 0; }
   .binded-trigger-box .tabbed-nav {
     float: left;
     width: 60px;

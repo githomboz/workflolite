@@ -4,6 +4,7 @@
 var BindedBoxScreens = (function(){
 
     var _options = {
+        screenCount : 0,
         screensActivated : false,
         activeScreen : 1,
         screenChangesMade : false,
@@ -37,7 +38,7 @@ var BindedBoxScreens = (function(){
             content : null,
             isLoaded : false, // Whether content has been loaded to dom
             isLoading : false, // If the content is in request mode
-            contentCallback : null, // Function to call to get content
+            contentCallback : _renderLogs, // Function to call to get content
             scrollX : true,
             scrollY : true,
         },
@@ -47,7 +48,7 @@ var BindedBoxScreens = (function(){
             content : null,
             isLoaded : false, // Whether content has been loaded to dom
             isLoading : false, // If the content is in request mode
-            contentCallback : null, // Function to call to get content
+            contentCallback : _renderTaskDump, // Function to call to get content
             scrollX : true,
             scrollY : true,
         },
@@ -65,6 +66,22 @@ var BindedBoxScreens = (function(){
 
     function _initialize(){
         for(var i in _screens) _screens[i].index = parseInt(i);
+    }
+
+    function _renderTaskDump(){
+        var html = '';
+        for(var i in _TASK_JSON) {
+            if(_BINDED_BOX.activeTaskId == _TASK_JSON[i].id){
+                html += JSON.stringify(_TASK_JSON[i], undefined, 2);
+                _options.$taskInset.find('pre.task-data').html(html);
+            }
+        }
+        //return html;
+    }
+
+    function _renderLogs(){
+        var html = 'Logs Screen';
+        return html;
     }
 
     function _renderInsetTaskList(){
@@ -112,10 +129,6 @@ var BindedBoxScreens = (function(){
             return locked;
         }
         console.error('Invalid task provided');
-    }
-
-    function _renderInsetTabs(){
-        //console.log(_screens);
     }
 
     function _activateScreen(index){
@@ -184,6 +197,7 @@ var BindedBoxScreens = (function(){
         if(content){
             _applyScreenContent(index, content);
             _unsetLoadingScreen(index);
+            $(".inset-tab[data-tab_id=" + index + "]").attr('has_content', 1)
         }
         return content;
 
@@ -210,7 +224,6 @@ var BindedBoxScreens = (function(){
 
         html += '</ul>';
         var $screensScreen = $(".inset-tab[data-tab_id=0]");
-        $screensScreen.attr('has_content', 1);
         $screensScreen.html(html);
         _options.screenNavChangesMade = false;
     }
@@ -253,6 +266,7 @@ var BindedBoxScreens = (function(){
             var statusChanged = typeof payload.updates.status != 'undefined';
             var newStatusRequiresRender = statusChanged && (redrawStatuses.indexOf(payload.updates.status) >= 0);
             var dependenciesChanged = typeof payload.updates.dependenciesOKTimeStamp != 'undefined';
+            console.log(taskNameChanged, newStatusRequiresRender, dependenciesChanged);
             // If necessary, redraw task list
             if(taskNameChanged || newStatusRequiresRender || dependenciesChanged){
                 _handleRequestForReRender();
@@ -281,20 +295,22 @@ var BindedBoxScreens = (function(){
 
     function _handleInsetBtnClick(e){
         e.preventDefault();
-        var $this = $(this);
-        _activateScreen(parseInt($this.attr('data-tab_id')));
+        var $this = $(this),
+            tabId = parseInt($this.attr('data-tab_id'));
+        _activateScreen(tabId);
     }
 
     function _updateScreenCount(topic, screenCount){
         screenCount = screenCount || _screens.length;
-        _options.$taskInset.find('.screen-count').html((screenCount - 1));
+        if(screenCount != _options.screenCount){
+            _options.screenCount = screenCount;
+            _options.$taskInset.find('.screen-count').html((screenCount - 1));
+        }
     }
 
     function _render(){
-        //console.log(_options);
+        console.log(_options);
         if(_options.screenNavChangesMade || !_options.screensActivated) _renderNav();
-
-        _renderInsetTabs();
 
         // Set screen count
         _updateScreenCount();
@@ -342,9 +358,10 @@ var BindedBoxScreens = (function(){
             }
 
             _options.screenChangesMade = false;
+
+            _options.screensActivated = true;
         }
 
-        _options.screensActivated = true;
     }
 
     function _calculateActiveScrollPositions(){
