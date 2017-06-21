@@ -3686,7 +3686,8 @@ span.checkbox {
           padding: 0 4px;
           font-size: 12px;
           position: relative;
-          top: -2px; }
+          top: -2px;
+          line-height: 1em; }
     .binded-trigger-box .tabbed-content.tasks .task-trigger .description {
       margin-bottom: .8em; }
     .binded-trigger-box .tabbed-content.tasks .task-trigger .instructions {

@@ -290,7 +290,7 @@ var BindedBoxScreens = (function(){
         var isActiveTask = _BINDED_BOX.activeTaskId == taskId;
         var boxOpen = _PROJECT.triggerBoxOpen === true;
 
-        if(!boxOpen || !isActiveTask) _triggerBoxOpen(taskId);
+        if(!boxOpen || !isActiveTask) BindedBox.loadTriggerBox(taskId);
     }
 
     function _handleInsetBtnClick(e){
