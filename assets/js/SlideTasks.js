@@ -60,11 +60,7 @@ var SlideTasks = (function(){
                 // success
                 console.log(data);
                 if(data.errors == false){
-                    if(typeof data.response.taskUpdates != 'undfined'){
-                        BindedBox.setTaskById(taskData.taskId, data.response.taskUpdates);
-                        //SlideTasks.reloadTabbedContent();
-                        //_triggerBoxOpen(taskData.taskId);
-                    }
+                    SlideTasks.validateAndApplyUpdates(data, true);
                 } else {
                 }
             },
@@ -96,11 +92,7 @@ var SlideTasks = (function(){
                 // success
                 console.log(data);
                 if(data.errors == false){
-                    BindedBox.setTaskById(taskData.taskId, {
-                        completeDate : null,
-                        status: 'active'
-                    });
-                    _triggerBoxOpen(taskData.taskId);
+                    SlideTasks.validateAndApplyUpdates(data, true);
                 } else {
                 }
             },
@@ -144,6 +136,7 @@ var SlideTasks = (function(){
             function(data){
                 // success
                 if(data.errors == false && data.response.success){
+                    SlideTasks.validateAndApplyUpdates(data, true);
                     console.log(data);
                     switch (data.response.slug){
                         case routineSlugs[1]: //'validate_lambda_callback':
@@ -212,6 +205,7 @@ var SlideTasks = (function(){
             function(data){
                 // success
                 if(data.errors == false && data.response.success){
+                    SlideTasks.validateAndApplyUpdates(data, true);
                     console.log(data);
                     switch (data.response.slug){
                         case routineSlugs[1]: //'validate_lambda_callback':
@@ -421,24 +415,8 @@ var SlideTasks = (function(){
                     // if autoRun, _executeRunLambdaAjaxCalls();
                     if(_PROJECT.template.settings.autoRun) _executeRunLambdaAjaxCalls();
 
-                    if(typeof data.response.taskUpdates != 'undefined'){
-                        PubSub.publish('task.updated', {
-                            taskId : data.response.taskId,
-                            updates : data.response.taskUpdates
-                        });
-                    }
-                    if(typeof data.response.metaUpdates != 'undefined'){
-                        PubSub.publish('meta.updated', {
-                            projectId : data.response.projectId,
-                            updates : data.response.metaUpdates
-                        });
-                    }
-                    if(typeof data.response.projectUpdates != 'undefined'){
-                        PubSub.publish('project.updated', {
-                            projectId : data.response.projectId,
-                            updates : data.response.projectUpdates
-                        });
-                    }
+                    SlideTasks.validateAndApplyUpdates(data, true);
+
                 } else {
                     if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
                     _renderTriggerRoutineUIChanges(0, 'error', triggerType);
@@ -517,6 +495,83 @@ var SlideTasks = (function(){
             return _taskHasDependencies(task) && !task.data.dependenciesOKTimeStamp;
         }
         return false;
+    }
+
+    function _validateAndApplyUpdates(data, render){
+        _validateAndApplyTaskUpdates(data, render);
+        _validateAndApplyMetaUpdates(data, render);
+        _validateAndApplyProjectUpdates(data, render);
+    }
+
+    function _validateAndApplyTaskUpdates(data, render){
+        // Validate
+        var render = render || false,
+            _dataSet = typeof data.response != 'undefined',
+            _idSet = typeof data.response.taskId != 'undefined',
+            _updatesSet = _dataSet && typeof data.response.taskUpdates != 'undefined' && data.response.taskUpdates;
+
+        if(_updatesSet){
+            if(_idSet){
+                // Update TASK_JSON
+                BindedBox.setTaskById(data.response.taskId, data.response.taskUpdates);
+
+                if(data.response.taskId == BindedBox.activeTaskId && render){
+                    // Optionally re-render
+                    BindedBox.reload(true);
+                    SlideTasks.reloadTabbedContent();
+                }
+
+                PubSub.publish('task.updated', {
+                    taskId : data.response.taskId,
+                    updates : data.response.taskUpdates
+                });
+
+
+            } else {
+                console.error('The field `taskId` must be set for updates to be applied');
+            }
+        }
+    }
+
+    function _validateAndApplyMetaUpdates(data, render){
+        // Validate
+        var render = render || false,
+            _dataSet = typeof data.response != 'undefined',
+            _updatesSet = _dataSet && typeof data.response.metaUpdates != 'undefined' && data.response.metaUpdates;
+
+        if(_updatesSet){
+            // Update in-mem store
+            // @todo
+
+            // render if necessary
+
+            PubSub.publish('meta.updated', {
+                updates : data.response.metaUpdates
+            });
+        }
+    }
+
+    function _validateAndApplyProjectUpdates(data, render){
+        // Validate
+        var render = render || false,
+            _dataSet = typeof data.response != 'undefined',
+            _idSet = typeof data.response.projectId != 'undefined',
+            _updatesSet = _dataSet && typeof data.response.projectUpdates != 'undefined' && data.response.projectUpdates;
+
+        if(_updatesSet){
+            if(_idSet){
+                // Update in-mem store
+
+                PubSub.publish('project.updated', {
+                    projectId : data.response.projectId,
+                    updates : data.response.projectUpdates
+                });
+
+
+            } else {
+                console.error('The field `projectId` must be set for updates to be applied');
+            }
+        }
     }
 
     function _renderTaskTabbedContent(task){
@@ -815,31 +870,6 @@ var SlideTasks = (function(){
         //return false;
     }
 
-    function _renderBindedBoxTaskStatusChanges(topic, payload){
-        // Validate taskId, status, and currentStatus
-        var
-            projectId = _PROJECT.projectId,
-            taskId = typeof payload.taskId == 'undefined' ? null : payload.taskId,
-            status = typeof payload.status == 'undefined' ? null : payload.status,
-            task = BindedBox.getTaskById(taskId),
-            currentStatus = task.data.status;
-
-        console.log(payload, projectId, task, status, currentStatus);
-
-        if(projectId && taskId && status && currentStatus && (currentStatus != status)){
-            // Update _TASK_JSON
-            for(var i in _TASK_JSON){
-                if(_TASK_JSON[i].id === taskId){
-                    _TASK_JSON[i].data.status = status;
-                    task = _TASK_JSON[i];
-                    console.log('new task', task);
-                }
-            }
-            BindedBox.reload(true);
-            SlideTasks.reloadTabbedContent(task);
-        }
-    }
-
     function _activate(){
         _LAMBDA_PROGRESS = 0;
         _FORM_PROGRESS = 0;
@@ -849,7 +879,6 @@ var SlideTasks = (function(){
         $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
         $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
         $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
-        PubSub.subscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
         PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
         PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
         PubSub.subscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
@@ -863,7 +892,6 @@ var SlideTasks = (function(){
         $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
         $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
         $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
-        PubSub.unsubscribe('bindedBox.task.statusChange', _renderBindedBoxTaskStatusChanges);
         PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
         PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
         PubSub.unsubscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
@@ -878,6 +906,10 @@ var SlideTasks = (function(){
 
     return {
         reloadTabbedContent : _renderTaskTabbedContent,
-        calculateActionBtns : _calculateActionBtns
+        calculateActionBtns : _calculateActionBtns,
+        validateAndApplyUpdates : _validateAndApplyUpdates,
+        validateAndApplyTaskUpdates : _validateAndApplyTaskUpdates,
+        validateAndApplyMetaUpdates : _validateAndApplyMetaUpdates,
+        validateAndApplyProjectUpdates : _validateAndApplyProjectUpdates,
     };
 })();

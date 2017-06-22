@@ -68,7 +68,7 @@ function mark_incomplete(){
     $response['response']['entityType'] = 'tasks';
     $response['response']['taskId'] = (string) $task->id();
     $response['response']['taskUpdates'] = [
-      'endDate' => null,
+      'completeDate' => null,
       'completionReport' => null,
       'status' => Task2::$statusActive
     ];
@@ -777,6 +777,7 @@ function check_task_dependencies(){
       // save dependenciesOKTimeStamp and return it to client
       $time = time();
       $project->getTaskById($data['taskId'])->setValue('dependenciesOKTimeStamp', $time)->update();
+      $response['response']['taskId'] = $data['taskId'];
       $response['response']['taskUpdates']['dependenciesOKTimeStamp'] = $time;
 
     } else {
@@ -861,7 +862,8 @@ function run_lambda_routines(){
             'validTrigger' => $validTrigger,
             'slug' => $data['slug'],
             'salt' => $newSalt
-          ]
+          ],
+          'taskId' => $data['taskTemplateId']
         ];
 
         switch ($data['slug']){
