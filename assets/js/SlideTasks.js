@@ -13,11 +13,14 @@ var SlideTasks = (function(){
     function _initialize(){
         PubSub.subscribe('bindedBox.newTaskActivated', _renderTaskTabbedContent);
         PubSub.subscribe('taskData.updates.updatedTask', _renderTaskTabbedContent);
+        _activate();
         return false;
     }
 
     var _LAMBDA_PROGRESS = 0;
     var _FORM_PROGRESS = 0;
+    var _FORM_CACHE = {};
+    var _DYNAMIC_CONTENT_CACHE = {};
 
     function _handleRunTriggerBtnClick(e){
         e.preventDefault();
@@ -74,6 +77,17 @@ var SlideTasks = (function(){
             }
         );
 
+    }
+
+    function _setDynamicContent(taskId, content){
+        _DYNAMIC_CONTENT_CACHE[taskId] = content;
+    }
+
+    function _getDynamicContent(taskId){
+        if(typeof _DYNAMIC_CONTENT_CACHE[taskId] != 'undefined'){
+            return _DYNAMIC_CONTENT_CACHE[taskId];
+        }
+        return null;
     }
 
     function _handleAdminMarkIncomplete(e){
@@ -147,8 +161,13 @@ var SlideTasks = (function(){
                             _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'done', triggerType);
                             //PubSub.publish('queueNextRunLambdaStep', data.response);
                             $triggerStartBtn.removeClass('clicked').addClass('complete');
-                            $triggerStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
-                            $(".dynamic-content").html(data.response._form);
+                            // $triggerStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
+                            // $(".dynamic-content").html(data.response._form);
+                            _FORM_CACHE[post.taskTemplateId] = data.response._form;
+                            _setDynamicContent(post.taskTemplateId, _FORM_CACHE[post.taskTemplateId]);
+                            _setTaskTabbedContentDynamicContentHTML(_FORM_CACHE[post.taskTemplateId]);
+                            BindedBox.setElementHTML('bb_trigger_start_btn', '<i class="fa fa-bolt"></i> Trigger Loaded', $triggerStartBtn);
+                            _renderTaskActionBtns();
                             break;
 //                      case routineSlugs[3]: //'analyze_callback_results':
 //                          _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'done', triggerType);
@@ -466,6 +485,8 @@ var SlideTasks = (function(){
 //    }
 
     function _generateAndRenderAdminTools(task){
+        task = _prepareTask(task);
+
         if(BindedBox.allowed(5)){
 
             var $adminTools = $(".admin-tools"),
@@ -484,6 +505,8 @@ var SlideTasks = (function(){
     }
 
     function _taskHasDependencies(task){
+        task = _prepareTask(task);
+
         if(task && typeof task.data != 'undefined'){
             return task.data.dependencies.length >= 1;
         }
@@ -491,6 +514,8 @@ var SlideTasks = (function(){
     }
 
     function _taskIsLocked(task){
+        task = _prepareTask(task);
+
         if(task && typeof task.data != 'undefined'){
             return _taskHasDependencies(task) && !task.data.dependenciesOKTimeStamp;
         }
@@ -575,14 +600,7 @@ var SlideTasks = (function(){
     }
 
     function _renderTaskTabbedContent(task){
-
-        // Check if topic or task
-        task = typeof task.data != 'undefined' ? task : null;
-
-        // If no task is passed, get task by id
-        task = task || BindedBox.getTaskById(_BINDED_BOX.activeTaskId);
-
-        console.log(task);
+        task = _prepareTask(task);
 
         var
             $taskTab = $('.binded-trigger-box .tabbed-content.tasks'),
@@ -591,13 +609,13 @@ var SlideTasks = (function(){
             dependenciesContent = _generateDependenciesHTML(task),
             dynamicContent = _generateDynamicContentHTML(task);
 
-        if(dynamicContent){
-            PubSub.publish('newDynamicContent', {
-                task : task,
-                content : dependenciesContent + dynamicContent
-            });
+        var content = _getDynamicContent(task.id);
+        if(!content) {
+            content = dependenciesContent + dynamicContent;
+            _setDynamicContent(task.id, content);
         }
 
+        _setTaskTabbedContentDynamicContentHTML(content);
 
         $taskTab.find('.dynamic-content').attr('data-task_template_id', task.data.taskId);
         $taskTab.attr('data-status', task.data.status);
@@ -627,6 +645,8 @@ var SlideTasks = (function(){
     }
 
     function _generateAndRenderCompletionTestLink(task){
+        task = _prepareTask(task);
+
         var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
         var completionTestHTML = '';
         if(task.data.completionTests){
@@ -657,6 +677,8 @@ var SlideTasks = (function(){
     }
 
     function _generateAndRenderTriggerTypeAndDescription(task){
+        task = _prepareTask(task);
+
         var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
         if(!task.data.trigger){
             $taskTab.find('.trigger-type').hide();
@@ -687,18 +709,26 @@ var SlideTasks = (function(){
     }
 
     function _startRunningCompletionTest(task){
+        task = _prepareTask(task);
+
         // Start the loading spinner
         // Change html to reflect loading
         //
     }
 
-    function _setTaskTabbedContentDynamicContent(topic, data){
+    function _setTaskTabbedContentDynamicContentHTML(content){
         var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
-        BindedBox.setElementHTML('bb_task_dynamic_content', data.content, $taskTab, '.dynamic-content');
+        BindedBox.setElementHTML('bb_task_dynamic_content', content, $taskTab, '.dynamic-content');
         return true;
     }
 
+    function _saveDynamicContentState(){
+        var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
+        // Take the current dynamic content state, and store it in memory for the next time you come to this page
+    }
+
     function _generateDependenciesHTML(task){
+        task = _prepareTask(task);
         // dependenciesOK field must be set to true or dependencies must be null to bypass dependencies overlay
         // Check if dependencies exists
         // Check if dependencies have been satisfied
@@ -784,6 +814,8 @@ var SlideTasks = (function(){
     }
 
     function _generateDynamicContentHTML(task){
+        task = _prepareTask(task);
+
         var html = '';
         if(task.data.status == 'completed'){
             html += '<p>This task has already been completed. ';
@@ -826,6 +858,7 @@ var SlideTasks = (function(){
     }
 
     function _calculateActionBtns(task){
+        task = _prepareTask(task);
         var
             prevIndex,
             nextIndex,
@@ -846,7 +879,17 @@ var SlideTasks = (function(){
         return btns;
     }
 
+    function _prepareTask(task){
+        // Check if topic or task
+        task = typeof task != 'undefined' && typeof task.data != 'undefined' ? task : null;
+
+        // If no task is passed, get task by id
+        return task || BindedBox.getTaskById(_BINDED_BOX.activeTaskId);
+    }
+
     function _renderTaskActionBtns(task){
+        task = _prepareTask(task);
+
         var $actionBtns = $(".action-btns");
 
         BindedBox.actionBtns = SlideTasks.calculateActionBtns(task);
@@ -862,7 +905,12 @@ var SlideTasks = (function(){
 
         var classes = 'mark-complete inverse';
         var dependencyHold = task.data.dependencies && !task.data.dependenciesOKTimeStamp;
-        if(task.data.status == 'completed' || dependencyHold) classes += ' inactive';
+        var isForm = task.data.trigger.type == 'form',
+            formCached = typeof _FORM_CACHE[task.id] != 'undefined' ? _FORM_CACHE[task.id] : false;
+
+        //console.log(isForm, formCached);
+
+        if(task.data.status == 'completed' || dependencyHold || (isForm && !formCached)) classes += ' inactive';
         output += '<button class="' + classes + '" data-task_id="' + task.id + '"><i class="fa fa-check"></i>&nbsp; Mark Complete</button>';
         // Add to html
         $actionBtns.html(output);
@@ -881,7 +929,6 @@ var SlideTasks = (function(){
         $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
         PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
         PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
-        PubSub.subscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
         return false;
     }
 
@@ -894,7 +941,6 @@ var SlideTasks = (function(){
         $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
         PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
         PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
-        PubSub.unsubscribe('newDynamicContent', _setTaskTabbedContentDynamicContent);
         return false;
     }
 
@@ -907,6 +953,7 @@ var SlideTasks = (function(){
     return {
         reloadTabbedContent : _renderTaskTabbedContent,
         calculateActionBtns : _calculateActionBtns,
+        renderActionBtns : _renderTaskActionBtns,
         validateAndApplyUpdates : _validateAndApplyUpdates,
         validateAndApplyTaskUpdates : _validateAndApplyTaskUpdates,
         validateAndApplyMetaUpdates : _validateAndApplyMetaUpdates,
