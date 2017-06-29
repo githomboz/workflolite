@@ -53,20 +53,6 @@
                 var _PROJECT = <?php echo json_encode($this->project->getProjectData()) ?>;
                 _PROJECT.triggerBoxOpen = false; // Whether the triggerBoxShould be open or not
                 var _TASK_JSON = []; // Task data
-                var _BINDED_BOX = { // Popup data
-                    activeTaskId : null,
-                    activeTabId : null,
-                    /**
-                    * When this is set, all click events are subject to the lock. This is to avoid the accidental loss
-                    * of information that hasn't yet been persisted.
-                    */
-                    activeLock : null,
-                  /**
-                   * Keep the binding box open even when has been clicked outside or anything else.
-                   */
-                  keepOpen : false,
-                    userAcc : {acc:5}
-                };
             </script>
             <?php
             //var_dump($showableTasksGrouped);

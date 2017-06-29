@@ -130,6 +130,7 @@ https://github.com/mroderick/PubSubJS
 	 *	Publishes the the message, passing the data to it's subscribers
 	**/
 	PubSub.publish = function( message, data ){
+		console.log(message, data, messages);
 		return publish( message, data, false, PubSub.immediateExceptions );
 	};
 
@@ -151,6 +152,11 @@ https://github.com/mroderick/PubSubJS
 	 *	you need to unsubscribe
 	**/
 	PubSub.subscribe = function( message, func ){
+		if(message == 'bindedBox.newTaskActivated'){
+			console.log('subscribe topic', message);
+			console.log('subscribe func', func);
+			console.log(messages);
+		}
 		if ( typeof func !== 'function'){
 			return false;
 		}

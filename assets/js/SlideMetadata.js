@@ -18,12 +18,15 @@ var SlideMetadata = (function(){
     var messageContainerSelector = '.message-container';
     var $messageContainer = $(messageContainerSelector);
     var messageBoxOpen = false;
+    var _stateSlideActive = false;
 
     var options = {
-        loadingIcon : '<i class="fa fa-spin fa-spinner"></i>',
-        btnAddTxt : '<i class="fa fa-plus"></i> Add',
-        btnUpdateTxt : '<i class="fa fa-save"></i> Update'
-    };
+            slideName : 'metadata',
+            loadingIcon : '<i class="fa fa-spin fa-spinner"></i>',
+            btnAddTxt : '<i class="fa fa-plus"></i> Add',
+            btnUpdateTxt : '<i class="fa fa-save"></i> Update'
+        }
+        ;
 
     var _METADATA_DATA = {
         unsavedChanges : false,
@@ -1014,6 +1017,20 @@ var SlideMetadata = (function(){
         return false;
     }
 
+    function _setOption(option, value){
+        options[option] = value;
+        return true;
+    }
+
+    function _getOption(option){
+        return typeof options[option] == 'undefined' ? undefined : options[option];
+    }
+
+    function _isActiveSlide(){
+        return _getOption('slideName') == BindedBox.activeTabId;
+    }
+
+
     function _handleClickCloseMessage(e){
         e.preventDefault();
         _closeMessage();
@@ -1042,19 +1059,24 @@ var SlideMetadata = (function(){
         return false;
     }
 
-    PubSub.subscribe('bindedBox.tabs.metadata.openTriggered', _activate);
-    PubSub.subscribe('bindedBox.tabs.metadata.closeTriggered', _deactivate);
-    PubSub.subscribe('bindedBox.closed', _deactivate);
-
     _initialize();
 
     return {
+        activate : _activate,
+        deactivate : _deactivate,
         updateMeta : _updateMeta,
         showForm : _showForm,
         hideForm : _hideForm,
+        getOption : _getOption,
+        setOption : _setOption,
+        isActiveSlide : _isActiveSlide,
         enableFormSubmit : _enableFormSubmit,
         disableFormSubmit : _disableFormSubmit,
         setMessage : _setMessage,
         closeMessage : _closeMessage
     };
 })();
+
+PubSub.subscribe('bindedBox.tabs.' + SlideMetadata.getOption('slideName') + '.openTriggered', SlideMetadata.activate);
+PubSub.subscribe('bindedBox.tabs.' + SlideMetadata.getOption('slideName') + '.closeTriggered', SlideMetadata.deactivate);
+PubSub.subscribe('bindedBox.closed', SlideMetadata.deactivate);

@@ -3,17 +3,22 @@
  */
 var SlideTasks = (function(){
 
-    var options = {
-    };
+    var
+        _stateSlideActive = false,
+        options = {
+            slideName : 'tasks'
+        }
+        ;
 
     /**
      * Runs once upon startup
      * @private
      */
     function _initialize(){
-        PubSub.subscribe('bindedBox.newTaskActivated', _renderTaskTabbedContent);
+
         PubSub.subscribe('taskData.updates.updatedTask', _renderTaskTabbedContent);
-        _activate();
+
+        //_activate();
         return false;
     }
 
@@ -25,7 +30,7 @@ var SlideTasks = (function(){
     function _handleRunTriggerBtnClick(e){
         e.preventDefault();
         var
-            taskId = _BINDED_BOX.activeTaskId,
+            taskId = BindedBox.activeTaskId,
             task = BindedBox.getTaskById(taskId),
             taskType = task.data.trigger.type;
 
@@ -84,7 +89,7 @@ var SlideTasks = (function(){
     }
 
     function _getDynamicContent(taskId){
-        if(typeof _DYNAMIC_CONTENT_CACHE[taskId] != 'undefined'){
+        if(typeof _DYNAMIC_CONTENT_CACHE[taskId] != 'undefined' && _DYNAMIC_CONTENT_CACHE[taskId]){
             return _DYNAMIC_CONTENT_CACHE[taskId];
         }
         return null;
@@ -407,7 +412,7 @@ var SlideTasks = (function(){
             $tabbedContent = $this.parents('.tabbed-content.tasks'),
             post = {
                 projectId : _CS_Get_Project_ID(),
-                taskId : _BINDED_BOX.activeTaskId,
+                taskId : BindedBox.activeTaskId,
                 returnReport : 'condensed'
             },
             task = BindedBox.getTaskById(post.taskId),
@@ -539,7 +544,7 @@ var SlideTasks = (function(){
             if(_idSet){
                 // Update TASK_JSON
                 BindedBox.setTaskById(data.response.taskId, data.response.taskUpdates);
-
+                _setDynamicContent(data.response.taskId, null);
                 if(data.response.taskId == BindedBox.activeTaskId && render){
                     // Optionally re-render
                     BindedBox.reload(true);
@@ -600,6 +605,13 @@ var SlideTasks = (function(){
     }
 
     function _renderTaskTabbedContent(task){
+
+        _activate();
+
+        _LAMBDA_PROGRESS = 0;
+        _FORM_PROGRESS = 0;
+
+        var preTask = task;
         task = _prepareTask(task);
 
         var
@@ -884,7 +896,7 @@ var SlideTasks = (function(){
         task = typeof task != 'undefined' && typeof task.data != 'undefined' ? task : null;
 
         // If no task is passed, get task by id
-        return task || BindedBox.getTaskById(_BINDED_BOX.activeTaskId);
+        return task || BindedBox.getTaskById(BindedBox.activeTaskId);
     }
 
     function _renderTaskActionBtns(task){
@@ -918,45 +930,72 @@ var SlideTasks = (function(){
         //return false;
     }
 
+    function _setOption(option, value){
+        options[option] = value;
+        return true;
+    }
+
+    function _getOption(option){
+        return typeof options[option] == 'undefined' ? undefined : options[option];
+    }
+
+    function _isActiveSlide(){
+        return _getOption('slideName') == BindedBox.activeTabId && _stateSlideActive;
+    }
+
     function _activate(){
-        _LAMBDA_PROGRESS = 0;
-        _FORM_PROGRESS = 0;
-        $(document).on('click', '.admin-tools .tool.clear-dependency-checks', _handleAdminClearDependencyCheck);
-        $(document).on('click', '.admin-tools .tool.mark-incomplete', _handleAdminMarkIncomplete);
-        $(document).on('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
-        $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
-        $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
-        $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
-        PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
-        PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
-        return false;
+        if(!_isActiveSlide()){
+            $(document).on('click', '.admin-tools .tool.clear-dependency-checks', _handleAdminClearDependencyCheck);
+            $(document).on('click', '.admin-tools .tool.mark-incomplete', _handleAdminMarkIncomplete);
+            $(document).on('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
+            $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
+            $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
+            $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
+            PubSub.subscribe('bindedBox.newTaskActivated', _renderTaskTabbedContent);
+            PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
+            PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
+            _stateSlideActive = true;
+            console.log(BindedBox.activeTabId, 'activated');
+        }
     }
 
     function _deactivate(){
-        $(document).off('click', '.admin-tools .tool.clear-dependency-checks', _handleAdminClearDependencyCheck);
-        $(document).off('click', '.admin-tools .tool.mark-incomplete', _handleAdminMarkIncomplete);
-        $(document).off('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
-        $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
-        $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
-        $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
-        PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
-        PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
-        return false;
+        if(_isActiveSlide()){
+            $(document).off('click', '.admin-tools .tool.clear-dependency-checks', _handleAdminClearDependencyCheck);
+            $(document).off('click', '.admin-tools .tool.mark-incomplete', _handleAdminMarkIncomplete);
+            $(document).off('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
+            $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
+            $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
+            $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
+            PubSub.unsubscribe('bindedBox.newTaskActivated', _renderTaskTabbedContent);
+            PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
+            PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
+            _stateSlideActive = false;
+            console.log(BindedBox.activeTabId, 'deactivated');
+        }
     }
-
-    PubSub.subscribe('bindedBox.tabs.tasks.openTriggered', _activate);
-    PubSub.subscribe('bindedBox.tabs.tasks.closeTriggered', _deactivate);
-    PubSub.subscribe('bindedBox.closed', _deactivate);
 
     _initialize();
 
     return {
+        activate : _activate,
+        deactivate : _deactivate,
         reloadTabbedContent : _renderTaskTabbedContent,
         calculateActionBtns : _calculateActionBtns,
+        hasDependencies : _taskHasDependencies,
+        isLocked : _taskIsLocked,
+        getOption : _getOption,
+        setOption : _setOption,
+        isActiveSlide : _isActiveSlide,
         renderActionBtns : _renderTaskActionBtns,
         validateAndApplyUpdates : _validateAndApplyUpdates,
         validateAndApplyTaskUpdates : _validateAndApplyTaskUpdates,
         validateAndApplyMetaUpdates : _validateAndApplyMetaUpdates,
         validateAndApplyProjectUpdates : _validateAndApplyProjectUpdates,
+        handleCheckDependenciesClick : _handleCheckDependenciesClick
     };
 })();
+
+PubSub.subscribe('bindedBox.tabs.' + SlideTasks.getOption('slideName') + '.openTriggered', SlideTasks.activate);
+PubSub.subscribe('bindedBox.tabs.' + SlideTasks.getOption('slideName') + '.closeTriggered', SlideTasks.deactivate);
+PubSub.subscribe('bindedBox.closed', SlideTasks.deactivate);

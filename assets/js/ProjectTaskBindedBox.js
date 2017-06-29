@@ -4,6 +4,34 @@
 var BindedBox = (function(){
 
     var
+        __REQUESTS                  = {},
+        __CURRENT                   = {
+            __TASK                  : null,
+            __TASKS                 : null,
+            __PROJECT               : null,
+            __SETTINGS              : {
+                panelOpen           : false
+            },
+            __CACHE                 : null,
+            __USER                  : null
+        },
+        __RENDERED                  = {},
+        __REQUEST_COUNTER           = 0,
+        __pubsubRoot                = 'APP.BB.',
+        activeTaskId = null,
+        activeTabId = null,
+        /**
+         * When this is set, all click events are subject to the lock. This is to avoid the accidental loss
+         * of information that hasn't yet been persisted.
+         */
+        activeLock = null,
+        /**
+         * Keep the binding box open even when has been clicked outside or anything else.
+         */
+        keepOpen = false,
+        userAcc = {
+            acc : 5
+        },
         elementSelector =  '.binded-trigger-box',
         $bindedBox = $(elementSelector),
         $bindedBoxInnerHead = $bindedBox.find('.inner-head'),
@@ -12,52 +40,65 @@ var BindedBox = (function(){
             actionBtnHeight : 46,
             slideNavWidth : $(".tabbed-nav .item").outerWidth()
         },
-        actionBtns = null;
-
-    var options = {
-        showTaskCount : true,
-        showTimer : false,
-        elapsedTime : null,
-        settingsDropdown : [],
-        keyboardDirectionalBtnsActive : true,
-        issetH2 : false,
-        issetH3 : false
-    };
+        actionBtns = null,
+        options = {
+            showTaskCount : true,
+            showTimer : false,
+            elapsedTime : null,
+            settingsDropdown : [],
+            keyboardDirectionalBtnsActive : true,
+            issetH2 : false,
+            issetH3 : false
+        },
+        registeredSlideListeners = {} // An object of slides and the topics, and listeners to activate/deactivate
+        ;
 
     function _init(){
+        __CURRENT.__PROJECT = _PROJECT;
+        __CURRENT.__TASKS = _TASK_JSON;
+
+        PubSub.publish(__pubsubRoot + 'note.app', 'Binded box initialized');
         PubSub.subscribe('task.updated', _handleTaskUpdates);
         PubSub.subscribe('meta.updated', _handleMetaUpdates);
         PubSub.subscribe('project.updated', _handleProjectUpdates);
+        // PubSub.subscribe('bindedBox.tabs', function(topic, payload){
+        //     // console.log(topic, payload)
+        // });
 
         $(document).on('click', '.col-title .task-name', _handleTaskBindedTrigger); // Project list title js click event
-        $(window).load(function(){
-            $(window).resize(function(){
-                _triggerResize();
-            });
-        });
+        $(document).on('click', '.col-title .task-name', __handleClickTaskBtn); // Project list title js click event
+        // $(window).load(function(){
+        //     $(window).resize(function(){
+        //         _triggerResize();
+        //     });
+        // });
     }
 
     function _triggerResize(){
+        var reqId = __addRequest('resizeBB', null);
         var payload = {
-            padding : dimensions.padding,
-            windowWidth : $(window).width(),
-            windowHeight : $(window).height(),
-            windowChanges : {
-                width: null,
-                height: null
-            },
-            boxOuterWidth : $bindedBox.outerWidth(),
-            boxOuterHeight : $bindedBox.outerHeight(),
-            headerOuterHeight : $bindedBoxInnerHead.outerHeight(),
-            actionBtnHeight : dimensions.actionBtnHeight,
-            slideNavWidth : dimensions.slideNavWidth
-        };
+                padding : dimensions.padding,
+                windowWidth : $(window).width(),
+                windowHeight : $(window).height(),
+                windowChanges : {
+                    width: null,
+                    height: null
+                },
+                boxOuterWidth : $bindedBox.outerWidth(),
+                boxOuterHeight : $bindedBox.outerHeight(),
+                headerOuterHeight : $bindedBoxInnerHead.outerHeight(),
+                actionBtnHeight : dimensions.actionBtnHeight,
+                slideNavWidth : dimensions.slideNavWidth
+            };
 
         payload.newTaskTabHeight = payload.boxOuterHeight - payload.headerOuterHeight - payload.actionBtnHeight - (payload.padding * 3) - 2;
         payload.tabContainerWidth = payload.boxOuterWidth - payload.slideNavWidth - (payload.padding * 2) - 2;
         payload.preElementHeight = payload.newTaskTabHeight - (payload.padding * 4) - 6;
 
-        if(typeof _PROJECT.dimensions != 'undefined'){
+        // Only resize if data has changed
+        _PROJECT.dimensions = typeof _PROJECT.dimensions == 'undefined' ? null : _PROJECT.dimensions;
+        if(JSON.stringify(payload) != JSON.stringify(_PROJECT.dimensions)){
+            _PROJECT.dimensions = payload;
             payload.windowChanges.width = null;
             if(payload.windowWidth != _PROJECT.dimensions.windowWidth){
                 payload.windowChanges.width = (payload.windowWidth > _PROJECT.dimensions.windowWidth) ? 'grow' : 'shrink';
@@ -66,12 +107,13 @@ var BindedBox = (function(){
             if(payload.windowHeight != _PROJECT.dimensions.windowHeight){
                 payload.windowChanges.height = (payload.windowHeight > _PROJECT.dimensions.windowWidth) ? 'grow' : 'shrink';
             }
+
+            PubSub.publish(__pubsubRoot + 'state.app.dimensions', payload);
+            PubSub.publish('bindedBox.resize', payload);
+            __addResponse(reqId, 'Binded box resized');
+        } else {
+            __addResponse(reqId, 'Dimensions have not changed');
         }
-
-
-
-        PubSub.publish('bindedBox.resize', payload);
-        _PROJECT.dimensions = payload
     }
 
     function _setOption(option, value){
@@ -88,7 +130,7 @@ var BindedBox = (function(){
     }
 
     function _accessAllowed(level){
-        return _BINDED_BOX.userAcc.acc >= level;
+        return BindedBox.userAcc.acc >= level;
     }
 
     function _getTaskDataById(id){
@@ -182,7 +224,7 @@ var BindedBox = (function(){
     function _handleTaskUpdatesAirTrafficControl(payload){
         var sent = false; // Whether or not payload has been sent or not.
         // Check if active task is the task that has changed
-        var isActiveTask = typeof _BINDED_BOX.activeTaskId != 'undefined' && _BINDED_BOX.activeTaskId == payload.id;
+        var isActiveTask = typeof BindedBox.activeTaskId != 'undefined' && BindedBox.activeTaskId == payload.id;
         if(isActiveTask) {
             sent = true;
             PubSub.publish('taskData.updates.activeTask', payload);
@@ -202,7 +244,8 @@ var BindedBox = (function(){
             $task = $this.parents('.task-style'),
             taskId = $task.data('task_id');
 
-        _triggerBoxOpen(taskId);
+        //__activate();
+        //_triggerBoxOpen2(taskId);
         return false;
     }
 
@@ -214,8 +257,8 @@ var BindedBox = (function(){
     }
 
     function _reloadBindedBox(reloadProject){
-        if(_BINDED_BOX.activeTaskId){
-            var task = BindedBox.getTaskById(_BINDED_BOX.activeTaskId);
+        if(BindedBox.activeTaskId){
+            var task = BindedBox.getTaskById(BindedBox.activeTaskId);
             if(reloadProject) _renderProjectData(task);
             PubSub.publish('bindedBox.newTaskActivated', {
                 activeTaskId : task.id
@@ -226,7 +269,8 @@ var BindedBox = (function(){
     function _triggerBoxOpen(taskId){
         var task = BindedBox.getTaskById(taskId);
         if(task){
-            _BINDED_BOX.activeTaskId = taskId;
+            BindedBox.activeTaskId = task.id;
+            _activateTriggerBoxSlide('tasks'); // Default back to tasks slide
             if(!_PROJECT.triggerBoxOpen){
                 //console.log('trigger box opened');
                 $(".binded-trigger-box-overlay").addClass('show');
@@ -235,27 +279,27 @@ var BindedBox = (function(){
                 $(document).on('click', '.binded-trigger-box button.js-directional', _handleDirectionalBtnClick);
                 $(document).on('click', '.binded-trigger-box .action-btns .mark-complete', _handleMarkCompleteClick);
                 $(document).on('keydown', _handleBindedBoxKeydown);
+                $(window).on('load', __handleBindedBoxResize);
                 PubSub.subscribe('bindedBox.resize', _handleBindedBoxViewportResize);
                 PubSub.subscribe('bindedBox.activeLockCollision', _handleActiveLockCollision);
                 _PROJECT.triggerBoxOpen = true;
                 PubSub.publish('bindedBox.opened', null);
             }
             _reloadBindedBox(true);
-            _activateTriggerBoxSlide('tasks'); // Default back to tasks slide
             _triggerResize();
         }
     }
 
     function _triggerBoxClose(){
-        //console.log(_BINDED_BOX);
-//        if(_BINDED_BOX.activeLock && !_BINDED_BOX.keepOpen){
+        //console.log(BindedBox);
+//        if(BindedBox.activeLock && !BindedBox.keepOpen){
 //            PubSub.publish('bindedBox.activeLockCollision.action.closeBindedBox', {
 //                continueCallback : _triggerBoxClose
 //            });
 //            return;
 //        }
         var $overlay = $(".binded-trigger-box-overlay");
-        if($overlay.is('.show') || _PROJECT.triggerBoxOpen){
+        if(_PROJECT.triggerBoxOpen){
             //console.log('trigger box closed');
             $overlay.removeClass('show');
             $(document).off('click', _handleBindBoxCloseClick);
@@ -263,12 +307,12 @@ var BindedBox = (function(){
             $(document).off('click', '.binded-trigger-box button.js-directional', _handleDirectionalBtnClick);
             $(document).off('click', '.binded-trigger-box .action-btns .mark-complete', _handleMarkCompleteClick);
             $(document).off('keydown', _handleBindedBoxKeydown);
+            $(window).off('load', __handleBindedBoxResize);
             PubSub.unsubscribe('bindedBox.resize', _handleBindedBoxViewportResize);
             PubSub.unsubscribe('bindedBox.activeLockCollision', _handleActiveLockCollision);
             _PROJECT.triggerBoxOpen = false;
-            _BINDED_BOX.activeTaskId = null;
+            BindedBox.activeTaskId = null;
             PubSub.publish('bindedBox.closed', null);
-
         }
     }
 
@@ -276,6 +320,7 @@ var BindedBox = (function(){
         switch(e.which){
             case 37: // left
                 //case 38: // up
+                //if(BindedBox.actionBtns.prev && BindedBox.getOption('keyboardDirectionalBtnsActive')) _triggerBoxOpen(BindedBox.actionBtns.prev.id);
                 if(BindedBox.actionBtns.prev && BindedBox.getOption('keyboardDirectionalBtnsActive')) _triggerBoxOpen(BindedBox.actionBtns.prev.id);
                 break;
             case 39: // right
@@ -286,20 +331,20 @@ var BindedBox = (function(){
     }
 
     function _handleActiveLockCollision(topic, payload){
-        console.log(topic, payload);
-        if(_BINDED_BOX.activeLock){
-            if(typeof _BINDED_BOX.activeLock.message != 'undefined'){
+        //console.log(topic, payload);
+        if(BindedBox.activeLock){
+            if(typeof BindedBox.activeLock.message != 'undefined'){
                 alertify.confirm(
                     'Data Loss Warning!',
-                    _BINDED_BOX.activeLock.message,
+                    BindedBox.activeLock.message,
                     function(){
-                        _BINDED_BOX.activeLock = null;
+                        BindedBox.activeLock = null;
                         if(typeof payload.continueCallback != 'undefined') payload.continueCallback();
                     },
                     function(){
                         switch(topic){
                             case 'bindedBox.activeLockCollision.action.closeBindedBox':
-                                _BINDED_BOX.keepOpen = true;
+                                BindedBox.keepOpen = true;
                                 break;
                         }
                     }
@@ -309,8 +354,22 @@ var BindedBox = (function(){
         return false;
     }
 
+    function _checkMarkCompleteReady(task){
+        // Check dependencies
+        // Check for or generate completion report
+        // If completion report generated, mark complete
+    }
+
     function _handleMarkCompleteClick(e){
         e.preventDefault();
+        var $this = $(this),
+            taskId = $this.data('task_id');
+
+        _handleMarkComplete(taskId);
+        return false;
+    }
+
+    function _handleMarkComplete(taskId){
         var $this = $(this),
             taskId = $this.data('task_id'),
             task = _getTaskDataById(taskId);
@@ -322,17 +381,14 @@ var BindedBox = (function(){
             if(task.data.status != 'completed'){
                 // Create visual confirmation. Using anything other than custom will break .closest() js.
                 // Check if dependencies have been reconciled
-                if(task.data.dependencies) _handleCheckDependenciesClick();
+                if(task.data.dependencies) SlideTasks.handleCheckDependenciesClick();
                 // If autoRun, attempt to autoRun
                 // Check if completion scripts have been run successfully
                 // Make sure completionReport is added to task
                 // Reload task
             }
         }
-        return false;
     }
-
-
 
     function _handleBindedBoxViewportResize(topic, payload){
         // Change pre max-height to be full height minus header and action buttons
@@ -408,20 +464,21 @@ var BindedBox = (function(){
         // activate slide button
         $(".tabbed-nav .item").removeClass('selected');
         $(".tabbed-nav .item a[rel=" + slide + "]").parents('.item').addClass('selected');
-        var oldSlide = typeof _BINDED_BOX.activeTabId == 'undefined' ? null : _BINDED_BOX.activeTabId;
-        _BINDED_BOX.activeTabId = slide;
-        var topic = null;
-        if(oldSlide) {
-            topic = 'bindedBox.tabs.' + oldSlide + '.closeTriggered';
+        var oldSlide = typeof BindedBox.activeTabId == 'undefined' ? null : BindedBox.activeTabId;
+        BindedBox.activeTabId = slide;
+        if(slide != oldSlide){
+            _deactivateRegisteredSlideListeners(oldSlide);
+            _activateRegisteredSlideListeners(slide);
+            var topic = null;
+            if(oldSlide) {
+                topic = 'bindedBox.tabs.' + oldSlide + '.closeTriggered';
+                PubSub.publish(topic, null);
+            }
+            topic = 'bindedBox.tabs.' + slide + '.openTriggered';
             PubSub.publish(topic, null);
         }
-        topic = 'bindedBox.tabs.' + slide + '.openTriggered';
-        PubSub.publish(topic, null);
     }
 
-    PubSub.subscribe('bindedBox.tabs', function(topic, payload){
-        // console.log(topic, payload)
-    });
 
     /**
      * Set html value and store in memory what that value is to avoid having to re-render identical content
@@ -503,16 +560,360 @@ var BindedBox = (function(){
     function _handleActiveTaskUpdated(topic, payload){
         PubSub.publish('taskData.updates.updatedTask', payload);
     }
+
+    function _registerSlideListener(slide, message, func){
+        if(typeof registeredSlideListeners[slide] == 'undefined') registeredSlideListeners[slide] = {};
+        if(typeof registeredSlideListeners[slide][message] == 'undefined') registeredSlideListeners[slide][message] = [];
+        registeredSlideListeners[slide][message].push(func);
+    }
     
-    
+    function _unregisterSlideListener(slide, message, func){
+        if (slide && message && func){
+            // Unset specific listener
+        } else if(slide && message){
+            // Unset all for specific message
+        } else if(slide) {
+            // Unset all for specific slide
+        }
+    }
+
+    function _activateRegisteredSlideListeners(activeSlide){
+        for(var slide in registeredSlideListeners){
+            if(slide == activeSlide){
+                for(var message in registeredSlideListeners[slide]){
+                    for(var func in registeredSlideListeners[slide][message]){
+                        PubSub.subscribe(message, func);
+                    }
+                }
+            }
+        }
+    }
+
+    function _deactivateRegisteredSlideListeners(activeSlide){
+        for(var slide in registeredSlideListeners){
+            if(slide == activeSlide){
+                for(var message in registeredSlideListeners[slide]){
+                    for(var func in registeredSlideListeners[slide][message]){
+                        PubSub.unsubscribe(message, func);
+                    }
+                }
+            }
+        }
+    }
+
+    /***************************************************************************************/
+
+    function __handleBindedBoxResize(){
+        $(window).resize(function(){
+            _triggerResize();
+        });
+    }
+
+    function __addRequest( slug, data ) {
+        __REQUEST_COUNTER ++;
+        var type = 'req';
+        var topic = __pubsubRoot + type + '.' + slug + '._' + __REQUEST_COUNTER;
+        if(typeof data == 'string') data = { message : data };
+        __REQUESTS[__REQUEST_COUNTER] = {
+            slug : slug,
+            data : data
+        };
+        PubSub.publish(topic, data);
+        // Start timeout
+        return __REQUEST_COUNTER;
+    }
+
+    function __addResponse ( requestId , data ) {
+        // Cancel timeout
+        // Get slug from __REQUESTS data
+        var type = 'res';
+        var slug = typeof __REQUESTS[requestId] != 'undefined' ? __REQUESTS[requestId].slug : null;
+        var topic = __pubsubRoot + type + '.' + slug + '._' + requestId;
+        if ( typeof data == 'string' ) data = { message : data };
+        if( !slug ) {
+            console.error( 'Unable to find the slug for this request' );
+        } else {
+            PubSub.publish(topic, data);
+        }
+    }
+
+    function __handleClickTaskBtn ( e ) {
+        e.preventDefault();
+
+        // Publish request
+        var reqId = __addRequest('taskBtnClicked', null),
+            $this = $( this ),
+            $task = $this.parents( '.task-style' ),
+            taskId = $task.data( 'task_id' );
+
+        // Set active task
+        __setNewActiveTask(taskId);
+
+        // Activate BB
+        __activate();
+
+        // Publish response
+        __addResponse(reqId, 'Activate invoked');
+        return false;
+    }
+
+    /**
+     * Entry Point; The function that sets a new task in the
+     * @param taskId
+     * @private
+     */
+    function __setNewActiveTask(taskId){
+        if(!__CURRENT.__TASK || taskId != __CURRENT.__TASK.id){
+            var task = _getTaskDataById(taskId);
+            __CURRENT.__TASK = task;
+        }
+
+        __auditChanges();
+    }
+
+    /**
+     * Routine that is invoked on a timer, or based upon an event that attempts to apply state data if out of date
+     * @private
+     */
+    function __auditChanges() {
+        // Publish request
+        var reqId = __addRequest('auditChanges', null);
+        if ( __CURRENT.__SETTINGS.panelOpen ) {
+            // Compare data state of app, tasks, project, meta, user, cache against the __RENDERED state to identify changes
+            var dataCategories = ['__TASKS','__TASK','__PROJECT','__SETTINGS','__USER','__CACHE'],
+                dCat,
+                renderSuccessful = false,
+                dataChanges = {};
+            for(var i in dataCategories){
+                dCat = dataCategories[i];
+                if(JSON.stringify( __CURRENT[ dCat ] ) != JSON.stringify( __RENDERED[ dCat ] ) ) {
+                    // Perform HTML updates to data that has been discovered
+                    switch ( dCat ){
+                        case '__TASK':
+                            break;
+                        case '__TASKS':
+                            break;
+                        case '__PROJECT':
+                            break;
+                        case '__SETTINGS':
+                            break;
+                        case '__USER':
+                            break;
+                        case '__CACHE':
+                            break;
+                    }
+
+                    renderSuccessful = true;
+                }
+            }
+
+            // Publish response
+            if(renderSuccessful){
+                __addResponse(reqId, {
+                    message : 'Update renders complete.',
+                    changes : dataChanges
+                });
+            } else {
+                __addResponse(reqId, 'No updates to render.');
+            }
+        } else {
+            // Publish response
+            __addResponse(reqId, {
+                message : 'Panel not open. Ignoring render command.',
+                type    : 'debug'
+            });
+        }
+    }
+
+    /**
+     * Check for data changes, apply those changes, and re-render the page elements affected.
+     * @param data The data that will be checked and applied
+     * @private
+     */
+    function __setProject(data){
+        // Publish request
+        // Check for changes
+        // If changes, apply changes, re-render html, update __RENDERED.__PROJECT
+        // Publish response
+    }
+
+    /**
+     * Returns data if there are changes, and null if no changes exists
+     * @param data The data that is to be compared to existing data
+     * @return object Returns the fields affected and data
+     * @private
+     */
+    function __checkProjectUpdates(data){
+        // Publish request
+        // Publish response
+    }
+
+    /**
+     * Check for data changes, apply those changes, and re-render the page elements affected.
+     * @param data The data that will be checked and applied
+     * @private
+     */
+    function __setMeta(data){
+        // Publish request
+        // Check for changes
+        // If changes, apply changes, re-render html, update __RENDERED.__META
+        // Publish response
+    }
+
+    /**
+     * Returns data if there are changes, and null if no changes exists
+     * @param data The data that is to be compared to existing data
+     * @return object Returns the fields affected and data
+     * @private
+     */
+    function __checkMetaUpdates(data){
+        // Publish request
+        // Publish response
+    }
+
+    /**
+     * Check for data changes, apply those changes, and re-render the page elements affected.
+     * @param data The data that will be checked and applied
+     * @private
+     */
+    function __setTask(data){
+        // Publish request
+        // Check for changes
+        // If changes, apply changes, re-render html, update __RENDERED.__TASK
+        // Publish response
+    }
+
+    /**
+     * Returns data if there are changes, and null if no changes exists
+     * @param data The data that is to be compared to existing data
+     * @return object Returns the fields affected and data
+     * @private
+     */
+    function __checkTaskUpdates(data){
+        // Publish request
+        // Publish response
+    }
+
+    /**
+     * Check for data changes, apply those changes, and re-render the page elements affected.
+     * @param data The data that will be checked and applied
+     * @private
+     */
+    function __setTasks(data){
+        // Publish request
+        // Check for changes
+        // If changes, apply changes, re-render html, update __RENDERED.__TASKS
+        // Publish response
+    }
+
+    /**
+     * Returns data if there are changes, and null if no changes exists
+     * @param data The data that is to be compared to existing data
+     * @return object Returns the fields affected and data
+     * @private
+     */
+    function __checkTasksUpdates(data){
+        // Publish request
+        // Publish response
+    }
+
+    /**
+     * Check for data changes, apply those changes, and re-render the page elements affected.
+     * @param data The data that will be checked and applied
+     * @private
+     */
+    function __setSettings(data){
+        // Publish request
+        // Check for changes
+        // If changes, apply changes, re-render html, update __RENDERED.__APP
+        // Publish response
+    }
+
+    /**
+     * Returns data if there are changes, and null if no changes exists
+     * @param data The data that is to be compared to existing data
+     * @return object Returns the fields affected and data
+     * @private
+     */
+    function __checkSettingsUpdates(data){
+        // Publish request
+        // Publish response
+    }
+
+    /**
+     * Check for data changes, apply those changes, and re-render the page elements affected.
+     * @param data The data that will be checked and applied
+     * @private
+     */
+    function __setUser(data){
+        // Publish request
+        // Check for changes
+        // If changes, apply changes, re-render html, update __RENDERED.__USER
+        // Publish response
+    }
+
+    /**
+     * Returns data if there are changes, and null if no changes exists
+     * @param data The data that is to be compared to existing data
+     * @return object Returns the fields affected and data
+     * @private
+     */
+    function __checkUserUpdates(data){
+        // Publish request
+        // Publish response
+    }
+
+    /**
+     * Initiates BindedBox popup box in the user's browser
+     * Renders the HTML
+     * Starts BindedBox event listeners
+     * @private
+     */
+    function __activate(){
+        // Publish request
+        // Check health state
+        // Handle error || continue
+        // Render & apply listeners
+        // Publish response
+
+        BindedBox.activeTaskId = __CURRENT.__TASK.id;
+        _activateTriggerBoxSlide(BindedBox.activeTabId); // Default back to tasks slide
+        if(!_PROJECT.triggerBoxOpen){
+            //console.log('trigger box opened');
+            $(".binded-trigger-box-overlay").addClass('show');
+            $(document).on('click', _handleBindBoxCloseClick);
+            $(document).on('click', '.binded-trigger-box .item a', _handleTriggerBoxNavClick);
+            $(document).on('click', '.binded-trigger-box button.js-directional', _handleDirectionalBtnClick);
+            $(document).on('click', '.binded-trigger-box .action-btns .mark-complete', _handleMarkCompleteClick);
+            $(document).on('keydown', _handleBindedBoxKeydown);
+            $(window).on('load', __handleBindedBoxResize);
+            PubSub.subscribe('bindedBox.resize', _handleBindedBoxViewportResize);
+            PubSub.subscribe('bindedBox.activeLockCollision', _handleActiveLockCollision);
+            _PROJECT.triggerBoxOpen = true;
+            PubSub.publish('bindedBox.opened', null);
+        }
+        _reloadBindedBox(true);
+        _triggerResize();
+        __auditChanges();
+    }
+
     _init();
 
+    console.log(_PROJECT);
+
     return {
+        activeTaskId : activeTaskId,
+        activeTabId : activeTabId,
+        activeLock : activeLock,
+        keepOpen : keepOpen,
+        userAcc : userAcc,
         actionBtns : actionBtns,
         allowed : _accessAllowed,
         selector : elementSelector,
         $el : $bindedBox,
         options : options,
+        registerSlideListeners : _registerSlideListener,
+        unregisterSlideListeners : _unregisterSlideListener,
         reload : _reloadBindedBox,
         loadTriggerBox : _triggerBoxOpen,
         unloadTriggerBox : _triggerBoxClose,

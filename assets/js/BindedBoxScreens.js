@@ -71,7 +71,7 @@ var BindedBoxScreens = (function(){
     function _renderTaskDump(){
         var html = '';
         for(var i in _TASK_JSON) {
-            if(_BINDED_BOX.activeTaskId == _TASK_JSON[i].id){
+            if(BindedBox.activeTaskId == _TASK_JSON[i].id){
                 html += JSON.stringify(_TASK_JSON[i], undefined, 2);
                 _options.$taskInset.find('pre.task-data').html(html);
             }
@@ -89,7 +89,7 @@ var BindedBoxScreens = (function(){
         for(var i in _TASK_JSON){
             var isComplete = _TASK_JSON[i].data.status == 'completed';
             //console.log(_TASK_JSON[i].id);
-            var activeTask = _BINDED_BOX.activeTaskId == _TASK_JSON[i].id;
+            var activeTask = BindedBox.activeTaskId == _TASK_JSON[i].id;
             html += '<li data-status="' + _TASK_JSON[i].data.status + '" ';
             html += 'data-task_id="' + _TASK_JSON[i].id + '" ';
             html += 'class="' + (activeTask ? 'active':'') + '"';
@@ -258,7 +258,7 @@ var BindedBoxScreens = (function(){
         console.log(payload);
         var redrawStatuses = ['completed','new','active','skipped','force_skipped'];
         // Check if tabbed-content.tasks is the active screen
-        if(_BINDED_BOX.activeTabId == 'tasks'){
+        if(BindedBox.activeTabId == 'tasks'){
             console.log(redrawStatuses.indexOf(payload.updates.status));
             // Check if taskNames changed
             var taskNameChanged = typeof payload.updates.taskName != 'undefined';
@@ -287,7 +287,7 @@ var BindedBoxScreens = (function(){
             $li = $this.parents('li'),
             taskId = $li.data('task_id');
 
-        var isActiveTask = _BINDED_BOX.activeTaskId == taskId;
+        var isActiveTask = BindedBox.activeTaskId == taskId;
         var boxOpen = _PROJECT.triggerBoxOpen === true;
 
         if(!boxOpen || !isActiveTask) BindedBox.loadTriggerBox(taskId);
@@ -309,7 +309,6 @@ var BindedBoxScreens = (function(){
     }
 
     function _render(){
-        console.log(_options);
         if(_options.screenNavChangesMade || !_options.screensActivated) _renderNav();
 
         // Set screen count
@@ -372,8 +371,8 @@ var BindedBoxScreens = (function(){
         // console.log('screen', $screen.offset(), $screen.position(), $screen.scrollTop());
     }
 
-    PubSub.subscribe('bindedBox.opened', _activate);
-    PubSub.subscribe('bindedBox.closed', _deactivate);
+    PubSub.subscribe('bindedBox.tabs.tasks.openTriggered', _activate);
+    PubSub.subscribe('bindedBox.tabs.tasks.closeTriggered', _deactivate);
 
     return {
         taskIsLocked : _isLocked, 
