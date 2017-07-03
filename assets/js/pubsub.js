@@ -152,11 +152,6 @@ https://github.com/mroderick/PubSubJS
 	 *	you need to unsubscribe
 	**/
 	PubSub.subscribe = function( message, func ){
-		if(message == 'bindedBox.newTaskActivated'){
-			console.log('subscribe topic', message);
-			console.log('subscribe func', func);
-			console.log(messages);
-		}
 		if ( typeof func !== 'function'){
 			return false;
 		}

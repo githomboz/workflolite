@@ -70,9 +70,9 @@ var BindedBoxScreens = (function(){
 
     function _renderTaskDump(){
         var html = '';
-        for(var i in _TASK_JSON) {
-            if(BindedBox.activeTaskId == _TASK_JSON[i].id){
-                html += JSON.stringify(_TASK_JSON[i], undefined, 2);
+        for(var i in BindedBox.TASKS) {
+            if(BindedBox.getCurrent('task','id') == BindedBox.TASKS[i].id){
+                html += JSON.stringify(BindedBox.TASKS[i], undefined, 2);
                 _options.$taskInset.find('pre.task-data').html(html);
             }
         }
@@ -86,12 +86,12 @@ var BindedBoxScreens = (function(){
 
     function _renderInsetTaskList(){
         var html = '<ol class="inset-tasklist">';
-        for(var i in _TASK_JSON){
-            var isComplete = _TASK_JSON[i].data.status == 'completed';
-            //console.log(_TASK_JSON[i].id);
-            var activeTask = BindedBox.activeTaskId == _TASK_JSON[i].id;
-            html += '<li data-status="' + _TASK_JSON[i].data.status + '" ';
-            html += 'data-task_id="' + _TASK_JSON[i].id + '" ';
+        for(var i in BindedBox.TASKS){
+            var isComplete = BindedBox.TASKS[i].data.status == 'completed';
+            //console.log(BindedBox.TASKS[i].id);
+            var activeTask = BindedBox.getCurrent('task', 'id') == BindedBox.TASKS[i].id;
+            html += '<li data-status="' + BindedBox.TASKS[i].data.status + '" ';
+            html += 'data-task_id="' + BindedBox.TASKS[i].id + '" ';
             html += 'class="' + (activeTask ? 'active':'') + '"';
             html += '>';
             if(isComplete){
@@ -99,13 +99,13 @@ var BindedBoxScreens = (function(){
             } else {
                 html += '<i class="fa fa-square"></i> &nbsp; ';
             }
-            html += '<span class="task-sort-order">' + _TASK_JSON[i].data.sortOrder + '.</span> ';
-            if(_hasDependencies(_TASK_JSON[i]) === true){
-                html += '<i class="fa fa-' + (_isLocked(_TASK_JSON[i]) === true ? 'lock' : 'unlock') + '"></i> ';
+            html += '<span class="task-sort-order">' + BindedBox.TASKS[i].data.sortOrder + '.</span> ';
+            if(_hasDependencies(BindedBox.TASKS[i]) === true){
+                html += '<i class="fa fa-' + (_isLocked(BindedBox.TASKS[i]) === true ? 'lock' : 'unlock') + '"></i> ';
             }
             html += '<a href="#" class="task-name">';
             if(isComplete) html += '<strike>';
-            html += _TASK_JSON[i].data.taskName;
+            html += BindedBox.TASKS[i].data.taskName;
             if(isComplete) html += '</strike>';
             html += '</a> ';
             if(activeTask) html += ' <i class="fa fa-caret-left"></i>';
@@ -240,40 +240,39 @@ var BindedBoxScreens = (function(){
         _initialize();
         $(document).on('click', '.inset-tab-link', _handleInsetBtnClick);
         $(document).on('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
-        PubSub.subscribe('bindedBox.newTaskActivated', _handleRequestForReRender);
-        PubSub.subscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
-        PubSub.subscribe('task.updated', _handleTaskDataChanges);
+        PubSub.subscribe(BindedBox.pubsubRoot + 'state.task', _handleRequestForReRender);
+        // PubSub.subscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
+        // PubSub.subscribe('task.updated', _handleTaskDataChanges);
         _render();
     }
 
     function _deactivate(){
         $(document).off('click', '.inset-tab-link', _handleInsetBtnClick);
         $(document).off('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
-        PubSub.unsubscribe('bindedBox.newTaskActivated', _handleRequestForReRender);
-        PubSub.unsubscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
-        PubSub.unsubscribe('task.updated', _handleTaskDataChanges);
+        PubSub.unsubscribe(BindedBox.pubsubRoot + 'state.task', _handleRequestForReRender);
+        // PubSub.unsubscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
+        // PubSub.unsubscribe('task.updated', _handleTaskDataChanges);
     }
 
-    function _handleTaskDataChanges(topic, payload){
-        console.log(payload);
-        var redrawStatuses = ['completed','new','active','skipped','force_skipped'];
-        // Check if tabbed-content.tasks is the active screen
-        if(BindedBox.activeTabId == 'tasks'){
-            console.log(redrawStatuses.indexOf(payload.updates.status));
-            // Check if taskNames changed
-            var taskNameChanged = typeof payload.updates.taskName != 'undefined';
-            // Check if status changed
-            var statusChanged = typeof payload.updates.status != 'undefined';
-            var newStatusRequiresRender = statusChanged && (redrawStatuses.indexOf(payload.updates.status) >= 0);
-            var dependenciesChanged = typeof payload.updates.dependenciesOKTimeStamp != 'undefined';
-            console.log(taskNameChanged, newStatusRequiresRender, dependenciesChanged);
-            // If necessary, redraw task list
-            if(taskNameChanged || newStatusRequiresRender || dependenciesChanged){
-                _handleRequestForReRender();
-            }
-        }
-
-    }
+    // function _handleTaskDataChanges(topic, payload){
+    //     //console.log(payload);
+    //     var redrawStatuses = ['completed','new','active','skipped','force_skipped'];
+    //     // Check if tabbed-content.tasks is the active screen
+    //     if(BindedBox.getCurrent('settings','slide') == 'tasks'){
+    //         // Check if taskNames changed
+    //         var taskNameChanged = typeof payload.updates.taskName != 'undefined';
+    //         // Check if status changed
+    //         var statusChanged = typeof payload.updates.status != 'undefined';
+    //         var newStatusRequiresRender = statusChanged && (redrawStatuses.indexOf(payload.updates.status) >= 0);
+    //         var dependenciesChanged = typeof payload.updates.dependenciesOKTimeStamp != 'undefined';
+    //         //console.log(taskNameChanged, newStatusRequiresRender, dependenciesChanged);
+    //         // If necessary, redraw task list
+    //         if(taskNameChanged || newStatusRequiresRender || dependenciesChanged){
+    //             _handleRequestForReRender();
+    //         }
+    //     }
+    //
+    // }
 
     function _handleRequestForReRender(topic, payload){
         var taskListScreen = 1;
@@ -287,10 +286,12 @@ var BindedBoxScreens = (function(){
             $li = $this.parents('li'),
             taskId = $li.data('task_id');
 
-        var isActiveTask = BindedBox.activeTaskId == taskId;
-        var boxOpen = _PROJECT.triggerBoxOpen === true;
+        var isActiveTask = BindedBox.getCurrent('task','id') == taskId;
+        var boxOpen = BindedBox.getCurrent('settings','panelOpen') === true;
 
-        if(!boxOpen || !isActiveTask) BindedBox.loadTriggerBox(taskId);
+        if(!boxOpen || !isActiveTask) BindedBox.setNewActiveTask(taskId);
+        //console.log('this is happening');
+        return false;
     }
 
     function _handleInsetBtnClick(e){
@@ -375,8 +376,10 @@ var BindedBoxScreens = (function(){
     PubSub.subscribe('bindedBox.tabs.tasks.closeTriggered', _deactivate);
 
     return {
-        taskIsLocked : _isLocked, 
-        render: _handleRequestForReRender
+        taskIsLocked : _isLocked,
+        // render: _render,
+        activate : _activate,
+        deactivate : _deactivate
     }
 
 })();

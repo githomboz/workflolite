@@ -51,9 +51,11 @@ var SlideMetadata = (function(){
      * @private
      */
     function _initialize(){
+        var reqId = BindedBox.addRequest('initializeModule', 'Initializing `SlideMetadata` module');
         _updateMetaCount();
         // $(".js-us-phone-mask").mask("(999) 999-9999", {autoclear: false});
         // $(".js-twitter-handle-mask").mask("@***************", {autoclear: false});
+        BindedBox.addResponse(reqId, '`SlideMetadata` module initialized' );
         return false;
     }
 
@@ -1027,7 +1029,7 @@ var SlideMetadata = (function(){
     }
 
     function _isActiveSlide(){
-        return _getOption('slideName') == BindedBox.activeTabId;
+        return _getOption('slideName') == BindedBox.getCurrent('settings','slide')
     }
 
 

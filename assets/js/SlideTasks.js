@@ -15,10 +15,11 @@ var SlideTasks = (function(){
      * @private
      */
     function _initialize(){
-
+        var reqId = BindedBox.addRequest('initializeModule', 'Initializing `SlideTasks` module');
         PubSub.subscribe('taskData.updates.updatedTask', _renderTaskTabbedContent);
 
         //_activate();
+        BindedBox.addResponse(reqId, '`SlideTasks` module initialized' );
         return false;
     }
 
@@ -30,7 +31,7 @@ var SlideTasks = (function(){
     function _handleRunTriggerBtnClick(e){
         e.preventDefault();
         var
-            taskId = BindedBox.activeTaskId,
+            taskId = BindedBox.getCurrent('task','id'),
             task = BindedBox.getTaskById(taskId),
             taskType = task.data.trigger.type;
 
@@ -412,7 +413,7 @@ var SlideTasks = (function(){
             $tabbedContent = $this.parents('.tabbed-content.tasks'),
             post = {
                 projectId : _CS_Get_Project_ID(),
-                taskId : BindedBox.activeTaskId,
+                taskId : BindedBox.getCurrent('task','id'),
                 returnReport : 'condensed'
             },
             task = BindedBox.getTaskById(post.taskId),
@@ -647,6 +648,24 @@ var SlideTasks = (function(){
             BindedBox.setElementHTML('bb_task_h1_icon', '', $taskTab, 'h1 .icon');
         }
 
+        // Handle Task Counts
+        var $lowerHeader = $(".lower-settings"),
+            $taskCountText = $lowerHeader.find('.task-count-txt');
+
+        // Show/hide task counts
+        if(BindedBox.getOption('showTaskCount')
+            && task.data.sortOrder
+            && BindedBox.TASKS.length > 0){
+            console.log(task);
+            BindedBox.setElementHTML('bb_task_num', task.data.sortOrder, $taskCountText, '.task-num');
+            BindedBox.setElementHTML('bb_task_count', BindedBox.getCurrent('project','taskCount'), $taskCountText, '.task-count');
+            $taskCountText.show();
+        } else {
+            $taskCountText.hide();
+        }
+
+
+
         _generateAndRenderTriggerTypeAndDescription(task);
 
         _generateAndRenderAdminTools(task);
@@ -654,6 +673,8 @@ var SlideTasks = (function(){
         _generateAndRenderCompletionTestLink(task);
 
         _renderTaskActionBtns(task);
+
+        if( typeof BindedBoxScreens != 'undefined' ) BindedBoxScreens.activate();
     }
 
     function _generateAndRenderCompletionTestLink(task){
@@ -740,7 +761,7 @@ var SlideTasks = (function(){
     }
 
     function _generateDependenciesHTML(task){
-        task = _prepareTask(task);
+        // task = _prepareTask(task);
         // dependenciesOK field must be set to true or dependencies must be null to bypass dependencies overlay
         // Check if dependencies exists
         // Check if dependencies have been satisfied
@@ -879,13 +900,13 @@ var SlideTasks = (function(){
                 prev : null,
                 next : null
             };
-        for(var i in _TASK_JSON) {
-            if(task.id == _TASK_JSON[i].id){
+        for(var i in BindedBox.TASKS) {
+            if(task.id == BindedBox.TASKS[i].id){
                 btns.curr = task;
                 prevIndex = (parseInt(i) - 1).toString();
-                btns.prev = typeof _TASK_JSON[prevIndex] != 'undefined' ? BindedBox.getTaskById(_TASK_JSON[prevIndex].id) : null;
+                btns.prev = typeof BindedBox.TASKS[prevIndex] != 'undefined' ? BindedBox.getTaskById(BindedBox.TASKS[prevIndex].id) : null;
                 nextIndex = (parseInt(i) + 1).toString();
-                btns.next = typeof _TASK_JSON[nextIndex] != 'undefined' ? BindedBox.getTaskById(_TASK_JSON[nextIndex].id) : null;
+                btns.next = typeof BindedBox.TASKS[nextIndex] != 'undefined' ? BindedBox.getTaskById(BindedBox.TASKS[nextIndex].id) : null;
             }
         }
         return btns;
@@ -940,7 +961,7 @@ var SlideTasks = (function(){
     }
 
     function _isActiveSlide(){
-        return _getOption('slideName') == BindedBox.activeTabId && _stateSlideActive;
+        return _getOption('slideName') == BindedBox.getCurrent('settings','slide') && _stateSlideActive;
     }
 
     function _activate(){
@@ -955,7 +976,8 @@ var SlideTasks = (function(){
             PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
             _stateSlideActive = true;
-            console.log(BindedBox.activeTabId, 'activated');
+            //console.log(BindedBox.getCurrent('settings','slide'), 'activated');
+            PubSub.publish( BindedBox.pubsubRoot + 'slide.tasks.activated', null );
         }
     }
 
@@ -971,7 +993,8 @@ var SlideTasks = (function(){
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
             _stateSlideActive = false;
-            console.log(BindedBox.activeTabId, 'deactivated');
+            //console.log(BindedBox.getCurrent('settings','slide'), 'deactivated');
+            PubSub.publish( BindedBox.pubsubRoot + 'slide.tasks.deactivated', null );
         }
     }
 
