@@ -30,6 +30,7 @@ var SlideTasks = (function(){
 
     function _handleRunTriggerBtnClick(e){
         e.preventDefault();
+        var reqId = BindedBox.addRequest('triggerBtnClick', 'The trigger button has been clicked');
         var
             taskId = BindedBox.getCurrent('task','id'),
             task = BindedBox.getTaskById(taskId),
@@ -50,6 +51,7 @@ var SlideTasks = (function(){
                     break;
             }
         }
+        BindedBox.addResponse(reqId , taskType + '');
     }
 
     function _handleAdminClearDependencyCheck(e){
@@ -529,13 +531,16 @@ var SlideTasks = (function(){
     }
 
     function _validateAndApplyUpdates(data, render){
+        var reqId = BindedBox.addRequest('validateAndApplyUpdates', 'Preparing to validate and apply task, meta, project and settings updates');
         _validateAndApplyTaskUpdates(data, render);
         _validateAndApplyMetaUpdates(data, render);
         _validateAndApplyProjectUpdates(data, render);
+        BindedBox.addResponse(reqId, 'Completed validation and application of task, meta, project, and settings updates');
     }
 
     function _validateAndApplyTaskUpdates(data, render){
         // Validate
+        var reqId = BindedBox.addRequest('validateApplyTaskUpdates','Checking for task updates to be validated and applied ');
         var render = render || false,
             _dataSet = typeof data.response != 'undefined',
             _idSet = typeof data.response.taskId != 'undefined',
@@ -545,22 +550,28 @@ var SlideTasks = (function(){
             if(_idSet){
                 // Update TASK_JSON
                 BindedBox.setTaskById(data.response.taskId, data.response.taskUpdates);
-                _setDynamicContent(data.response.taskId, null);
-                if(data.response.taskId == BindedBox.activeTaskId && render){
-                    // Optionally re-render
-                    BindedBox.reload(true);
-                    SlideTasks.reloadTabbedContent();
-                }
-
-                PubSub.publish('task.updated', {
-                    taskId : data.response.taskId,
-                    updates : data.response.taskUpdates
+                BindedBox.checkForChanges();
+                //if( typeof BindedBoxScreens != 'undefined' ) BindedBoxScreens.render();
+                // _setDynamicContent(data.response.taskId, null);
+                // if(data.response.taskId == BindedBox.getCurrent('task','id') && render){
+                //     // Optionally re-render
+                //     BindedBox.reload(true);
+                //     SlideTasks.reloadTabbedContent();
+                // }
+                //
+                // PubSub.publish('task.updated', {
+                //     taskId : data.response.taskId,
+                //     updates : data.response.taskUpdates
+                // });
+                BindedBox.addResponse(reqId , {
+                    message : 'Task updates have been discovered',
+                    data : data.response.taskUpdates
                 });
-
-
             } else {
-                console.error('The field `taskId` must be set for updates to be applied');
+                BindedBox.addResponse(reqId , {message: 'The field `taskId` must be set for updates to be applied',messageType: 'error'});
             }
+        } else {
+            BindedBox.addResponse(reqId , 'No updates found');
         }
     }
 
@@ -656,7 +667,7 @@ var SlideTasks = (function(){
         if(BindedBox.getOption('showTaskCount')
             && task.data.sortOrder
             && BindedBox.TASKS.length > 0){
-            console.log(task);
+            //console.log(task);
             BindedBox.setElementHTML('bb_task_num', task.data.sortOrder, $taskCountText, '.task-num');
             BindedBox.setElementHTML('bb_task_count', BindedBox.getCurrent('project','taskCount'), $taskCountText, '.task-count');
             $taskCountText.show();
@@ -978,6 +989,7 @@ var SlideTasks = (function(){
             _stateSlideActive = true;
             //console.log(BindedBox.getCurrent('settings','slide'), 'activated');
             PubSub.publish( BindedBox.pubsubRoot + 'slide.tasks.activated', null );
+            if (typeof BindedBoxScreens != 'undefined') BindedBoxScreens.activate();
         }
     }
 
@@ -995,6 +1007,7 @@ var SlideTasks = (function(){
             _stateSlideActive = false;
             //console.log(BindedBox.getCurrent('settings','slide'), 'deactivated');
             PubSub.publish( BindedBox.pubsubRoot + 'slide.tasks.deactivated', null );
+            if (typeof BindedBoxScreens != 'undefined') BindedBoxScreens.deactivate();
         }
     }
 

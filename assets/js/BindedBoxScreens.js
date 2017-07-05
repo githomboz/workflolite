@@ -3,6 +3,7 @@
  */
 var BindedBoxScreens = (function(){
 
+    var _isActive = false;
     var _options = {
         screenCount : 0,
         screensActivated : false,
@@ -11,6 +12,15 @@ var BindedBoxScreens = (function(){
         screenNavChangesMade : false,
         $taskInset : $(".task-inset")
     };
+
+    /**
+     * Whether or not the screen logs that were fired before the screen log module loaded have been brought into the
+     * array _screenLog.
+     * @type {boolean}
+     * @private
+     */
+    var _preLoadScreenLogsMerged = false;
+    var _screenLog = [];
     var _screens = [
         {
             slug : 'screens',
@@ -28,7 +38,7 @@ var BindedBoxScreens = (function(){
             content : null,
             isLoaded : false, // Whether content has been loaded to dom
             isLoading : false, // If the content is in request mode
-            contentCallback : _renderInsetTaskList, // Function to call to get content
+            contentCallback : _generateInsetTaskList, // Function to call to get content
             scrollX : false,
             scrollY : true,
         },
@@ -38,7 +48,7 @@ var BindedBoxScreens = (function(){
             content : null,
             isLoaded : false, // Whether content has been loaded to dom
             isLoading : false, // If the content is in request mode
-            contentCallback : _renderLogs, // Function to call to get content
+            contentCallback : _generateLogs, // Function to call to get content
             scrollX : true,
             scrollY : true,
         },
@@ -65,7 +75,9 @@ var BindedBoxScreens = (function(){
     ];
 
     function _initialize(){
+        var reqId = BindedBox.addRequest('initializingBBScreens', 'Initializing the BindedBox screens');
         for(var i in _screens) _screens[i].index = parseInt(i);
+        BindedBox.addResponse(reqId, 'BindedBox screens initialized');
     }
 
     function _renderTaskDump(){
@@ -79,12 +91,38 @@ var BindedBoxScreens = (function(){
         //return html;
     }
 
-    function _renderLogs(){
-        var html = 'Logs Screen';
+    function _generateLogs(){
+        var html = '',
+            logs = BindedBox.getScreenLogs(),
+            isRequest,
+            isResponse,
+            isInfo,
+            reqId;
+
+        //console.log(logs);
+        html += '<ul class="screen-logs">';
+        for ( var i in logs ){
+            isRequest = logs[i].context.topic.indexOf('.req.') >= 0;
+            isResponse = logs[i].context.topic.indexOf('.res.') >= 0;
+            reqId = logs[i].context.topic.split('.')[4];
+            isInfo = !isRequest && !isResponse;
+            html += '<li class="clearfix">';
+            html += '<span class="date">' + logs[i].date.toISOString() + '</span> ';
+            if(!isInfo) html += '(' + reqId.replace('_','') + ') ';
+            html += '<i class="fa fa-' + (isInfo ? 'info' : (isRequest ? 'arrow-right' : 'arrow-left')) + '"></i> ';
+            html += '<span class="message">' + logs[i].message + '</span>';
+            html += '</li>';
+        }
+        html += '</ul>';
         return html;
     }
 
-    function _renderInsetTaskList(){
+    function _renderLogs(){
+        $( ".inset-tab[data-tab_id=2]" ).html( _generateLogs() );
+    }
+
+    function _generateInsetTaskList(){
+        var reqId = BindedBox.addRequest('generateInsetTaskList', 'Generate tasks slide inset task list html');
         var html = '<ol class="inset-tasklist">';
         for(var i in BindedBox.TASKS){
             var isComplete = BindedBox.TASKS[i].data.status == 'completed';
@@ -111,6 +149,10 @@ var BindedBoxScreens = (function(){
             if(activeTask) html += ' <i class="fa fa-caret-left"></i>';
             html += '</li>';
         }
+        BindedBox.addResponse(reqId, {
+            message : 'Tasks slide inset task list html generated',
+            //html : html
+        });
         return html;
     }
 
@@ -237,21 +279,26 @@ var BindedBoxScreens = (function(){
     }
 
     function _activate(){
-        _initialize();
-        $(document).on('click', '.inset-tab-link', _handleInsetBtnClick);
-        $(document).on('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
-        PubSub.subscribe(BindedBox.pubsubRoot + 'state.task', _handleRequestForReRender);
-        // PubSub.subscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
-        // PubSub.subscribe('task.updated', _handleTaskDataChanges);
-        _render();
+        if(!_isActive){
+            $(document).on('click', '.inset-tab-link', _handleInsetBtnClick);
+            $(document).on('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
+            PubSub.subscribe(BindedBox.pubsubRoot + 'state.task', _handleRequestForReRender);
+            // PubSub.subscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
+            // PubSub.subscribe('task.updated', _handleTaskDataChanges);
+            _render();
+            _isActive = true;
+        }
     }
 
     function _deactivate(){
-        $(document).off('click', '.inset-tab-link', _handleInsetBtnClick);
-        $(document).off('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
-        PubSub.unsubscribe(BindedBox.pubsubRoot + 'state.task', _handleRequestForReRender);
-        // PubSub.unsubscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
-        // PubSub.unsubscribe('task.updated', _handleTaskDataChanges);
+        if(_isActive){
+            $(document).off('click', '.inset-tab-link', _handleInsetBtnClick);
+            $(document).off('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
+            PubSub.unsubscribe(BindedBox.pubsubRoot + 'state.task', _handleRequestForReRender);
+            // PubSub.unsubscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
+            // PubSub.unsubscribe('task.updated', _handleTaskDataChanges);
+            _isActive = false;
+        }
     }
 
     // function _handleTaskDataChanges(topic, payload){
@@ -310,6 +357,7 @@ var BindedBoxScreens = (function(){
     }
 
     function _render(){
+        var reqId = BindedBox.addRequest('renderingBBScreens', 'Preparing to render BindedBox task slide screens');
         if(_options.screenNavChangesMade || !_options.screensActivated) _renderNav();
 
         // Set screen count
@@ -362,6 +410,8 @@ var BindedBoxScreens = (function(){
             _options.screensActivated = true;
         }
 
+        BindedBox.addResponse(reqId, 'BindedBox tasks slide screens rendered');
+
     }
 
     function _calculateActiveScrollPositions(){
@@ -372,12 +422,15 @@ var BindedBoxScreens = (function(){
         // console.log('screen', $screen.offset(), $screen.position(), $screen.scrollTop());
     }
 
+    _initialize();
+
     PubSub.subscribe('bindedBox.tabs.tasks.openTriggered', _activate);
     PubSub.subscribe('bindedBox.tabs.tasks.closeTriggered', _deactivate);
 
     return {
+        renderLogs :    _renderLogs,
         taskIsLocked : _isLocked,
-        // render: _render,
+        render: _render,
         activate : _activate,
         deactivate : _deactivate
     }

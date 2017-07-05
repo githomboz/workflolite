@@ -20,7 +20,7 @@ var BindedBox = (function(){
         __RENDERED                  = {},
         __REQUEST_COUNTER           = 0,
         __pubsubRoot                = 'APP.BB.',
-        dataCategories = ['__TASKS','__TASK','__PROJECT','__SETTINGS','__USER','__CACHE'],
+        dataCategories = ['__TASK','__TASKS','__PROJECT','__SETTINGS','__USER','__CACHE'],
         activeTaskId = null,
         activeTabId = null,
         /**
@@ -51,19 +51,30 @@ var BindedBox = (function(){
             settingsDropdown : [],
             keyboardDirectionalBtnsActive : true,
             issetH2 : false,
-            issetH3 : false
+            issetH3 : false,
+            logThreshold : 100
         },
+        /**
+         * This is an array of screen logs. This is to capture logging that occurs before the screens module is loaded.
+         * @type {Object}
+         */
+        __screenLogRepo = {},
+
+        __screenLogCount = 1,
         registeredSlideListeners = {} // An object of slides and the topics, and listeners to activate/deactivate
         ;
 
     function _init(){
+        PubSub.subscribe( __pubsubRoot.substr(0, (__pubsubRoot.length - 1)) , __captureLoggableTraffic );
         var reqId = __addRequest( 'initiateMainModule' , 'Initializing `BindedBox` module' );
         __CURRENT.__PROJECT = _PROJECT;
         __CURRENT.__TASKS = _TASK_JSON;
 
-        //PubSub.subscribe('task.updated', _handleTaskUpdates);
-        //PubSub.subscribe('meta.updated', _handleMetaUpdates);
-        //PubSub.subscribe('project.updated', _handleProjectUpdates);
+        // Handle updates from other modules. @todo: Needs to be updated with new BindedBox.pubsubRoot style topic
+        PubSub.subscribe('task.updated', _handleTaskUpdates);
+        PubSub.subscribe('meta.updated', _handleMetaUpdates);
+        PubSub.subscribe('project.updated', _handleProjectUpdates);
+
 
         //$(document).on('click', '.col-title .task-name', _handleTaskBindedTrigger); // Project list title js click event
         $(document).on('click', '.col-title .task-name', __handleClickTaskBtn); // Project list title js click event
@@ -167,70 +178,79 @@ var BindedBox = (function(){
         if(typeof task.id != 'undefined') return task.id;
     }
 
-    // // Update task data on page. This does not change task data values in db. This is only for triggering front end
-    // // related tasks.
-    // function _setTaskDataById(id, data){
-    //     var updates = {}, newTask = null;
-    //     // Update
-    //     for(var i in __CURRENT.__TASKS){
-    //         if(typeof __CURRENT.__TASKS[i].id != 'undefined' && __CURRENT.__TASKS[i].id == id){
-    //             if(data){
-    //                 for(var field in data){
-    //                     var fieldIsNew = typeof __CURRENT.__TASKS[i].data[field] == 'undefined';
-    //                     var fieldIsDifferent = fieldIsNew || (!fieldIsNew && __CURRENT.__TASKS[i].data[field] != data[field]);
-    //                     if(fieldIsDifferent){
-    //                         __CURRENT.__TASKS[i].data[field] = data[field];
-    //                         updates[field] = data[field];
-    //                         newTask = __CURRENT.__TASKS[i];
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     if(newTask) {
-    //         var payload = {
-    //             id : id,
-    //             updates : updates,
-    //             newTask : newTask,
-    //             updatesMade : newTask !== null
-    //         };
-    //         _handleTaskUpdatesAirTrafficControl(payload);
-    //     }
-    // }
+    // Update task data on page. This does not change task data values in db. This is only for triggering front end
+    // related tasks.
+    function _setTaskDataById(id, data){
+        var updates = {}, newTask = null;
+        // Update
+        for(var i in __CURRENT.__TASKS){
+            if(typeof __CURRENT.__TASKS[i].id != 'undefined' && __CURRENT.__TASKS[i].id == id){
+                if(data){
+                    for(var field in data){
+                        var fieldIsNew = typeof __CURRENT.__TASKS[i].data[field] == 'undefined';
+                        var fieldIsDifferent = fieldIsNew || (!fieldIsNew && __CURRENT.__TASKS[i].data[field] != data[field]);
+                        if(fieldIsDifferent){
+                            __CURRENT.__TASKS[i].data[field] = data[field];
+                            console.log('change registered');
 
-    // function _setTaskDataByNum(num, data){
-    //     var id = _getTaskIdByTaskNumber(num);
-    //     if(id){
-    //         return _setTaskDataById(id, data);
-    //     }
-    // }
+                            // If target task is current task, update it
+                            if(__CURRENT.__TASK && __CURRENT.__TASKS[i].id == __CURRENT.__TASK.id){
+                                console.log('current task change registered');
+                                __CURRENT.__TASK.data[field] = data[field];
+                            }
 
-//     function _handleTaskUpdates(topic, payload){
-//         // Publish PubSub
-//         // Update the given task in __CURRENT.__TASKS
-//         // Update the UI for task slide
-//         if(typeof payload.taskId != 'undefined'){
-//             if(typeof payload.updates != 'undefined'){
-//
-//                 console.log(__CURRENT.__TASKS, payload);
-//                 for(var i in __CURRENT.__TASKS){
-//                     if(__CURRENT.__TASKS[i].data.taskId == payload.taskId){
-//                         for(var field in payload.updates){
-//                             __CURRENT.__TASKS[i].data[field] = payload.updates[field];
-//                         }
-//                         BindedBox.setElementHTML('bb_taskdata_vardump', JSON.stringify(__CURRENT.__TASKS[i], undefined, 2), $('.task-inset pre.task-data'));
-//                     }
-//                 }
-// //                console.log(__CURRENT.__TASKS, payload);
-//
-//             } else {
-//                 console.error('updates is not defined');
-//             }
-//         } else {
-//             console.error('taskId is not defined');
-//         }
-//
-//     }
+                            updates[field] = data[field];
+                            newTask = __CURRENT.__TASKS[i];
+
+                        }
+                    }
+                }
+            }
+        }
+        // if(newTask) {
+        //     var payload = {
+        //         id : id,
+        //         updates : updates,
+        //         newTask : newTask,
+        //         updatesMade : newTask !== null
+        //     };
+        //     //_handleTaskUpdatesAirTrafficControl(payload);
+        // }
+    }
+
+    function _setTaskDataByNum(num, data){
+        var id = _getTaskIdByTaskNumber(num);
+        if(id){
+            return _setTaskDataById(id, data);
+        }
+    }
+
+    function _handleTaskUpdates(topic, payload){
+        // Publish PubSub
+        // Update the given task in __CURRENT.__TASKS
+        // Update the UI for task slide
+        if(typeof payload.taskId != 'undefined'){
+            if(typeof payload.updates != 'undefined'){
+
+                console.log(__CURRENT.__TASKS, payload);
+                for(var i in __CURRENT.__TASKS){
+                    if(__CURRENT.__TASKS[i].data.taskId == payload.taskId){
+                        for(var field in payload.updates){
+                            __CURRENT.__TASKS[i].data[field] = payload.updates[field];
+                        }
+                        BindedBox.setElementHTML('bb_taskdata_vardump', JSON.stringify(__CURRENT.__TASKS[i], undefined, 2), $('.task-inset pre.task-data'));
+                    }
+                }
+//                console.log(__CURRENT.__TASKS, payload);
+
+            } else {
+                console.error('updates is not defined');
+            }
+        } else {
+            console.error('taskId is not defined');
+        }
+
+    }
 
     // function _handleTaskUpdatesAirTrafficControl(payload){
     //     var sent = false; // Whether or not payload has been sent or not.
@@ -609,6 +629,51 @@ var BindedBox = (function(){
 
     /***************************************************************************************/
 
+    function __getScreenLogs(){
+        return __screenLogRepo;
+    }
+
+    function __screenLog(message, type, context){
+        type = type && typeof type != 'undefined' ? (['debug','error'].indexOf(type.toLowerCase()) >= 0 ? type.toLowerCase() : 'info') : 'info' ;
+        var entry = {
+                date : new Date(),
+                message : message,
+                type : type
+            };
+
+        // Will have a context if a .res or .req
+        if(context) {
+            entry.context = context;
+
+            // Makes sure it is not already set. reqId makes these values unique.
+            var logCount = Object.keys( __screenLogRepo ).length ;
+            var key = __screenLogCount + '_' + context.topic ;
+            if(typeof __screenLogRepo[ key ] == 'undefined') {
+                __screenLogRepo[ key ] = entry;
+                __screenLogCount ++;
+                if( logCount >= _getOption( 'logThreshold' )) {
+
+                    // Discern how many elements to remove
+                    var difference = logCount - _getOption( 'logThreshold' );
+
+                    // Remove elements from logs repo
+                    for( var i in __screenLogRepo ){
+                        if( difference >= 0 ){
+                            delete __screenLogRepo[ i ];
+                            difference --;
+                        }
+                    }
+                }
+            }
+
+            // Attempt to render
+            if(typeof BindedBoxScreens != 'undefined'){
+                BindedBoxScreens.renderLogs();
+            }
+        }
+
+    }
+
     function __setCurrent( type , field , value ) {
         var _type = '__' + type.toUpperCase();
         __CURRENT[ _type ][ field ] = value;
@@ -737,18 +802,23 @@ var BindedBox = (function(){
 
         for( var i in dataCategories ){
             dCat = dataCategories[ i ];
+            console.log( dCat );
+            console.log( __CURRENT[ dCat ] );
+            console.log( __RENDERED[ dCat ] );
             if( JSON.stringify( __CURRENT[ dCat ] ) != JSON.stringify( __RENDERED[ dCat ] ) ) {
                 // Perform HTML updates to data that has been discovered
                 switch ( dCat ){
                     case '__TASK':
                         __checkTaskUpdates();
                         __setTask();
+                        renderSuccessful = true;
                         break;
                     case '__TASKS':
                         break;
                     case '__PROJECT':
                         __checkForDataUpdates('project');
                         __setProject();
+                        renderSuccessful = true;
                         break;
                     case '__SETTINGS':
                         break;
@@ -758,7 +828,6 @@ var BindedBox = (function(){
                         break;
                 }
 
-                renderSuccessful = true;
             }
         }
 
@@ -988,7 +1057,37 @@ var BindedBox = (function(){
      */
     function __checkTasksUpdates() {
         // Publish request
+        var
+            entity = 'tasks',
+            __entity = '__' + entity.toUpperCase() ,
+            reqId = __addRequest( 'check' + entity.capitalize() + 'Updates' , 'Attempting to check for updates' ),
+            response = {
+                fields : [],
+                updates : {}
+            },
+            isRendered = typeof __RENDERED[__entity] != 'undefined' && typeof __RENDERED[__entity].id == 'undefined' ;
+
+        // console.log(isRendered, __CURRENT, __RENDERED);
+
+        for ( var field in __CURRENT[__entity].data ) {
+
+            if( isRendered ) {
+                // Check if data matches
+                if( __CURRENT[__entity].data[ field ] != __RENDERED[__entity].data[ field ] ){
+                    response.fields.push( field );
+                    response.updates[ field ] = __CURRENT[__entity].data[ field ];
+                }
+            } else {
+                response.fields.push( field );
+                response.updates[ field ] = __CURRENT[__entity].data[ field ];
+            }
+        }
         // Publish response
+        __addResponse( reqId , {
+            message : 'Finished checking for changes; ' + response.fields.length + ' changes found',
+            response : response
+        } );
+        __UNSAVED_CHANGES[ __entity ] = response;
     }
 
     /**
@@ -1037,6 +1136,19 @@ var BindedBox = (function(){
         // Publish response
     }
 
+    function __captureLoggableTraffic(topic, data){
+        //console.log(message, {_:(data && typeof data.message != 'undefined' ? data.message : data)});
+        var message = (data && typeof data.message != 'undefined' ? data.message : false),
+            messageType = (data && typeof data.messageType != 'undefined' ? data.messageType : undefined),
+            context = (data && typeof data.messageContext != 'undefined' ? data.messageContext : {});
+
+        context['topic'] = topic;
+
+        if(message){
+            __screenLog(message, messageType, context);
+        }
+    }
+
     /**
      * Initiates BindedBox popup box in the user's browser
      * Renders the HTML
@@ -1049,6 +1161,7 @@ var BindedBox = (function(){
         // Handle error || continue
         // Render & apply listeners
         // Publish response
+
 
         _activateTriggerBoxSlide( __CURRENT.__SETTINGS.slide ); // Default back to tasks slide
 
@@ -1105,8 +1218,6 @@ var BindedBox = (function(){
 
     _init();
 
-    console.log(_PROJECT);
-
     return {
         TASK                        : __CURRENT.__TASK,
         TASKS                       : __CURRENT.__TASKS,
@@ -1118,6 +1229,9 @@ var BindedBox = (function(){
         $el                         : $bindedBox,
         options                     : options,
         pubsubRoot                  : __pubsubRoot,
+        getScreenLogs               : __getScreenLogs,
+        screenLog                   : __screenLog,
+        checkForChanges             : __auditChanges,
         getCurrent                  : __getCurrent,
         setCurrent                  : __setCurrent,
         addRequest                  : __addRequest,
@@ -1132,8 +1246,8 @@ var BindedBox = (function(){
         getTaskById                 : _getTaskDataById,
         getTaskByNum                : _getTaskDataByNumber,
         getTaskIdByNum              : _getTaskIdByTaskNumber,
-        // setTaskById                 : _setTaskDataById,
-        // setTaskByNum                : _setTaskDataByNum,
+        setTaskById                 : _setTaskDataById,
+        setTaskByNum                : _setTaskDataByNum,
         activateSlide               : _activateTriggerBoxSlide,
         triggerResize               : _triggerResize,
         setElementHTML              : _setBindedBoxElementHTML
