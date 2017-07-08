@@ -17,6 +17,7 @@ var SlideTasks = (function(){
     function _initialize(){
         var reqId = BindedBox.addRequest('initializeModule', 'Initializing `SlideTasks` module');
         PubSub.subscribe('taskData.updates.updatedTask', _renderTaskTabbedContent);
+        PubSub.subscribe(BindedBox.pubsubRoot + 'state', _handleStateChange);
 
         //_activate();
         BindedBox.addResponse(reqId, '`SlideTasks` module initialized' );
@@ -91,7 +92,11 @@ var SlideTasks = (function(){
         _DYNAMIC_CONTENT_CACHE[taskId] = content;
     }
 
-    function _getDynamicContent(taskId){
+    function _getDynamicContent(taskId, flush){
+        flush = flush || false;
+        if(flush) {
+            _DYNAMIC_CONTENT_CACHE[taskId] = null;
+        }
         if(typeof _DYNAMIC_CONTENT_CACHE[taskId] != 'undefined' && _DYNAMIC_CONTENT_CACHE[taskId]){
             return _DYNAMIC_CONTENT_CACHE[taskId];
         }
@@ -530,19 +535,18 @@ var SlideTasks = (function(){
         return false;
     }
 
-    function _validateAndApplyUpdates(data, render){
+    function _validateAndApplyUpdates(data){
         var reqId = BindedBox.addRequest('validateAndApplyUpdates', 'Preparing to validate and apply task, meta, project and settings updates');
-        _validateAndApplyTaskUpdates(data, render);
-        _validateAndApplyMetaUpdates(data, render);
-        _validateAndApplyProjectUpdates(data, render);
+        _validateAndApplyTaskUpdates(data);
+        _validateAndApplyMetaUpdates(data);
+        _validateAndApplyProjectUpdates(data);
         BindedBox.addResponse(reqId, 'Completed validation and application of task, meta, project, and settings updates');
     }
 
-    function _validateAndApplyTaskUpdates(data, render){
+    function _validateAndApplyTaskUpdates(data){
         // Validate
         var reqId = BindedBox.addRequest('validateApplyTaskUpdates','Checking for task updates to be validated and applied ');
-        var render = render || false,
-            _dataSet = typeof data.response != 'undefined',
+        var _dataSet = typeof data.response != 'undefined',
             _idSet = typeof data.response.taskId != 'undefined',
             _updatesSet = _dataSet && typeof data.response.taskUpdates != 'undefined' && data.response.taskUpdates;
 
@@ -552,6 +556,16 @@ var SlideTasks = (function(){
                     message : 'Task updates have been discovered',
                     data : data.response.taskUpdates
                 });
+
+                if(BindedBox.task().id == data.response.taskId){
+                    // Publish TASK state change
+                    BindedBox.stateChange('task', data.response.taskUpdates);
+                }
+
+                var tasksUpdate = data.response.taskUpdates;
+                tasksUpdate.id = data.response.taskId;
+                // Publish TASKS state change
+                BindedBox.stateChange('tasks', tasksUpdate);
 
                 //
                 // // Update TASK_JSON
@@ -581,10 +595,9 @@ var SlideTasks = (function(){
         }
     }
 
-    function _validateAndApplyMetaUpdates(data, render){
+    function _validateAndApplyMetaUpdates(data){
         // Validate
-        var render = render || false,
-            _dataSet = typeof data.response != 'undefined',
+        var _dataSet = typeof data.response != 'undefined',
             _updatesSet = _dataSet && typeof data.response.metaUpdates != 'undefined' && data.response.metaUpdates;
 
         if(_updatesSet){
@@ -599,10 +612,9 @@ var SlideTasks = (function(){
         }
     }
 
-    function _validateAndApplyProjectUpdates(data, render){
+    function _validateAndApplyProjectUpdates(data){
         // Validate
-        var render = render || false,
-            _dataSet = typeof data.response != 'undefined',
+        var _dataSet = typeof data.response != 'undefined',
             _idSet = typeof data.response.projectId != 'undefined',
             _updatesSet = _dataSet && typeof data.response.projectUpdates != 'undefined' && data.response.projectUpdates;
 
@@ -622,7 +634,7 @@ var SlideTasks = (function(){
         }
     }
 
-    function _renderTaskTabbedContent(task){
+    function _renderTaskTabbedContent(task, flushDynamicContent){
 
         var reqId = BindedBox.addRequest('renderTaskContent', 'Rendering task tabbed content');
 
@@ -631,19 +643,23 @@ var SlideTasks = (function(){
         _LAMBDA_PROGRESS = 0;
         _FORM_PROGRESS = 0;
 
-        var preTask = task;
-        task = _prepareTask(task);
+        var flush = flushDynamicContent || false;
+        if(!task) {
+            flush = true;
+            task = _prepareTask();
+        }
+        console.log(task);
 
         var
             $taskTab = $('.binded-trigger-box .tabbed-content.tasks'),
             hasDependencies = _taskHasDependencies(task),
             locked = _taskIsLocked(task),
-            dependenciesContent = _generateDependenciesHTML(task),
+            dependenciesHTML = _generateDependenciesHTML(task),
             dynamicContent = _generateDynamicContentHTML(task);
 
-        var content = _getDynamicContent(task.id);
+        var content = _getDynamicContent(task.id, flush);
         if(!content) {
-            content = dependenciesContent + dynamicContent;
+            content = dependenciesHTML + dynamicContent;
             _setDynamicContent(task.id, content);
         }
 
@@ -937,7 +953,7 @@ var SlideTasks = (function(){
         task = typeof task != 'undefined' && typeof task.data != 'undefined' ? task : null;
 
         // If no task is passed, get task by id
-        return task || BindedBox.getTaskById(BindedBox.activeTaskId);
+        return task || BindedBox.getTaskById(BindedBox.task().id);
     }
 
     function _renderTaskActionBtns(task){
@@ -980,12 +996,34 @@ var SlideTasks = (function(){
         return typeof options[option] == 'undefined' ? undefined : options[option];
     }
 
+    function _handleStateChange(topic, payload){
+        var parsedTopic = BindedBox.parseAppTopic(topic);
+        if(parsedTopic.isValid) {
+            switch (parsedTopic.map.entity){
+                case 'settings':
+                        if(_isActiveSlide()) _activate();
+                    break;
+                case 'task':
+                    if(_isActiveSlide()){
+                        _renderTaskTabbedContent();
+                    }
+                    break;
+                case 'tasks':
+                    console.log('test2');
+                    if(_isActiveSlide()) {
+
+                    }
+                    break;
+            }
+        }
+
+    }
+
     function _isActiveSlide(){
-        return _getOption('slideName') == BindedBox.getCurrent('settings','slide') && _stateSlideActive;
+        return _getOption('slideName') == BindedBox.getCurrent('settings','slide');
     }
 
     function _activate(){
-        if(!_isActiveSlide()){
             $(document).on('click', '.admin-tools .tool.clear-dependency-checks', _handleAdminClearDependencyCheck);
             $(document).on('click', '.admin-tools .tool.mark-incomplete', _handleAdminMarkIncomplete);
             $(document).on('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
@@ -995,15 +1033,10 @@ var SlideTasks = (function(){
             PubSub.subscribe('bindedBox.newTaskActivated', _renderTaskTabbedContent);
             PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
-            _stateSlideActive = true;
-            //console.log(BindedBox.getCurrent('settings','slide'), 'activated');
-            PubSub.publish( BindedBox.pubsubRoot + 'slide.tasks.activated', null );
             if (typeof BindedBoxScreens != 'undefined') BindedBoxScreens.activate();
-        }
     }
 
     function _deactivate(){
-        if(_isActiveSlide()){
             $(document).off('click', '.admin-tools .tool.clear-dependency-checks', _handleAdminClearDependencyCheck);
             $(document).off('click', '.admin-tools .tool.mark-incomplete', _handleAdminMarkIncomplete);
             $(document).off('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
@@ -1013,11 +1046,7 @@ var SlideTasks = (function(){
             PubSub.unsubscribe('bindedBox.newTaskActivated', _renderTaskTabbedContent);
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
-            _stateSlideActive = false;
-            //console.log(BindedBox.getCurrent('settings','slide'), 'deactivated');
-            PubSub.publish( BindedBox.pubsubRoot + 'slide.tasks.deactivated', null );
             if (typeof BindedBoxScreens != 'undefined') BindedBoxScreens.deactivate();
-        }
     }
 
     _initialize();

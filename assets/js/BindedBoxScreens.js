@@ -77,6 +77,7 @@ var BindedBoxScreens = (function(){
     function _initialize(){
         var reqId = BindedBox.addRequest('initializingBBScreens', 'Initializing the BindedBox screens');
         for(var i in _screens) _screens[i].index = parseInt(i);
+        PubSub.subscribe(BindedBox.pubsubRoot + 'state', _handleStateChange);
         BindedBox.addResponse(reqId, 'BindedBox screens initialized');
     }
 
@@ -415,6 +416,27 @@ var BindedBoxScreens = (function(){
         }
 
         BindedBox.addResponse(reqId, 'BindedBox tasks slide screens rendered');
+
+    }
+
+
+    function _handleStateChange(topic, payload){
+        var parsedTopic = BindedBox.parseAppTopic(topic);
+        if(parsedTopic.isValid) {
+            switch (parsedTopic.map.entity){
+                case 'task':
+                    if(_isActive){
+                        _renderTaskDump();
+                        _renderInsetTaskList();
+                    }
+                    break;
+                case 'tasks':
+                    if(_isActive) {
+                        _renderInsetTaskList();
+                    }
+                    break;
+            }
+        }
 
     }
 
