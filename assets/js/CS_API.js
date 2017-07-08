@@ -6,8 +6,10 @@
  */
 
 var CS_API = (function(){
+
+    var useSource = (window.location.href.search(':8888') >= 0 && window.location.href.search('/source') >= 0);
     var defaultOptions = {
-            baseUrl                 : (window.location.href.search(':8888') >= 0 ? '/source' : '') + '/api/v1/',
+            baseUrl                 : (useSource ? '/source' : '') + '/api/v1/',
             method                  : 'GET',
             dataType                : 'jsonp',
             cache                   : true, // Whether to enable caching

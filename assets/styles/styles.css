@@ -3864,6 +3864,14 @@ span.checkbox {
             color: #afaeae; }
           .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="1"] .inset-tasklist li.active .task-name {
             color: #e4b3b3; }
+      .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="2"] .screen-logs {
+        font-size: 12px; }
+        .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="2"] .screen-logs li {
+          line-height: 1.4em;
+          margin-bottom: 1.2em; }
+          .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab[data-tab_id="2"] .screen-logs li .date {
+            color: #afaeae;
+            display: block; }
       .binded-trigger-box .tabbed-content.tasks .task-inset .inset-tabs .inset-tab.active {
         display: block; }
     .binded-trigger-box .tabbed-content.tasks .task-inset pre {

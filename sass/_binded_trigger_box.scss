@@ -682,6 +682,23 @@ $alertRed : rgba(208, 106, 106, 1);
               }
             }
 
+            &[data-tab_id="2"] { // Logs
+
+              .screen-logs {
+                font-size: 12px;
+
+                li {
+                  line-height: 1.4em;
+                  margin-bottom: 1.2em;
+
+                  .date {
+                    color: $txtLightGray;
+                    display: block;
+                  }
+                }
+              }
+            }
+
             &.active {
               display: block;
             }
