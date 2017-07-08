@@ -85,19 +85,19 @@ var BindedBox = (function(){
     function _triggerResize(){
         var reqId = __addRequest('resizeBB', 'Checking for change in dimensions');
         var payload = {
-                padding : dimensions.padding,
-                windowWidth : $(window).width(),
-                windowHeight : $(window).height(),
-                windowChanges : {
-                    width: null,
-                    height: null
-                },
-                boxOuterWidth : $bindedBox.outerWidth(),
-                boxOuterHeight : $bindedBox.outerHeight(),
-                headerOuterHeight : $bindedBoxInnerHead.outerHeight(),
-                actionBtnHeight : dimensions.actionBtnHeight,
-                slideNavWidth : dimensions.slideNavWidth
-            };
+            padding : dimensions.padding,
+            windowWidth : $(window).width(),
+            windowHeight : $(window).height(),
+            windowChanges : {
+                width: null,
+                height: null
+            },
+            boxOuterWidth : $bindedBox.outerWidth(),
+            boxOuterHeight : $bindedBox.outerHeight(),
+            headerOuterHeight : $bindedBoxInnerHead.outerHeight(),
+            actionBtnHeight : dimensions.actionBtnHeight,
+            slideNavWidth : dimensions.slideNavWidth
+        };
 
         payload.newTaskTabHeight = payload.boxOuterHeight - payload.headerOuterHeight - payload.actionBtnHeight - (payload.padding * 3) - 2;
         payload.tabContainerWidth = payload.boxOuterWidth - payload.slideNavWidth - (payload.padding * 2) - 2;
@@ -593,7 +593,7 @@ var BindedBox = (function(){
         if(typeof registeredSlideListeners[slide][message] == 'undefined') registeredSlideListeners[slide][message] = [];
         registeredSlideListeners[slide][message].push(func);
     }
-    
+
     function _unregisterSlideListener(slide, message, func){
         if (slide && message && func){
             // Unset specific listener
@@ -641,10 +641,10 @@ var BindedBox = (function(){
     function __screenLog(message, type, context){
         type = type && typeof type != 'undefined' ? (['debug','error'].indexOf(type.toLowerCase()) >= 0 ? type.toLowerCase() : 'info') : 'info' ;
         var entry = {
-                date : new Date(),
-                message : message,
-                type : type
-            };
+            date : new Date(),
+            message : message,
+            type : type
+        };
 
         // Will have a context if a .res or .req
         if(context) {

@@ -1,26 +1,26 @@
 /*
-Copyright (c) 2010,2011,2012,2013,2014 Morgan Roderick http://roderick.dk
-License: MIT - http://mrgnrdrck.mit-license.org
+ Copyright (c) 2010,2011,2012,2013,2014 Morgan Roderick http://roderick.dk
+ License: MIT - http://mrgnrdrck.mit-license.org
 
-https://github.com/mroderick/PubSubJS
-*/
+ https://github.com/mroderick/PubSubJS
+ */
 (function (root, factory){
 	'use strict';
 
-    if (typeof define === 'function' && define.amd){
-        // AMD. Register as an anonymous module.
-        define(['exports'], factory);
+	if (typeof define === 'function' && define.amd){
+		// AMD. Register as an anonymous module.
+		define(['exports'], factory);
 
-    } else if (typeof exports === 'object'){
-        // CommonJS
-        factory(exports);
+	} else if (typeof exports === 'object'){
+		// CommonJS
+		factory(exports);
 
-    } else {
-        // Browser globals
-        var PubSub = {};
-        root.PubSub = PubSub;
-        factory(PubSub);
-    }
+	} else {
+		// Browser globals
+		var PubSub = {};
+		root.PubSub = PubSub;
+		factory(PubSub);
+	}
 }(( typeof window === 'object' && window ) || this, function (PubSub){
 	'use strict';
 
@@ -128,7 +128,7 @@ https://github.com/mroderick/PubSubJS
 	 *	- message (String): The message to publish
 	 *	- data: The data to pass to subscribers
 	 *	Publishes the the message, passing the data to it's subscribers
-	**/
+	 **/
 	PubSub.publish = function( message, data ){
 		console.log(message, (data && typeof data.message != 'undefined' ? data.message : ''));
 		return publish( message, data, false, PubSub.immediateExceptions );
@@ -139,7 +139,7 @@ https://github.com/mroderick/PubSubJS
 	 *	- message (String): The message to publish
 	 *	- data: The data to pass to subscribers
 	 *	Publishes the the message synchronously, passing the data to it's subscribers
-	**/
+	 **/
 	PubSub.publishSync = function( message, data ){
 		return publish( message, data, true, PubSub.immediateExceptions );
 	};
@@ -150,7 +150,7 @@ https://github.com/mroderick/PubSubJS
 	 *	- func (Function): The function to call when a new message is published
 	 *	Subscribes the passed function to the passed message. Every returned token is unique and should be stored if
 	 *	you need to unsubscribe
-	**/
+	 **/
 	PubSub.subscribe = function( message, func ){
 		if ( typeof func !== 'function'){
 			return false;
@@ -177,9 +177,9 @@ https://github.com/mroderick/PubSubJS
 	};
 
 	/*Public: Clear subscriptions by the topic
-	*/
+	 */
 	PubSub.clearSubscriptions = function clearSubscriptions(topic){
-		var m; 
+		var m;
 		for (m in messages){
 			if (messages.hasOwnProperty(m) && m.indexOf(topic) === 0){
 				delete messages[m];

@@ -552,7 +552,7 @@ var SlideTasks = (function(){
                     message : 'Task updates have been discovered',
                     data : data.response.taskUpdates
                 });
-                
+
                 //
                 // // Update TASK_JSON
                 //
