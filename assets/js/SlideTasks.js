@@ -648,7 +648,6 @@ var SlideTasks = (function(){
             flush = true;
             task = _prepareTask();
         }
-        console.log(task);
 
         var
             $taskTab = $('.binded-trigger-box .tabbed-content.tasks'),

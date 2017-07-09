@@ -53,7 +53,7 @@ var BindedBox = (function(){
             keyboardDirectionalBtnsActive : true,
             issetH2 : false,
             issetH3 : false,
-            logThreshold : 200
+            logThreshold : 0
         },
         /**
          * This is an array of screen logs. This is to capture logging that occurs before the screens module is loaded.
@@ -153,10 +153,8 @@ var BindedBox = (function(){
     }
 
     function _getTaskDataById(id){
-        console.log(id);
         for(var i in __CURRENT.__TASKS){
             if(typeof __CURRENT.__TASKS[i].id != 'undefined' && __CURRENT.__TASKS[i].id == id){
-                console.log('match found', __CURRENT.__TASKS[i]);
                 return __CURRENT.__TASKS[i];
             }
         }
@@ -544,7 +542,7 @@ var BindedBox = (function(){
     }
 
     function _renderSettingsData(){
-        console.log(__CURRENT.__SETTINGS);
+        //console.log(__CURRENT.__SETTINGS);
         var reqId = __addRequest( 'renderSettingsData' , 'Preparing to render settings data' );
 
         if(__CURRENT.__SETTINGS.panelOpen){
@@ -562,7 +560,7 @@ var BindedBox = (function(){
     }
 
     function _renderProjectData(){
-        console.log(__CURRENT.__PROJECT);
+        //console.log(__CURRENT.__PROJECT);
         var reqId = __addRequest( 'renderProjectData' , 'Preparing to render project data' );
 
         _setBindedBoxElementHTML('bb_h2', __CURRENT.__PROJECT.projectName, $bindedBox, 'header .titles h2');
@@ -1234,7 +1232,7 @@ var BindedBox = (function(){
 
         // Apply the state change
         var __entity = __applyStateChange(scData);
-        console.log(__entity, scData, __CURRENT);
+        //console.log(__entity, scData, __CURRENT);
 
         // Publish state change
         PubSub.publish(__pubsubRoot + 'state.' + scData.entity, __entity);
@@ -1271,7 +1269,7 @@ var BindedBox = (function(){
                     break;
                 case '__TASKS':
                     newData = __CURRENT[scData.__ENTITY];
-                    console.log(scData);
+                    //console.log(scData);
                     switch(scData.values.id.newVal){
                         case 'all': // Replace  __CURRENT.__TASKS with processed newData
                             // validate newData before overwrite
@@ -1349,7 +1347,6 @@ var BindedBox = (function(){
 
     function _handleStateChange(topic, payload){
         var parsedTopic = BindedBox.parseAppTopic(topic);
-        console.log(parsedTopic);
         if(parsedTopic.isValid) {
             switch (parsedTopic.map.entity){
                 case 'settings':

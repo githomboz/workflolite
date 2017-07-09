@@ -130,7 +130,7 @@
 	 *	Publishes the the message, passing the data to it's subscribers
 	 **/
 	PubSub.publish = function( message, data ){
-		console.log(message, (data && typeof data.message != 'undefined' ? data.message : ''));
+		//console.log(message, (data && typeof data.message != 'undefined' ? data.message : ''));
 		return publish( message, data, false, PubSub.immediateExceptions );
 	};
 
