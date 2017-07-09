@@ -4,7 +4,7 @@
 var SlideTasks = (function(){
 
     var
-        _stateSlideActive = false,
+        _listenersActive = false,
         options = {
             slideName : 'tasks'
         }
@@ -638,7 +638,7 @@ var SlideTasks = (function(){
 
         var reqId = BindedBox.addRequest('renderTaskContent', 'Rendering task tabbed content');
 
-        _activate();
+        _activateListeners();
 
         _LAMBDA_PROGRESS = 0;
         _FORM_PROGRESS = 0;
@@ -1001,7 +1001,7 @@ var SlideTasks = (function(){
         if(parsedTopic.isValid) {
             switch (parsedTopic.map.entity){
                 case 'settings':
-                        if(_isActiveSlide()) _activate();
+                        if(_isActiveSlide()) _activateListeners();
                     break;
                 case 'task':
                     if(_isActiveSlide()){
@@ -1023,7 +1023,9 @@ var SlideTasks = (function(){
         return _getOption('slideName') == BindedBox.getCurrent('settings','slide');
     }
 
-    function _activate(){
+    function _activateListeners(){
+        if(!_listenersActive){
+            _listenersActive = true;
             $(document).on('click', '.admin-tools .tool.clear-dependency-checks', _handleAdminClearDependencyCheck);
             $(document).on('click', '.admin-tools .tool.mark-incomplete', _handleAdminMarkIncomplete);
             $(document).on('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
@@ -1034,9 +1036,12 @@ var SlideTasks = (function(){
             PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
             if (typeof BindedBoxScreens != 'undefined') BindedBoxScreens.activate();
+        }
     }
 
-    function _deactivate(){
+    function _deactivateListeners(){
+        if(_listenersActive){
+            _listenersActive = false;
             $(document).off('click', '.admin-tools .tool.clear-dependency-checks', _handleAdminClearDependencyCheck);
             $(document).off('click', '.admin-tools .tool.mark-incomplete', _handleAdminMarkIncomplete);
             $(document).off('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
@@ -1047,13 +1052,14 @@ var SlideTasks = (function(){
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
             if (typeof BindedBoxScreens != 'undefined') BindedBoxScreens.deactivate();
+        }
     }
 
     _initialize();
 
     return {
-        activate : _activate,
-        deactivate : _deactivate,
+        activate : _activateListeners,
+        deactivate : _deactivateListeners,
         reloadTabbedContent : _renderTaskTabbedContent,
         calculateActionBtns : _calculateActionBtns,
         hasDependencies : _taskHasDependencies,
@@ -1069,7 +1075,3 @@ var SlideTasks = (function(){
         handleCheckDependenciesClick : _handleCheckDependenciesClick
     };
 })();
-
-PubSub.subscribe('bindedBox.tabs.' + SlideTasks.getOption('slideName') + '.openTriggered', SlideTasks.activate);
-PubSub.subscribe('bindedBox.tabs.' + SlideTasks.getOption('slideName') + '.closeTriggered', SlideTasks.deactivate);
-PubSub.subscribe('bindedBox.closed', SlideTasks.deactivate);

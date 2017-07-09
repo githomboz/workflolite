@@ -62,7 +62,7 @@ var BindedBox = (function(){
         __screenLogRepo = {},
 
         __screenLogCount = 1,
-        registeredSlideListeners = {} // An object of slides and the topics, and listeners to activate/deactivate
+        __listenersActive = false
         ;
 
     function _init(){
@@ -71,15 +71,8 @@ var BindedBox = (function(){
         __CURRENT.__PROJECT = _PROJECT;
         __CURRENT.__TASKS = _TASK_JSON;
 
-        // Handle updates from other modules. @todo: Needs to be updated with new BindedBox.pubsubRoot style topic
-        // PubSub.subscribe('task.updated', _handleTaskUpdates);
-        // PubSub.subscribe('meta.updated', _handleMetaUpdates);
-        // PubSub.subscribe('project.updated', _handleProjectUpdates);
-
         PubSub.subscribe(__pubsubRoot + 'state', _handleStateChange);
 
-
-        //$(document).on('click', '.col-title .task-name', _handleTaskBindedTrigger); // Project list title js click event
         $(document).on('click', '.col-title .task-name', __handleClickTaskBtn); // Project list title js click event
         __addResponse( reqId , '`BindedBox` module initialized' );
     }
@@ -1391,12 +1384,15 @@ var BindedBox = (function(){
      * @private
      */
     function __activateListeners() {
+        if(!__listenersActive){
+            __listenersActive = true;
             $( document ).on( 'click' , _handleBindBoxCloseClick );
             $( document ).on( 'click' , '.binded-trigger-box .item a' , _handleTriggerBoxNavClick );
             $( document ).on( 'click' , '.binded-trigger-box button.js-directional' , _handleDirectionalBtnClick );
             $( document ).on( 'click' , '.binded-trigger-box .action-btns .mark-complete' , _handleMarkCompleteClick );
             $( document ).on( 'keydown' , _handleBindedBoxKeydown );
             $( window ).on( 'load' , __handleBindedBoxResize );
+        }
     }
 
 
@@ -1407,12 +1403,15 @@ var BindedBox = (function(){
      * @private
      */
     function __deactivateListeners() {
+        if(__listenersActive){
+            __listenersActive = false;
             $( document ).off( 'click' , _handleBindBoxCloseClick );
             $( document ).off( 'click' , '.binded-trigger-box .item a' , _handleTriggerBoxNavClick );
             $( document ).off( 'click' , '.binded-trigger-box button.js-directional' , _handleDirectionalBtnClick );
             $( document ).off( 'click' , '.binded-trigger-box .action-btns .mark-complete' , _handleMarkCompleteClick );
             $( document ).off( 'keydown' , _handleBindedBoxKeydown );
             $( window ).off( 'load' , __handleBindedBoxResize );
+        }
     }
 
     _init();

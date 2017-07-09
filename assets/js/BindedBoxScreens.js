@@ -449,10 +449,7 @@ var BindedBoxScreens = (function(){
     }
 
     _initialize();
-
-    PubSub.subscribe('bindedBox.tabs.tasks.openTriggered', _activate);
-    PubSub.subscribe('bindedBox.tabs.tasks.closeTriggered', _deactivate);
-
+    
     return {
         renderTaskList              : _handleRequestForReRender,//_renderInsetTaskList,
         renderLogs                  : _renderLogs,
