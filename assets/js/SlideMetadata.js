@@ -18,7 +18,7 @@ var SlideMetadata = (function(){
     var messageContainerSelector = '.message-container';
     var $messageContainer = $(messageContainerSelector);
     var messageBoxOpen = false;
-    var _stateSlideActive = false;
+    var _listenersActive = false;
 
     var options = {
             slideName : 'metadata',
@@ -53,6 +53,7 @@ var SlideMetadata = (function(){
     function _initialize(){
         var reqId = BindedBox.addRequest('initializeModule', 'Initializing `SlideMetadata` module');
         _updateMetaCount();
+        PubSub.subscribe(BindedBox.pubsubRoot + 'state', _handleStateChange);
         // $(".js-us-phone-mask").mask("(999) 999-9999", {autoclear: false});
         // $(".js-twitter-handle-mask").mask("@***************", {autoclear: false});
         BindedBox.addResponse(reqId, '`SlideMetadata` module initialized' );
@@ -1028,44 +1029,68 @@ var SlideMetadata = (function(){
         return typeof options[option] == 'undefined' ? undefined : options[option];
     }
 
-    function _isActiveSlide(){
-        return _getOption('slideName') == BindedBox.getCurrent('settings','slide')
-    }
-
-
     function _handleClickCloseMessage(e){
         e.preventDefault();
         _closeMessage();
     }
 
-    function _activate(){
-        _render();
-        $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
-        $(document).on('click', '.tabbed-content.metadata .tab-form button[type=submit]', _handleClickSubmitNewMetaKeyForm);
-        $(document).on('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
-        PubSub.subscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
-        PubSub.subscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
-        PubSub.subscribe(MetaData.pubSubRoot + 'update.updated', _handleMetaDataUpdated);
+    function _handleStateChange(topic, payload){
+        var parsedTopic = BindedBox.parseAppTopic(topic);
+        if(parsedTopic.isValid) {
+            switch (parsedTopic.map.entity){
+                case 'settings':
+                    if(_isActiveSlide()) {
+                        _render();
+                        _activateListeners();
+                    } else _deactivateListeners();
+                    break;
+                case 'meta':
+                    if(_isActiveSlide()){
+
+                    }
+                    break;
+            }
+        }
+
+    }
+
+    function _isActiveSlide(){
+        return _getOption('slideName') == BindedBox.getCurrent('settings','slide');
+    }
+
+    function _activateListeners(){
+        if(!_listenersActive) {
+            _listenersActive = true;
+            $(document).on('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+            $(document).on('click', '.tabbed-content.metadata .tab-form button[type=submit]', _handleClickSubmitNewMetaKeyForm);
+            $(document).on('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
+            PubSub.subscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
+            PubSub.subscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
+            PubSub.subscribe(MetaData.pubSubRoot + 'update.updated', _handleMetaDataUpdated);
+        }
         return false;
     }
 
-    function _deactivate(){
-        $(document).off('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
-        $(document).off('click', '.tabbed-content.metadata .tab-form button[type=submit]', _handleClickSubmitNewMetaKeyForm);
-        $(document).off('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
-        PubSub.unsubscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
-        PubSub.unsubscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
-        PubSub.unsubscribe(MetaData.pubSubRoot + 'update.updated', _handleMetaDataUpdated);
-        _closeMessage();
-        _hideForm();
+    function _deactivateListeners(){
+        if(_listenersActive) {
+            _listenersActive = false;
+            $(document).off('click', '.tabbed-content.metadata .meta-fields .entry', _metadataEntrySelected);
+            $(document).off('click', '.tabbed-content.metadata .tab-form button[type=submit]', _handleClickSubmitNewMetaKeyForm);
+            $(document).off('click', '.tabbed-content.metadata .meta-entry.value .fa-pencil', _handleClickEditMetaValue);
+            PubSub.unsubscribe('bindedBox.tabs.metadata.slugSelected', _onMetaDataSelected);
+            PubSub.unsubscribe('bindedBox.tabs.metadata.addNewTriggered', _onMetaDataAdding);
+            PubSub.unsubscribe(MetaData.pubSubRoot + 'update.updated', _handleMetaDataUpdated);
+            _closeMessage();
+            _hideForm();
+        }
         return false;
     }
 
     _initialize();
 
     return {
-        activate : _activate,
-        deactivate : _deactivate,
+        activate : _activateListeners,
+        deactivate : _deactivateListeners,
         updateMeta : _updateMeta,
         showForm : _showForm,
         hideForm : _hideForm,
@@ -1078,7 +1103,3 @@ var SlideMetadata = (function(){
         closeMessage : _closeMessage
     };
 })();
-
-PubSub.subscribe('bindedBox.tabs.' + SlideMetadata.getOption('slideName') + '.openTriggered', SlideMetadata.activate);
-PubSub.subscribe('bindedBox.tabs.' + SlideMetadata.getOption('slideName') + '.closeTriggered', SlideMetadata.deactivate);
-PubSub.subscribe('bindedBox.closed', SlideMetadata.deactivate);

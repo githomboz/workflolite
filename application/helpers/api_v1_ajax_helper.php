@@ -899,8 +899,9 @@ function run_lambda_routines(){
             }
             //var_dump($response);
             break;
-//          case 'analyze_callback_results':
-//            break;
+          case 'analyze_callback_results':
+            $response['response']['success'] = true;
+            break;
         }
         //$response['response']['data'] = di_encrypt_s($response['response']['data'], $response['response']['salt']);
 

@@ -19,8 +19,6 @@ var BindedBoxScreens = (function(){
      * @type {boolean}
      * @private
      */
-    var _preLoadScreenLogsMerged = false;
-    var _screenLog = [];
     var _screens = [
         {
             slug : 'screens',
@@ -287,9 +285,6 @@ var BindedBoxScreens = (function(){
         if(!_isActive){
             $(document).on('click', '.inset-tab-link', _handleInsetBtnClick);
             $(document).on('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
-            //PubSub.subscribe(BindedBox.pubsubRoot + 'state.task', _handleRequestForReRender);
-            // PubSub.subscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
-            // PubSub.subscribe('task.updated', _handleTaskDataChanges);
             _render();
             _isActive = true;
         }
@@ -299,32 +294,9 @@ var BindedBoxScreens = (function(){
         if(_isActive){
             $(document).off('click', '.inset-tab-link', _handleInsetBtnClick);
             $(document).off('click', '.inset-tasklist .task-name', _handleInsetTaskBtnClick);
-            //PubSub.unsubscribe(BindedBox.pubsubRoot + 'state.task', _handleRequestForReRender);
-            // PubSub.unsubscribe('taskData.updates.updatedTask', _handleTaskDataChanges);
-            // PubSub.unsubscribe('task.updated', _handleTaskDataChanges);
             _isActive = false;
         }
     }
-
-    // function _handleTaskDataChanges(topic, payload){
-    //     //console.log(payload);
-    //     var redrawStatuses = ['completed','new','active','skipped','force_skipped'];
-    //     // Check if tabbed-content.tasks is the active screen
-    //     if(BindedBox.getCurrent('settings','slide') == 'tasks'){
-    //         // Check if taskNames changed
-    //         var taskNameChanged = typeof payload.updates.taskName != 'undefined';
-    //         // Check if status changed
-    //         var statusChanged = typeof payload.updates.status != 'undefined';
-    //         var newStatusRequiresRender = statusChanged && (redrawStatuses.indexOf(payload.updates.status) >= 0);
-    //         var dependenciesChanged = typeof payload.updates.dependenciesOKTimeStamp != 'undefined';
-    //         //console.log(taskNameChanged, newStatusRequiresRender, dependenciesChanged);
-    //         // If necessary, redraw task list
-    //         if(taskNameChanged || newStatusRequiresRender || dependenciesChanged){
-    //             _handleRequestForReRender();
-    //         }
-    //     }
-    //
-    // }
 
     function _handleRequestForReRender(topic, payload){
         var taskListScreen = 1;
@@ -449,7 +421,7 @@ var BindedBoxScreens = (function(){
     }
 
     _initialize();
-    
+
     return {
         renderTaskList              : _handleRequestForReRender,//_renderInsetTaskList,
         renderLogs                  : _renderLogs,

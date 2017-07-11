@@ -16,7 +16,6 @@ var SlideTasks = (function(){
      */
     function _initialize(){
         var reqId = BindedBox.addRequest('initializeModule', 'Initializing `SlideTasks` module');
-        PubSub.subscribe('taskData.updates.updatedTask', _renderTaskTabbedContent);
         PubSub.subscribe(BindedBox.pubsubRoot + 'state', _handleStateChange);
 
         //_activate();
@@ -24,22 +23,127 @@ var SlideTasks = (function(){
         return false;
     }
 
-    var _LAMBDA_PROGRESS = 0;
-    var _FORM_PROGRESS = 0;
+    //var _LAMBDA_PROGRESS = 0;
+    //var _FORM_PROGRESS = 0;
+
+    /**
+     * The progress of each task is kept for the life of the page load
+     * @private
+     */
+    var _PROGRESS_MGR = {
+        // {_taskId_} : { step: 0, key: value [,] }
+    };
     var _FORM_CACHE = {};
-    var _DYNAMIC_CONTENT_CACHE = {};
+    var _DYNAMIC_CONTENT_CACHE = {},
+
+        _workTableInitialized = false,
+
+    /**
+     * @param _expireProgress The maximum amount of time that a tasks progress is valid for in seconds.
+     * @type {{number}}
+     * @private
+     */
+        _expireProgress = 30;
+
+    function _task(){
+        return BindedBox.task();
+    }
+
+    function _triggerProgressComplete(){
+        var allComplete = true, task = _task();
+        if(typeof _PROGRESS_MGR[task.id] != 'undefined'){
+            for(var i in _PROGRESS_MGR[task.id]._STEPS){
+                if(_PROGRESS_MGR[task.id]._STEPS[i].verb != 'did') allComplete = false;
+            }
+        }
+        return allComplete;
+    }
+
+    /**
+     *
+     * @param expireProgress The maximum amount of time that a tasks progress is valid for in minutes.
+     * @returns {*}
+     * @private
+     */
+    function _getTriggerProgressData(){
+        var found = null, task = _task();
+
+        if(typeof _PROGRESS_MGR[task.id] != 'undefined'){
+            var found = _PROGRESS_MGR[task.id];
+                console.log(found, Date.now(), _expireProgress);
+
+            // check if trigger progress route already complete is already complete or it is still in transition
+            if(_expireProgress && !_triggerProgressComplete()) {
+                var expirationMS = _expireProgress * 60 * 60,
+                    currentDiffMS = Date.now() - found.ts;
+
+                console.log(expirationMS, currentDiffMS);
+
+                // Expire progress if eligible
+                if(currentDiffMS > expirationMS) {
+                    found = null;
+                    _PROGRESS_MGR[task.id] = null;
+                }
+            }
+        }
+
+        if(!found) {
+            _PROGRESS_MGR[task.id] = {
+                taskNum : task.data.sortOrder,
+                step : 0,
+                type : typeof task.data.trigger.type == 'undefined' ? null : task.data.trigger.type,
+                ts: Date.now(),
+            }
+        }
+        return _PROGRESS_MGR[task.id];
+    }
+
+    function _getTriggerProgress(){
+        return _getTriggerProgressData().step;
+    }
+
+    function _setTriggerProgress(step, progress, haltRender){
+        console.log('first _setTriggerProgress');
+        var task = _task();
+        if(typeof _PROGRESS_MGR[task.id] == 'undefined'){
+            _PROGRESS_MGR[task.id] = {
+                taskNum : task.data.sortOrder,
+                step : null,
+                type : typeof task.data.trigger.type == 'undefined' ? null : task.data.trigger.type,
+                ts: Date.now()
+            };
+        }
+        _PROGRESS_MGR[task.id].step = step;
+        _PROGRESS_MGR[task.id]._STEPS[step].verb = progress;
+        if(!Boolean(haltRender)){
+            PubSub.publish('_ui_render.dynamicContent.steps', {
+                step : step,
+                progress : progress,
+                _mgr : _PROGRESS_MGR[task.id]
+            });
+        }
+        return false;
+    }
+
+    function _incrementTriggerProgress(){
+        var task = _task();
+        if(typeof _PROGRESS_MGR[task.id] != 'undefined' && _PROGRESS_MGR[task.id]) {
+            _PROGRESS_MGR[task.id].step ++;
+            _PROGRESS_MGR[task.id].ts = Date.now();
+        }
+    }
 
     function _handleRunTriggerBtnClick(e){
         e.preventDefault();
         var reqId = BindedBox.addRequest('triggerBtnClick', 'The trigger button has been clicked');
-        var
-            taskId = BindedBox.getCurrent('task','id'),
-            task = BindedBox.getTaskById(taskId),
-            taskType = task.data.trigger.type;
+        var task = _task();
+        var taskType = task.data.trigger.type;
 
-        //console.log(taskId, taskType);
+        _PROGRESS_MGR[task.id].step = 0;
+        //console.log(_getTriggerProgressData(), taskType, _getTriggerProgress());
 
-        if(!_LAMBDA_PROGRESS){
+        if(!_triggerProgressComplete()){
+            //console.log('test');
             // Start ajax jumps
             switch (taskType){
                 case 'form':
@@ -53,6 +157,7 @@ var SlideTasks = (function(){
             }
         }
         BindedBox.addResponse(reqId , taskType + '');
+        return false;
     }
 
     function _handleAdminClearDependencyCheck(e){
@@ -92,11 +197,7 @@ var SlideTasks = (function(){
         _DYNAMIC_CONTENT_CACHE[taskId] = content;
     }
 
-    function _getDynamicContent(taskId, flush){
-        flush = flush || false;
-        if(flush) {
-            _DYNAMIC_CONTENT_CACHE[taskId] = null;
-        }
+    function _getDynamicContent(taskId){
         if(typeof _DYNAMIC_CONTENT_CACHE[taskId] != 'undefined' && _DYNAMIC_CONTENT_CACHE[taskId]){
             return _DYNAMIC_CONTENT_CACHE[taskId];
         }
@@ -135,27 +236,27 @@ var SlideTasks = (function(){
     }
 
     function _executeRunFormAjaxCalls(topic, payload){
-        _FORM_PROGRESS++;
-        var triggerType = 'form';
+            _incrementTriggerProgress();
         var
             routineSlugs = [
                 'validate_dependencies',
                 'validate_form',
                 'render_form'
             ],
+            _triggerProgress = _getTriggerProgress(),
             post = {
                 projectId : _CS_Get_Project_ID(),
                 taskTemplateId : $('.dynamic-content').attr('data-task_template_id'),
-                routine : 'step-' + _FORM_PROGRESS,
-                slug : routineSlugs[_FORM_PROGRESS],
+                routine : 'step-' + _triggerProgress,
+                slug : routineSlugs[_triggerProgress],
             };
         var $triggerStartBtn = $('.trigger-start-btn');
 
         CS_API.call('ajax/run_form_routines',
             function(){
                 // beforeSend
-                _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'checking', triggerType);
-                if(_FORM_PROGRESS == 1){
+                _renderTriggerRoutineUIChanges(_triggerProgress, 'doing');
+                if(_triggerProgress == 1){
                     $triggerStartBtn.addClass('clicked');
                     $triggerStartBtn.html('<i class="fa fa-spin fa-spinner"></i> Loading Trigger');
                 }
@@ -167,35 +268,36 @@ var SlideTasks = (function(){
                     console.log(data);
                     switch (data.response.slug){
                         case routineSlugs[1]: //'validate_lambda_callback':
-                            _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'done', triggerType);
+                            _renderTriggerRoutineUIChanges(_triggerProgress, 'did');
                             PubSub.publish('queueNextRunFormStep', data.response);
                             break;
                         case routineSlugs[2]: //'execute_lambda_callback':
-                            _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'done', triggerType);
+                            //_renderTriggerRoutineUIChanges((_triggerProgress - 1), 'did', true);
+                            _renderTriggerRoutineUIChanges(_triggerProgress, 'did');
                             //PubSub.publish('queueNextRunLambdaStep', data.response);
                             $triggerStartBtn.removeClass('clicked').addClass('complete');
                             // $triggerStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
                             // $(".dynamic-content").html(data.response._form);
                             _FORM_CACHE[post.taskTemplateId] = data.response._form;
                             _setDynamicContent(post.taskTemplateId, _FORM_CACHE[post.taskTemplateId]);
-                            _setTaskTabbedContentDynamicContentHTML(_FORM_CACHE[post.taskTemplateId]);
+                            _renderDynamicContentHTML(null, {content: _FORM_CACHE[post.taskTemplateId]});
                             BindedBox.setElementHTML('bb_trigger_start_btn', '<i class="fa fa-bolt"></i> Trigger Loaded', $triggerStartBtn);
                             _renderTaskActionBtns();
                             break;
-//                      case routineSlugs[3]: //'analyze_callback_results':
-//                          _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'done', triggerType);
-//                          break;
+                     case routineSlugs[3]: //'analyze_callback_results':
+                         _renderTriggerRoutineUIChanges(_triggerProgress, 'did');
+                         break;
                     }
-                    console.log(_FORM_PROGRESS, data);
+                    console.log(_triggerProgress, data);
                 } else {
-                    _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'error', triggerType);
+                    _renderTriggerRoutineUIChanges(_triggerProgress, 'doh');
                     if(data.errors && typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
                     $triggerStartBtn.html('<i class="fa fa-exclamation-triangle"></i> Trigger Error');
                 }
             },
             function(){
                 // error
-                _renderTriggerRoutineUIChanges(_FORM_PROGRESS, 'error', triggerType);
+                _renderTriggerRoutineUIChanges(_triggerProgress, 'doh');
                 alertify.error('Error', 'An error has occurred.');
                 $triggerStartBtn.html('<i class="fa fa-exclamation-triangle"></i> Trigger Error');
             },
@@ -208,8 +310,7 @@ var SlideTasks = (function(){
     }
 
     function _executeRunLambdaAjaxCalls(topic, payload){
-        _LAMBDA_PROGRESS++;
-        var triggerType = 'lambda';
+        _incrementTriggerProgress();
         var
             routineSlugs = [
                 'validate_dependencies',
@@ -217,19 +318,20 @@ var SlideTasks = (function(){
                 'execute_lambda_callback',
                 'analyze_callback_results'
             ],
+            _triggerProgress = _getTriggerProgress(),
             post = {
                 projectId : _CS_Get_Project_ID(),
                 taskTemplateId : $('.dynamic-content').attr('data-task_template_id'),
-                routine : 'step-' + _LAMBDA_PROGRESS,
-                slug : routineSlugs[_LAMBDA_PROGRESS],
+                routine : 'step-' + _triggerProgress,
+                slug : routineSlugs[_triggerProgress]
             };
         var $triggerStartBtn = $('.trigger-start-btn');
 
         CS_API.call('ajax/run_lambda_routines',
             function(){
                 // beforeSend
-                _renderTriggerRoutineUIChanges(_LAMBDA_PROGRESS, 'checking', triggerType);
-                if(_LAMBDA_PROGRESS == 1){
+                _renderTriggerRoutineUIChanges(_triggerProgress, 'doing');
+                if(_triggerProgress == 1){
                     $triggerStartBtn.addClass('clicked');
                     $triggerStartBtn.html('<i class="fa fa-spin fa-spinner"></i> Loading Trigger');
                 }
@@ -241,29 +343,30 @@ var SlideTasks = (function(){
                     console.log(data);
                     switch (data.response.slug){
                         case routineSlugs[1]: //'validate_lambda_callback':
-                            _renderTriggerRoutineUIChanges(_LAMBDA_PROGRESS, 'done', triggerType);
+                            _renderTriggerRoutineUIChanges(_triggerProgress, 'did');
                             PubSub.publish('queueNextRunLambdaStep', data.response);
                             break;
                         case routineSlugs[2]: //'execute_lambda_callback':
-                            _renderTriggerRoutineUIChanges(_LAMBDA_PROGRESS, 'done', triggerType);
-                            //PubSub.publish('queueNextRunLambdaStep', data.response);
+                            //_renderTriggerRoutineUIChanges((_triggerProgress - 1), 'did');
+                            _renderTriggerRoutineUIChanges(_triggerProgress, 'did');
+                            PubSub.publish('queueNextRunLambdaStep', data.response);
                             $triggerStartBtn.removeClass('clicked').addClass('complete');
                             $triggerStartBtn.html('<i class="fa fa-bolt"></i> Trigger Loaded');
                             break;
                         case routineSlugs[3]: //'analyze_callback_results':
-                            _renderTriggerRoutineUIChanges(_LAMBDA_PROGRESS, 'done', triggerType);
+                            _renderTriggerRoutineUIChanges(_triggerProgress, 'did');
                             break;
                     }
-                    console.log(_LAMBDA_PROGRESS, data);
+                    console.log(_triggerProgress, data);
                 } else {
-                    _renderTriggerRoutineUIChanges(_LAMBDA_PROGRESS, 'error', triggerType);
+                    _renderTriggerRoutineUIChanges(_triggerProgress, 'doh');
                     if(data.errors && typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
                     $triggerStartBtn.html('<i class="fa fa-exclamation-triangle"></i> Trigger Error');
                 }
             },
             function(){
                 // error
-                _renderTriggerRoutineUIChanges(_LAMBDA_PROGRESS, 'error', triggerType);
+                _renderTriggerRoutineUIChanges(_triggerProgress, 'doh');
                 alertify.error('Error', 'An error has occurred.');
                 $triggerStartBtn.html('<i class="fa fa-exclamation-triangle"></i> Trigger Error');
             },
@@ -275,11 +378,16 @@ var SlideTasks = (function(){
         );
     }
 
-    function _renderTriggerRoutineUIChanges(stepNum, progress, type){
+    function _initializeTriggerProgressData(){
+        var task = _task();
+        var type = typeof task.data.trigger.type != 'undefined' ? task.data.trigger.type : null;
         if(['form','lambda','applet'].indexOf(type) >= 0) {
-            var $steps = $('.dynamic-content .trigger-steps'),
-                $step = $steps.find('[data-step=' + stepNum + ']'),
-                verbTenses = {
+
+            var stepsCreated = typeof _PROGRESS_MGR[task.id] != 'undefined';
+            var stepsValid = stepsCreated && typeof _PROGRESS_MGR[task.id]._stepsSet != 'undefined' && _PROGRESS_MGR[task.id]._stepsSet;
+
+            if(stepsValid) return;
+            var verbTenses = {
                     validate: {
                         do: "Validate",
                         doing: "Validating",
@@ -323,7 +431,7 @@ var SlideTasks = (function(){
                     did: 'fa fa-check-square-o',
                     doh: 'fa fa-exclamation-triangle'
                 },
-                icon, verb, textData;
+                textData;
 
             switch(type){
                 case 'form':
@@ -338,7 +446,7 @@ var SlideTasks = (function(){
                         },
                         2 : {
                             verb : "render",
-                            noun : "Form"
+                            noun : "Custom Form"
                         },
                     };
                     break;
@@ -380,37 +488,100 @@ var SlideTasks = (function(){
                     break;
             }
 
+            if(typeof _PROGRESS_MGR['_iconSet'] == 'undefined') _PROGRESS_MGR['_iconSet'] = icons;
 
-            switch (progress) {
-                case 'error':
-                    icon = '<i class="' + icons.doh + '"></i> ';
-                    verb = verbTenses[textData[stepNum].verb].doh;
-                    //$step.html(icon +  + ' ' + textData[stepNum].noun);
-                    $step.removeClass('done').addClass('error');
-                    break;
-                case 'checking':
-                    icon = '<i class="' + icons.doing + '"></i> ';
-                    verb = verbTenses[textData[stepNum].verb].doing;
-                    //$step.html(icon +  + ' ' + textData[stepNum].noun);
-                    $step.removeClass('done error');
-                    break;
-                case 'done':
-                    icon = '<i class="' + icons.did + '"></i> ';
-                    verb = verbTenses[textData[stepNum].verb].did;
-                    //$step.html(icon + verbTenses[textData[stepNum].verb].did + ' ' + textData[stepNum].noun);
-                    $step.removeClass('error').addClass('done');
-                    break;
-                default:
-                    icon = '<i class="' + icons.do + '"></i> ';
-                    verb = verbTenses[textData[stepNum].verb].do;
-                    //$step.html(icon + verbTenses[textData[stepNum].verb].do + ' ' + textData[stepNum].noun);
-                    $step.removeClass('done error');
-                    break;
+            // _PROGRESS_MGR[task.id];
+            if(typeof _PROGRESS_MGR[task.id] == 'undefined') {
+                _PROGRESS_MGR[task.id] = {
+                    step : 0,
+                    steps : {},
+                    _STEPS : {},
+                    _stepsSet : false,
+                    taskNum : task.data.sortOrder,
+                    type : typeof task.data.trigger.type == 'undefined' ? null : task.data.trigger.type,
+                    ts : Date.now()
+                }
+            } else {
+                if(typeof _PROGRESS_MGR[task.id]._STEPS == 'undefined'){
+                    _PROGRESS_MGR[task.id]._STEPS = {};
+                }
             }
 
-            BindedBox.setElementHTML('bb_step_icon', icon, $step, '.icon');
-            BindedBox.setElementHTML('bb_step_verb', verb, $step, '.verb');
+            var hasDependencies = _taskHasDependencies();
+            var isLocked = _taskIsLocked();
+
+            for(var i in textData){
+
+
+                var addStep = false;
+                var dependenciesCheckComplete = hasDependencies && !isLocked;
+
+                // check if there are dependencies, if so, add 0
+                if(i == 0){
+                    if(hasDependencies){
+                        addStep = true;
+                    }
+                } else {
+                    addStep = true;
+                }
+
+                if(addStep){
+                    _PROGRESS_MGR[task.id]._STEPS[i] = {
+                        verb : 'do',
+                        verbs : {},
+                        noun : textData[i].noun
+                    };
+
+                    for( var v in verbTenses[textData[i].verb]){
+                        _PROGRESS_MGR[task.id]._STEPS[i].verbs[v] =  verbTenses[textData[i].verb][v];
+                    }
+
+                    if(dependenciesCheckComplete && i == 0) {
+                        //_PROGRESS_MGR[task.id].step = 1;
+                        _PROGRESS_MGR[task.id]._STEPS[0].verb = 'did';
+                    }
+                }
+
+                console.log(_PROGRESS_MGR);
+            }
+
+            _PROGRESS_MGR[task.id]._stepsSet = true;
+
+            // console.log(stepNum, progress, textData[stepNum]);
+            // switch (progress) {
+            //     case 'error':
+            //         icon = '<i class="' + icons.doh + '"></i> ';
+            //         verb = verbTenses[textData[stepNum].verb].doh;
+            //         break;
+            //     case 'checking':
+            //         icon = '<i class="' + icons.doing + '"></i> ';
+            //         verb = verbTenses[textData[stepNum].verb].doing;
+            //         break;
+            //     case 'done':
+            //         icon = '<i class="' + icons.did + '"></i> ';
+            //         verb = verbTenses[textData[stepNum].verb].did;
+            //         break;
+            //     default:
+            //         icon = '<i class="' + icons.do + '"></i> ';
+            //         verb = verbTenses[textData[stepNum].verb].do;
+            //         break;
+            // }
+            //
+            // return {
+            //     type : type,
+            //     verbTenses : verbTenses,
+            //     icons : icons,
+            //     textData : textData,
+            //     // icon : icon,
+            //     // verb  : verb,
+            //     // $step : $step
+            // }
         }
+    }
+
+    function _renderTriggerRoutineUIChanges(stepNum, progress, haltRender){
+
+        _setTriggerProgress(stepNum, progress, haltRender);
 
     }
 
@@ -418,13 +589,12 @@ var SlideTasks = (function(){
         if(e) e.preventDefault();
         var $this = $(".check-dependencies-btn"),
             $tabbedContent = $this.parents('.tabbed-content.tasks'),
+            task = _task(),
             post = {
                 projectId : _CS_Get_Project_ID(),
-                taskId : BindedBox.getCurrent('task','id'),
+                taskId : task.id,
                 returnReport : 'condensed'
             },
-            task = BindedBox.getTaskById(post.taskId),
-            triggerType = task.data.trigger.type,
             dependencyCount = task.data.dependencies.length;
 
         var errorMsg01 = '<i class="fa fa-exclamation-triangle"></i> ';
@@ -435,14 +605,14 @@ var SlideTasks = (function(){
             function(){
                 // beforeSend
                 $this.parents('.dynamic-content-overlay').addClass('checking');
-                _renderTriggerRoutineUIChanges(0, 'checking', triggerType);
+                _renderTriggerRoutineUIChanges(0, 'doing');
             },
             function(data){
                 // success
                 if(data.errors == false){
                     $this.parents('.dynamic-content-overlay').removeClass('checking').addClass('checked');
                     $tabbedContent.find('.lock-status').removeClass('fa-lock').addClass('fa-unlock');
-                    _renderTriggerRoutineUIChanges(0, 'done', triggerType);
+                    _renderTriggerRoutineUIChanges(0, 'did');
 
                     // if autoRun, _executeRunLambdaAjaxCalls();
                     if(_PROJECT.template.settings.autoRun) _executeRunLambdaAjaxCalls();
@@ -451,7 +621,7 @@ var SlideTasks = (function(){
 
                 } else {
                     if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
-                    _renderTriggerRoutineUIChanges(0, 'error', triggerType);
+                    _renderTriggerRoutineUIChanges(0, 'doh');
                     $this.parents('.dynamic-content-overlay').find('.checking-text').html(errorMsg01);
 
                     for(var i in data.response.report.response.callbacks){
@@ -466,7 +636,7 @@ var SlideTasks = (function(){
             function(){
                 // error
                 alertify.error('Error', 'An error has occurred while checking dependencies. Please try again later.');
-                _renderTriggerRoutineUIChanges(0, 'error', triggerType);
+                _renderTriggerRoutineUIChanges(0, 'doh');
                 $this.parents('.dynamic-content-overlay').find('.checking-text').html(errorMsg01);
             },
             post,
@@ -488,27 +658,17 @@ var SlideTasks = (function(){
         e.preventDefault();
 
     }
-
-//    function _handleTriggerBoxPreviewData(e){
-//        e.preventDefault();
-//        var $el = $(e.target),
-//          $dataBlock = $el.parents('.task-inset'),
-//          $pre = $dataBlock.find('pre');
-//        $pre.toggle();
-//    }
-
-    function _generateAndRenderAdminTools(task){
-        task = _prepareTask(task);
-
+    
+    function _generateAndRenderAdminTools(){
         if(BindedBox.allowed(5)){
 
             var $adminTools = $(".admin-tools"),
                 adminToolsHTML = '';
-            if(_taskHasDependencies(task) && !_taskIsLocked(task)) {
+            if(_taskHasDependencies() && !_taskIsLocked()) {
                 adminToolsHTML += '<a href="#" class="tool clear-dependency-checks">Clear Dependency Checks</a>';
             }
 
-            if(task.data.status == 'completed'){
+            if(_task().data.status == 'completed'){
                 adminToolsHTML += '<a href="#" class="tool mark-incomplete">Mark Incomplete</a>';
             }
 
@@ -517,20 +677,18 @@ var SlideTasks = (function(){
         }
     }
 
-    function _taskHasDependencies(task){
-        task = _prepareTask(task);
-
-        if(task && typeof task.data != 'undefined'){
+    function _taskHasDependencies(){
+        var task = _task();
+        if(task.id){
             return task.data.dependencies.length >= 1;
         }
         return false;
     }
 
-    function _taskIsLocked(task){
-        task = _prepareTask(task);
-
-        if(task && typeof task.data != 'undefined'){
-            return _taskHasDependencies(task) && !task.data.dependenciesOKTimeStamp;
+    function _taskIsLocked(){
+        var task = _task();
+        if(task.id){
+            return _taskHasDependencies() && !task.data.dependenciesOKTimeStamp;
         }
         return false;
     }
@@ -567,26 +725,6 @@ var SlideTasks = (function(){
                 // Publish TASKS state change
                 BindedBox.stateChange('tasks', tasksUpdate);
 
-                //
-                // // Update TASK_JSON
-                //
-                // console.log('BindedBox.TASK before', BindedBox.task());
-                // console.log('then this (data.response)-- _validateAndApplyTaskUpdates data.response.taskUpdates', data.response.taskUpdates);
-                // BindedBox.setTaskById(data.response.taskId, data.response.taskUpdates);
-                // console.log('BindedBox.TASK.id', BindedBox.task().id, 'data.response.taskId', data.response.taskId, 'BindedBox.TASK after setTaskById', BindedBox.task());
-                // //BindedBox.checkForChanges();
-                // //if( typeof BindedBoxScreens != 'undefined' ) BindedBoxScreens.render();
-                // // _setDynamicContent(data.response.taskId, null);
-                // // if(data.response.taskId == BindedBox.getCurrent('task','id') && render){
-                // //     // Optionally re-render
-                // //     BindedBox.reload(true);
-                // //     SlideTasks.reloadTabbedContent();
-                // // }
-                // //
-                // // PubSub.publish('task.updated', {
-                // //     taskId : data.response.taskId,
-                // //     updates : data.response.taskUpdates
-                // // });
             } else {
                 BindedBox.addResponse(reqId , {message: 'The field `taskId` must be set for updates to be applied',messageType: 'error'});
             }
@@ -634,38 +772,37 @@ var SlideTasks = (function(){
         }
     }
 
-    function _renderTaskTabbedContent(task, flushDynamicContent){
+    function _renderWorkTable(){
 
-        var reqId = BindedBox.addRequest('renderTaskContent', 'Rendering task tabbed content');
+        var reqId = BindedBox.addRequest('renderTaskSlide', 'Rendering task tabbed content');
 
         _activateListeners();
 
-        _LAMBDA_PROGRESS = 0;
-        _FORM_PROGRESS = 0;
+        // @todo: clear if change occurred
+        // attempt to call from cache
 
-        var flush = flushDynamicContent || false;
-        if(!task) {
-            flush = true;
-            task = _prepareTask();
-        }
 
-        var
+
+
+        // If completed, show appropriate screen / completion report
+        // If not completed, show appropriate trigger work table
+
+        //_setTriggerProgress(0);
+        //_FORM_PROGRESS = 0;
+
+        var $triggerStartBtn = $('.trigger-start-btn');
+
+        var task = _task(),
             $taskTab = $('.binded-trigger-box .tabbed-content.tasks'),
-            hasDependencies = _taskHasDependencies(task),
-            locked = _taskIsLocked(task),
-            dependenciesHTML = _generateDependenciesHTML(task),
-            dynamicContent = _generateDynamicContentHTML(task);
+            hasDependencies = _taskHasDependencies(),
+            locked = _taskIsLocked();
 
-        var content = _getDynamicContent(task.id, flush);
-        if(!content) {
-            content = dependenciesHTML + dynamicContent;
-            _setDynamicContent(task.id, content);
-        }
-
-        _setTaskTabbedContentDynamicContentHTML(content);
+        _renderDynamicContentHTML();
 
         $taskTab.find('.dynamic-content').attr('data-task_template_id', task.data.taskId);
         $taskTab.attr('data-status', task.data.status);
+
+        BindedBox.setElementHTML('bb_trigger_start_btn', '<i class="fa fa-bolt"></i> Trigger Loaded', $triggerStartBtn);
 
         BindedBox.setElementHTML('bb_taskdata_vardump', JSON.stringify(task, undefined, 2), $taskTab, '.task-inset pre.task-data');
         BindedBox.setElementHTML('bb_task_h1_num', task.data.sortOrder, $taskTab, 'h1 .num');
@@ -698,24 +835,26 @@ var SlideTasks = (function(){
             $taskCountText.hide();
         }
 
+        _generateAndRenderTriggerTypeAndDescription();
 
+        _generateAndRenderAdminTools();
 
-        _generateAndRenderTriggerTypeAndDescription(task);
+        _generateAndRenderCompletionTestLink();
 
-        _generateAndRenderAdminTools(task);
-
-        _generateAndRenderCompletionTestLink(task);
-
-        _renderTaskActionBtns(task);
+        _renderTaskActionBtns();
 
         if( typeof BindedBoxScreens != 'undefined' ) BindedBoxScreens.activate();
+
+        _workTableInitialized = true;
+
         BindedBox.addResponse(reqId, 'Rendered task tabbed content');
+        return false;
 
     }
 
-    function _generateAndRenderCompletionTestLink(task){
-
+    function _generateAndRenderCompletionTestLink(){
         var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
+        var task = _task();
         var completionTestHTML = '';
         if(task.data.completionTests){
             completionTestHTML += '<i class="fa ' + (task.data.completionReport ? 'success fa-heart':'fa-heartbeat') + '"></i>';
@@ -744,9 +883,8 @@ var SlideTasks = (function(){
         BindedBox.setElementHTML('bb_task_bottom_links', completionTestHTML, $taskTab, '.bottom-links');
     }
 
-    function _generateAndRenderTriggerTypeAndDescription(task){
-        task = _prepareTask(task);
-
+    function _generateAndRenderTriggerTypeAndDescription(){
+        var task = _task();
         var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
         if(!task.data.trigger){
             $taskTab.find('.trigger-type').hide();
@@ -776,61 +914,62 @@ var SlideTasks = (function(){
 
     }
 
-    function _startRunningCompletionTest(task){
-        task = _prepareTask(task);
+    function _startRunningCompletionTest(){
+        var task = _prepareTask();
 
         // Start the loading spinner
         // Change html to reflect loading
         //
     }
 
-    function _setTaskTabbedContentDynamicContentHTML(content){
-        var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
-        BindedBox.setElementHTML('bb_task_dynamic_content', content, $taskTab, '.dynamic-content');
-        return true;
-    }
-
-    function _saveDynamicContentState(){
-        var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
-        // Take the current dynamic content state, and store it in memory for the next time you come to this page
-    }
-
-    function _generateDependenciesHTML(task){
-        // task = _prepareTask(task);
-        // dependenciesOK field must be set to true or dependencies must be null to bypass dependencies overlay
-        // Check if dependencies exists
-        // Check if dependencies have been satisfied
-        // Display dependency list
-        var dependencies = task.data.dependencies,
-            dependenciesOKTimeStamp = task.data.dependenciesOKTimeStamp,
-            hasDependencies = dependencies.length >= 1,
-            overlay = '',
-            date = new Date(),
-            fiveMinutes = 60*60*5,
-            currentDifferenceGreaterThanThreshold = (date.getTime() - dependenciesOKTimeStamp) >= fiveMinutes;
-
-        if(task.data.status != 'completed'){
-            //console.log(dependencies, dependenciesOKTimeStamp, hasDependencies, currentDifferenceGreaterThanThreshold);
-            if(hasDependencies){
-                if(!dependenciesOKTimeStamp){
-                    overlay += '<div class="dynamic-content-overlay clearfix">';
-                    overlay += '<i class="fa fa-lock super-icon"></i>';
-                    overlay += '<div class="dependency-list">';
-                    overlay += '<a href="#" class="check-dependencies-btn br"><i class="fa fa-gear"></i> Check Dependencies</a>';
-                    overlay += '<p class="explanation">Dependencies are small macro functions that assure that the current task is ready to be started.</p>';
-                    overlay += '<span class="checking-text br"><i class="fa fa-gear fa-spin"></i> Checking Dependencies. Please wait.</span>';
-                    overlay += '<ol>';
-                    for(var i in dependencies){
-                        overlay += _generateActionText(i, dependencies[i]);
-                    }
-                    overlay += '</ol>';
-                    overlay += '</div><!--/.dependency-list-->';
-                    overlay += '</div><!--/.dynamic-content-overlay-->';
+    function _renderDynamicContentHTML(topic, payload){
+        var task = _task();
+        var $el = $('.binded-trigger-box .tabbed-content.tasks .dynamic-content');
+        var content = payload && typeof payload.content != 'undefined' ? payload.content : null;
+        if(!content){
+            content = '';
+            // Find out if task is completed or not
+            if(task.data.status == 'completed'){
+                content += _generateWorkTableHTML();
+            } else {
+                content = _getDynamicContent(task.id);
+                content = [false, null,''].indexOf(content) >= 0 ? '' : content;
+                if(content == ''){
+                    content += _generateWorkTableHTML();
                 }
             }
-            if(overlay == ''){
 
+        }
+        $el.html(content);
+        //BindedBox.setElementHTML('bb_task_dynamic_content', content, $el);
+        return false;
+    }
+
+    function _generateDependenciesHTML(){
+        var task = _task();
+        // dependenciesOK field must be set to true or dependencies must be null to bypass dependencies overlay
+        var dependencies = task.data.dependencies,
+            dependenciesOKTimeStamp = task.data.dependenciesOKTimeStamp,
+            // Check if dependencies exists
+            hasDependencies = dependencies.length >= 1,
+            overlay = '';
+
+        // Check if dependencies have been satisfied
+        if(hasDependencies && !dependenciesOKTimeStamp){
+            overlay += '<div class="dynamic-content-overlay clearfix">';
+            overlay += '<i class="fa fa-lock super-icon"></i>';
+            overlay += '<div class="dependency-list">';
+            overlay += '<a href="#" class="check-dependencies-btn br"><i class="fa fa-gear"></i> Check Dependencies</a>';
+            overlay += '<p class="explanation">Dependencies are small macro functions that assure that the current task is ready to be started.</p>';
+            overlay += '<span class="checking-text br"><i class="fa fa-gear fa-spin"></i> Checking Dependencies. Please wait.</span>';
+            // Display dependency list
+            overlay += '<ol>';
+            for(var i in dependencies){
+                overlay += _generateActionText(i, dependencies[i]);
             }
+            overlay += '</ol>';
+            overlay += '</div><!--/.dependency-list-->';
+            overlay += '</div><!--/.dynamic-content-overlay-->';
         }
         return overlay;
     }
@@ -881,9 +1020,8 @@ var SlideTasks = (function(){
         return output;
     }
 
-    function _generateDynamicContentHTML(task){
-        task = _prepareTask(task);
-
+    function _generateWorkTableHTML(){
+        var task = _task();
         var html = '';
         if(task.data.status == 'completed'){
             html += '<p>This task has already been completed. ';
@@ -891,43 +1029,52 @@ var SlideTasks = (function(){
             html += '</p>';
         } else {
             var autoRun = _PROJECT.template.settings.autoRun;
+
+            // Add dependencies overlay
+            html += _generateDependenciesHTML();
+
             if(!autoRun && task.data.trigger) {
-                html += '<button class="trigger-start-btn"><i class="fa fa-bolt"></i> Load Trigger</button>'
+                html += '<button class="trigger-start-btn"><i class="fa fa-bolt"></i> Load Trigger</button>';
             }
-            html += '<ul class="trigger-steps">';
-            var hasDependencies = task.data.dependencies && task.data.dependencies.length > 0,
-                unlocked = !hasDependencies || task.data.dependenciesOKTimeStamp;
-            if(hasDependencies) {
-                if(unlocked){
-                    html += '<li class="done" data-step="0"><span class="icon"><i class="fa fa-check-square-o"></i></span> <span class="verb">Validated</span> Task Dependencies</li>';
-                } else {
-                    html += '<li data-step="0"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Validate</span> Task Dependencies</li>';
-                }
-            }
-//            console.log(task, typeof task.data.dependencies);
-            switch (task.data.trigger.type){
-                case 'lambda':
-                    html += '<li data-step="1"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Validate</span> Lambda Callback & Parameters</li>';
-                    html += '<li data-step="2"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Execute</span> Lambda Callback </li>';
-                    //html += '<li data-step="3"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Analyze</span> Callback Results</li>';
-                    break;
-                case 'form':
-                    html += '<li data-step="1"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Validate</span> Form</li>';
-                    html += '<li data-step="2"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Render</span> Custom Form </li>';
-                    break;
-                case 'applet':
-                    html += '<li data-step="1"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Validate</span> Applet</li>';
-                    html += '<li data-step="2"><span class="icon"><i class="fa fa-square-o"></i></span> <span class="verb">Load</span> Applet </li>';
-                    break;
-            }
-            html += '</ul>';
+
+            _initializeTriggerProgressData();
+
+            html += _generateTriggerStepsHTML();
+
         }
         return html;
     }
 
-    function _calculateActionBtns(task){
-        task = _prepareTask(task);
+    function _generateTriggerStepsHTML(){
+        var task = _task();
+        var html = '<ul class="trigger-steps">';
+
+        if(typeof _PROGRESS_MGR[task.id] != 'undefined') {
+            if(_PROGRESS_MGR[task.id]._STEPS){
+                for( var i in _PROGRESS_MGR[task.id]._STEPS ){
+                    var step = _PROGRESS_MGR[task.id]._STEPS[i];
+                    html += '<li data-step="' + i + '"';
+                    if(step.verb == 'did') html += ' class="done"';
+                    html += '>';
+                    html += '<span class="icon"><i class="' + _PROGRESS_MGR['_iconSet'][step.verb] +  '"></i></span> ';
+                    html += '<span class="verb">' + step.verbs[step.verb] + '</span> ';
+                    html += step.noun + '</li>';
+
+                }
+            }
+        }
+
+        html += '</ul>';
+        return html;
+    }
+
+    function _renderTriggerStepsHTML(){
+        $("ul.trigger-steps").html(_generateTriggerStepsHTML());
+    }
+
+    function _calculateActionBtns(){
         var
+            task = _task(),
             prevIndex,
             nextIndex,
             btns = {
@@ -955,9 +1102,8 @@ var SlideTasks = (function(){
         return task || BindedBox.getTaskById(BindedBox.task().id);
     }
 
-    function _renderTaskActionBtns(task){
-        task = _prepareTask(task);
-
+    function _renderTaskActionBtns(){
+        var task = _task();
         var $actionBtns = $(".action-btns");
 
         BindedBox.actionBtns = SlideTasks.calculateActionBtns(task);
@@ -998,17 +1144,21 @@ var SlideTasks = (function(){
     function _handleStateChange(topic, payload){
         var parsedTopic = BindedBox.parseAppTopic(topic);
         if(parsedTopic.isValid) {
+            if(_isActiveSlide()) _activateListeners(); else _deactivateListeners();
             switch (parsedTopic.map.entity){
                 case 'settings':
-                        if(_isActiveSlide()) _activateListeners();
                     break;
                 case 'task':
                     if(_isActiveSlide()){
-                        _renderTaskTabbedContent();
+                        payload.refreshDynamicContent = typeof payload.refreshDynamicContent != 'undefined' ? payload.refreshDynamicContent : false;
+                        if(payload.refreshDynamicContent) {
+                            _renderDynamicContentHTML();
+                        } else {
+                            _renderWorkTable();
+                        }
                     }
                     break;
                 case 'tasks':
-                    console.log('test2');
                     if(_isActiveSlide()) {
 
                     }
@@ -1031,7 +1181,7 @@ var SlideTasks = (function(){
             $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
             $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
             $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
-            PubSub.subscribe('bindedBox.newTaskActivated', _renderTaskTabbedContent);
+            PubSub.subscribe('_ui_render.dynamicContent.steps', _renderTriggerStepsHTML);
             PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
             if (typeof BindedBoxScreens != 'undefined') BindedBoxScreens.activate();
@@ -1047,7 +1197,7 @@ var SlideTasks = (function(){
             $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
             $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
             $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
-            PubSub.unsubscribe('bindedBox.newTaskActivated', _renderTaskTabbedContent);
+            PubSub.unsubscribe('_ui_render.dynamicContent.steps', _renderTriggerStepsHTML);
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
             if (typeof BindedBoxScreens != 'undefined') BindedBoxScreens.deactivate();
@@ -1057,11 +1207,12 @@ var SlideTasks = (function(){
     _initialize();
 
     return {
+        render : _renderDynamicContentHTML,
         activate : _activateListeners,
         deactivate : _deactivateListeners,
-        reloadTabbedContent : _renderTaskTabbedContent,
         calculateActionBtns : _calculateActionBtns,
         hasDependencies : _taskHasDependencies,
+        _: _setTriggerProgress,
         isLocked : _taskIsLocked,
         getOption : _getOption,
         setOption : _setOption,
