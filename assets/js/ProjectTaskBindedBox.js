@@ -330,7 +330,7 @@ var BindedBox = (function(){
                     _setOption(preKey + key, html);
                 }
             } else {
-                console.error('Invalid $element');
+                console.error('Invalid $element', preKey + key);
             }
         }
     }

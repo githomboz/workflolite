@@ -1051,7 +1051,7 @@ function run_form_routines_required_fields(){
   return array('projectId','taskTemplateId', 'routine','slug');
 }
 
-function generate_completion_script_results(){
+function generate_completion_report(){
   $response = _api_template();
   $args = func_get_args();
   $data = _api_process_args($args, __FUNCTION__);
@@ -1061,15 +1061,33 @@ function generate_completion_script_results(){
   $response['response']['taskId'] = $data['taskId'];
   if($project){
     $report = $project->checkCompletionScripts($data['taskId']);
-    //var_dump($dependenciesResults);
+
     if(isset($data['returnReport']) && true === (bool) $data['returnReport']){
-      $response['response']['report'] = $report;
+      switch ($data['returnReport']){
+        case 'condensed':
+          $modified = $report;
+          foreach($modified['response']['callbacks'] as $i => $execution){
+            unset($modified['response']['callbacks'][$i]['tests']);
+            unset($modified['response']['callbacks'][$i]['fnExecMethod']);
+            unset($modified['response']['callbacks'][$i]['fnResponseType']);
+            unset($modified['response']['callbacks'][$i]['fnResponse']);
+          }
+          unset($modified['response']['taskId']);
+          unset($modified['logs']['debug']);
+          $response['response']['report'] = $modified;
+          break;
+        default:
+          $response['response']['report'] = $report;
+          break;
+      }
     }
+
+    $response['response']['taskUpdates']['completionReport'] = $report;
+
     if(!$report['errors']){
-      $response['response']['taskUpdates']['completeDate'] = null;
-      $response['response']['taskUpdates']['status'] = null;
     } else {
-      $response['errors'] = array_merge($response['errors'], (array) $report['logs']['errors']);
+      if(!$response['errors']) $response['errors'] = [];
+      $response['errors'] = array_merge((array) $response['errors'], $report['logs']['errors']);
     }
   }
 
@@ -1078,13 +1096,13 @@ function generate_completion_script_results(){
 }
 
 // Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
-function generate_completion_script_results_args_map(){
-  return array('projectId','taskTemplateId');
+function generate_completion_report_args_map(){
+  return array('projectId','taskId','returnReport');
 }
 
 // Field names of fields required
-function generate_completion_script_results_required_fields(){
-  return array('projectId','taskTemplateId');
+function generate_completion_report_required_fields(){
+  return array('projectId','taskId');
 }
 
 function validate_meta_field(){

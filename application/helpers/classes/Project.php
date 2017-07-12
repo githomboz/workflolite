@@ -421,6 +421,11 @@ class Project extends WorkflowFactory
     return WF::GenerateCallbackReport($task->getValue('dependencies'), $this, $taskId);
   }
 
+  public function checkCompletionScripts($taskId){
+    $task = $this->getTaskById($taskId);
+    return WF::GenerateCallbackReport($task->getValue('completionTests'), $this, $taskId);
+  }
+
   /**
    * Whether or not this is a custom project or based upon a template
    * @return bool

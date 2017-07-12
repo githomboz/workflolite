@@ -53,40 +53,19 @@ var SlideTasks = (function(){
         return allComplete;
     }
 
+    function _resetTriggerProgress(){
+        var task = _task();
+        for(var i in _PROGRESS_MGR[task.id]._STEPS) _PROGRESS_MGR[task.id]._STEPS[i].verb = 'do';
+    }
+
     /**
-     *
-     * @param expireProgress The maximum amount of time that a tasks progress is valid for in minutes.
      * @returns {*}
      * @private
      */
     function _getTriggerProgressData(){
-        var found = null, task = _task();
-
-        if(typeof _PROGRESS_MGR[task.id] != 'undefined'){
-            var found = _PROGRESS_MGR[task.id];
-
-            // check if trigger progress route already complete is already complete or it is still in transition
-            if(_expireProgress && !_triggerProgressComplete()) {
-                var expirationMS = _expireProgress * 60 * 60,
-                    currentDiffMS = Date.now() - found.ts;
-
-                // Expire progress if eligible
-                if(currentDiffMS > expirationMS) {
-                    found = null;
-                    _PROGRESS_MGR[task.id] = null;
-                }
-            }
-        }
-
-        if(!found) {
-            _PROGRESS_MGR[task.id] = {
-                taskNum : task.data.sortOrder,
-                step : 0,
-                type : typeof task.data.trigger.type == 'undefined' ? null : task.data.trigger.type,
-                ts: Date.now(),
-            }
-        }
-        return _PROGRESS_MGR[task.id];
+        _initializeTriggerProgressData();
+            // @todo : have to find better way to expire progress as this way will not work with new flow (importance? not sure)
+        return _PROGRESS_MGR[_task().id];
     }
 
     function _getTriggerProgress(){
@@ -94,15 +73,8 @@ var SlideTasks = (function(){
     }
 
     function _setTriggerProgress(step, progress, haltRender){
+        _initializeTriggerProgressData();
         var task = _task();
-        if(typeof _PROGRESS_MGR[task.id] == 'undefined'){
-            _PROGRESS_MGR[task.id] = {
-                taskNum : task.data.sortOrder,
-                step : null,
-                type : typeof task.data.trigger.type == 'undefined' ? null : task.data.trigger.type,
-                ts: Date.now()
-            };
-        }
         _PROGRESS_MGR[task.id].step = step;
         _PROGRESS_MGR[task.id]._STEPS[step].verb = progress;
         if(!Boolean(haltRender)){
@@ -116,6 +88,7 @@ var SlideTasks = (function(){
     }
 
     function _incrementTriggerProgress(){
+        _initializeTriggerProgressData();
         var task = _task();
         if(typeof _PROGRESS_MGR[task.id] != 'undefined' && _PROGRESS_MGR[task.id]) {
             _PROGRESS_MGR[task.id].step ++;
@@ -171,8 +144,8 @@ var SlideTasks = (function(){
                 $el.html($el.html().replace(spinnerHTML,''));
                 if(data.errors == false){
                     SlideTasks.validateAndApplyUpdates(data, true);
-                    _setTriggerProgress(0, 'do');
-                } else {
+                    //_setTriggerProgress(0, 'do');
+                    _resetTriggerProgress();
                 }
             },
             function(){
@@ -338,170 +311,168 @@ var SlideTasks = (function(){
     function _initializeTriggerProgressData(){
         var task = _task();
         var type = typeof task.data.trigger.type != 'undefined' ? task.data.trigger.type : null;
-        if(['form','lambda','applet'].indexOf(type) >= 0) {
 
-            var stepsCreated = typeof _PROGRESS_MGR[task.id] != 'undefined';
-            var stepsValid = stepsCreated && typeof _PROGRESS_MGR[task.id]._stepsSet != 'undefined' && _PROGRESS_MGR[task.id]._stepsSet;
+        var stepsCreated = typeof _PROGRESS_MGR[task.id] != 'undefined';
+        var stepsValid = stepsCreated && typeof _PROGRESS_MGR[task.id]._stepsSet != 'undefined' && _PROGRESS_MGR[task.id]._stepsSet;
 
-            if(stepsValid) return;
-            var verbTenses = {
-                    validate: {
-                        do: "Validate",
-                        doing: "Validating",
-                        did: "Validated",
-                        doh: "Issues Validating"
-                    },
-                    execute: {
-                        do: "Execute",
-                        doing: "Executing",
-                        did: "Executed",
-                        doh: "Issues Executing"
-                    },
-                    analyze: {
-                        do: "Analyze",
-                        doing: "Analyzing",
-                        did: "Analyzed",
-                        doh: "Issues Analyzing"
-                    },
-                    render: {
-                        do: "Render",
-                        doing: "Rendering",
-                        did: "Rendered",
-                        doh: "Issues Rendering"
-                    },
-                    load: {
-                        do: "Load",
-                        doing: "Loading",
-                        did: "Loaded",
-                        doh: "Issues Loading"
-                    },
-                    verify: {
-                        do: "Verify",
-                        doing: "Verifying",
-                        did: "Verified",
-                        doh: "Issues Verifying"
-                    }
+        if(stepsValid) return;
+        var verbTenses = {
+                validate: {
+                    do: "Validate",
+                    doing: "Validating",
+                    did: "Validated",
+                    doh: "Issues Validating"
                 },
-                icons = {
-                    do: 'fa fa-square-o',
-                    doing: 'fa fa-spinner fa-spin',
-                    did: 'fa fa-check-square-o',
-                    doh: 'fa fa-exclamation-triangle'
+                execute: {
+                    do: "Execute",
+                    doing: "Executing",
+                    did: "Executed",
+                    doh: "Issues Executing"
                 },
-                textData;
-
-            switch(type){
-                case 'form':
-                    textData = {
-                        0 : {
-                            verb : "validate",
-                            noun : "Task Dependencies"
-                        },
-                        1 : {
-                            verb : "validate",
-                            noun : "Form Settings & Options"
-                        },
-                        2 : {
-                            verb : "render",
-                            noun : "Custom Form"
-                        },
-                    };
-                    break;
-                case 'lambda':
-                    textData = {
-                        0 : {
-                            verb : "validate",
-                            noun : "Task Dependencies"
-                        },
-                        1 : {
-                            verb : "validate",
-                            noun : "Lambda Callback & Parameters"
-                        },
-                        2 : {
-                            verb : "execute",
-                            noun : "Lambda Callback"
-                        },
-                        3 : {
-                            verb : "analyze",
-                            noun : "Callback Results"
-                        },
-                    };
-                    break;
-                case 'applet':
-                    textData = {
-                        0 : {
-                            verb : "validate",
-                            noun : "Task Dependencies"
-                        },
-                        1 : {
-                            verb : "verify",
-                            noun : "Applet"
-                        },
-                        2 : {
-                            verb : "load",
-                            noun : "Applet"
-                        },
-                    };
-                    break;
-            }
-
-            if(typeof _PROGRESS_MGR['_iconSet'] == 'undefined') _PROGRESS_MGR['_iconSet'] = icons;
-
-            // _PROGRESS_MGR[task.id];
-            if(typeof _PROGRESS_MGR[task.id] == 'undefined') {
-                _PROGRESS_MGR[task.id] = {
-                    step : 0,
-                    _STEPS : {},
-                    _stepsSet : false,
-                    taskNum : task.data.sortOrder,
-                    type : typeof task.data.trigger.type == 'undefined' ? null : task.data.trigger.type,
-                    ts : Date.now()
+                analyze: {
+                    do: "Analyze",
+                    doing: "Analyzing",
+                    did: "Analyzed",
+                    doh: "Issues Analyzing"
+                },
+                render: {
+                    do: "Render",
+                    doing: "Rendering",
+                    did: "Rendered",
+                    doh: "Issues Rendering"
+                },
+                load: {
+                    do: "Load",
+                    doing: "Loading",
+                    did: "Loaded",
+                    doh: "Issues Loading"
+                },
+                verify: {
+                    do: "Verify",
+                    doing: "Verifying",
+                    did: "Verified",
+                    doh: "Issues Verifying"
                 }
-            } else {
-                if(typeof _PROGRESS_MGR[task.id]._STEPS == 'undefined'){
-                    _PROGRESS_MGR[task.id]._STEPS = {};
-                }
+            },
+            icons = {
+                do: 'fa fa-square-o',
+                doing: 'fa fa-spinner fa-spin',
+                did: 'fa fa-check-square-o',
+                doh: 'fa fa-exclamation-triangle'
+            },
+            textData;
+
+        switch(type){
+            case 'form':
+                textData = {
+                    0 : {
+                        verb : "validate",
+                        noun : "Task Dependencies"
+                    },
+                    1 : {
+                        verb : "validate",
+                        noun : "Form Settings & Options"
+                    },
+                    2 : {
+                        verb : "render",
+                        noun : "Custom Form"
+                    },
+                };
+                break;
+            case 'lambda':
+                textData = {
+                    0 : {
+                        verb : "validate",
+                        noun : "Task Dependencies"
+                    },
+                    1 : {
+                        verb : "validate",
+                        noun : "Lambda Callback & Parameters"
+                    },
+                    2 : {
+                        verb : "execute",
+                        noun : "Lambda Callback"
+                    },
+                    3 : {
+                        verb : "analyze",
+                        noun : "Callback Results"
+                    },
+                };
+                break;
+            case 'applet':
+                textData = {
+                    0 : {
+                        verb : "validate",
+                        noun : "Task Dependencies"
+                    },
+                    1 : {
+                        verb : "verify",
+                        noun : "Applet"
+                    },
+                    2 : {
+                        verb : "load",
+                        noun : "Applet"
+                    },
+                };
+                break;
+        }
+
+        if(typeof _PROGRESS_MGR['_iconSet'] == 'undefined') _PROGRESS_MGR['_iconSet'] = icons;
+
+        // _PROGRESS_MGR[task.id];
+        if(typeof _PROGRESS_MGR[task.id] == 'undefined') {
+            _PROGRESS_MGR[task.id] = {
+                step : 0,
+                _STEPS : {},
+                _stepsSet : false,
+                taskNum : task.data.sortOrder,
+                type : typeof task.data.trigger.type == 'undefined' ? null : task.data.trigger.type,
+                ts : Date.now()
             }
+        } else {
+            if(typeof _PROGRESS_MGR[task.id]._STEPS == 'undefined'){
+                _PROGRESS_MGR[task.id]._STEPS = {};
+            }
+        }
 
-            var hasDependencies = _taskHasDependencies();
-            var isLocked = _taskIsLocked();
+        var hasDependencies = _taskHasDependencies();
+        var isLocked = _taskIsLocked();
 
-            for(var i in textData){
+        for(var i in textData){
 
 
-                var addStep = false;
-                var dependenciesCheckComplete = hasDependencies && !isLocked;
+            var addStep = false;
+            var dependenciesCheckComplete = hasDependencies && !isLocked;
 
-                // check if there are dependencies, if so, add 0
-                if(i == 0){
-                    if(hasDependencies){
-                        addStep = true;
-                    }
-                } else {
+            // check if there are dependencies, if so, add 0
+            if(i == 0){
+                if(hasDependencies){
                     addStep = true;
                 }
-
-                if(addStep){
-                    _PROGRESS_MGR[task.id]._STEPS[i] = {
-                        verb : 'do',
-                        verbs : {},
-                        noun : textData[i].noun
-                    };
-
-                    for( var v in verbTenses[textData[i].verb]){
-                        _PROGRESS_MGR[task.id]._STEPS[i].verbs[v] =  verbTenses[textData[i].verb][v];
-                    }
-
-                    if(dependenciesCheckComplete && i == 0) {
-                        //_PROGRESS_MGR[task.id].step = 1;
-                        _PROGRESS_MGR[task.id]._STEPS[0].verb = 'did';
-                    }
-                }
-
+            } else {
+                addStep = true;
             }
 
-            _PROGRESS_MGR[task.id]._stepsSet = true;
+            if(addStep){
+                _PROGRESS_MGR[task.id]._STEPS[i] = {
+                    verb : 'do',
+                    verbs : {},
+                    noun : textData[i].noun
+                };
+
+                for( var v in verbTenses[textData[i].verb]){
+                    _PROGRESS_MGR[task.id]._STEPS[i].verbs[v] =  verbTenses[textData[i].verb][v];
+                }
+
+                if(dependenciesCheckComplete && i == 0) {
+                    //_PROGRESS_MGR[task.id].step = 1;
+                    _PROGRESS_MGR[task.id]._STEPS[0].verb = 'did';
+                }
+            }
+
         }
+
+        _PROGRESS_MGR[task.id]._stepsSet = true;
     }
 
     function _handleCheckDependenciesClick(e){
@@ -530,7 +501,6 @@ var SlideTasks = (function(){
                 // success
                 if(data.errors == false){
                     $this.parents('.dynamic-content-overlay').removeClass('checking').addClass('checked');
-                    $tabbedContent.find('.lock-status').removeClass('fa-lock').addClass('fa-unlock');
                     _setTriggerProgress(0, 'did');
 
                     // if autoRun, _executeRunLambdaAjaxCalls();
@@ -570,7 +540,7 @@ var SlideTasks = (function(){
 
     function _handleTriggerBoxCompletionTestBtn(e){
         e.preventDefault();
-        _startRunningCompletionTest();
+        _attemptMarkComplete();
     }
 
     function _handleTriggerBoxCompletionTestReportBtn(e){
@@ -692,12 +662,9 @@ var SlideTasks = (function(){
     }
 
     function _renderWorkTable(){
-
-        var reqId = BindedBox.addRequest('renderTaskSlide', 'Rendering task tabbed content');
-
         _activateListeners();
 
-        var $triggerStartBtn = $('.trigger-start-btn');
+        var reqId = BindedBox.addRequest('renderTaskSlide', 'Rendering task tabbed content');
 
         var task = _task(),
             $taskTab = $('.binded-trigger-box .tabbed-content.tasks'),
@@ -708,8 +675,6 @@ var SlideTasks = (function(){
 
         $taskTab.find('.dynamic-content').attr('data-task_template_id', task.data.taskId);
         $taskTab.attr('data-status', task.data.status);
-
-        BindedBox.setElementHTML('bb_trigger_start_btn', '<i class="fa fa-bolt"></i> Trigger Loaded', $triggerStartBtn);
 
         BindedBox.setElementHTML('bb_taskdata_vardump', JSON.stringify(task, undefined, 2), $taskTab, '.task-inset pre.task-data');
         BindedBox.setElementHTML('bb_task_h1_num', task.data.sortOrder, $taskTab, 'h1 .num');
@@ -759,11 +724,20 @@ var SlideTasks = (function(){
 
     }
 
+    function _taskHasCompletionTests(){
+        var task = _task();
+        return task.data.completionTests && task.data.completionTests.length > 0;
+    }
+
     function _generateAndRenderCompletionTestLink(){
         var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
         var task = _task();
         var completionTestHTML = '';
-        if(task.data.completionTests){
+        var show = true;
+
+        if(_taskHasDependencies() && _taskIsLocked()) show = false;
+
+        if(_taskHasCompletionTests() && show){
             completionTestHTML += '<i class="fa ' + (task.data.completionReport ? 'success fa-heart':'fa-heartbeat') + '"></i>';
             completionTestHTML += '<span class="info-data"> ';
 
@@ -821,12 +795,56 @@ var SlideTasks = (function(){
 
     }
 
-    function _startRunningCompletionTest(){
-        var task = _prepareTask();
+    function _attemptMarkComplete(){
+        var task = _task(),
+            post = {
+                projectId : _CS_Get_Project_ID(),
+                taskId : task.id,
+                //returnReport : 'condensed'
+            },
+            _readyToMarkComplete = false;
 
-        // Start the loading spinner
-        // Change html to reflect loading
-        //
+        // Check if completion tests exist
+        if(_taskHasCompletionTests()){
+            // If completion tests exist, do "completion tests" ajax request
+            CS_API.call('ajax/generate_completion_report',
+                function(){
+                    // beforeSend
+                    // Notify that completion testing running
+                    PubSub.publish('_ui_.completionTest', {status: 'running'});
+                },
+                function(data){
+                    // success
+                    if(data.errors == false){
+                        PubSub.publish('_ui_.completionTestStatus', {status: 'success'});
+                        SlideTasks.validateAndApplyUpdates(data, true);
+
+                    } else {
+                        PubSub.publish('_ui_.completionTestStatus', {status: 'error'});
+                        if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
+                    }
+                },
+                function(){
+                    // error
+                    PubSub.publish('_ui_.completionTestStatus', {status: 'error'});
+                    alertify.error('Error', 'An error has occurred while checking dependencies. Please try again later.');
+                },
+                post,
+                {
+                    method: 'POST',
+                    preferCache : false
+                }
+            );
+        } else {
+            _readyToMarkComplete = true;
+        }
+
+        // If successful, set ready
+        if(_readyToMarkComplete) _markTaskComplete();
+    }
+
+    function _markTaskComplete(){
+        // If ready do "mark complete" ajax request and submit stateChange request for __TASK && __TASKS
     }
 
     function _renderDynamicContentHTML(topic, payload){
@@ -848,7 +866,7 @@ var SlideTasks = (function(){
 
         }
         $el.html(content);
-        //BindedBox.setElementHTML('bb_task_dynamic_content', content, $el);
+        //BindedBox.setElementHTML('bb_task_dynamic_content', content, $el); // Creates a lag on the next render no matter the task
         return false;
     }
 
@@ -887,7 +905,6 @@ var SlideTasks = (function(){
             assertionValue = null;
 
         if(dependency.assertion){
-            //console.log(dependency.assertion);
             assertionValue = dependency.assertion._val;
             switch (dependency.assertion._op){
                 case '==': assertionOperator = 'equal to';
@@ -957,7 +974,6 @@ var SlideTasks = (function(){
             var errorEncountered = false;
             var complete = _triggerProgressComplete();
             for( var i in _PROGRESS_MGR[task.id]._STEPS ) {
-                //console.log(_PROGRESS_MGR[task.id]._STEPS[i]);
                 if(!complete && _PROGRESS_MGR[task.id]._STEPS[i].verb == 'doing') isDoing = true;
                 if(!complete && _PROGRESS_MGR[task.id]._STEPS[i].verb == 'doh') errorEncountered = true;
             }
@@ -966,8 +982,6 @@ var SlideTasks = (function(){
             var classes = complete ? 'complete ' : ( isDoing ? 'clicked ' : '' );
             html += '<button class="trigger-start-btn ' + classes + '">' + icon + ' ' + loadTxt + '</button>';
         }
-        //console.log(_PROGRESS_MGR[task.id], isDoing);
-
         html += '<ul class="trigger-steps">';
 
         if(typeof _PROGRESS_MGR[task.id] != 'undefined') {
@@ -1015,14 +1029,6 @@ var SlideTasks = (function(){
         return btns;
     }
 
-    function _prepareTask(task){
-        // Check if topic or task
-        task = typeof task != 'undefined' && typeof task.data != 'undefined' ? task : null;
-
-        // If no task is passed, get task by id
-        return task || BindedBox.getTaskById(BindedBox.task().id);
-    }
-
     function _renderTaskActionBtns(){
         var task = _task();
         var $actionBtns = $(".action-btns");
@@ -1042,8 +1048,6 @@ var SlideTasks = (function(){
         var dependencyHold = task.data.dependencies && !task.data.dependenciesOKTimeStamp;
         var isForm = task.data.trigger.type == 'form',
             formCached = typeof _FORM_CACHE[task.id] != 'undefined' ? _FORM_CACHE[task.id] : false;
-
-        //console.log(isForm, formCached);
 
         if(task.data.status == 'completed' || dependencyHold || (isForm && !formCached)) classes += ' inactive';
         output += '<button class="' + classes + '" data-task_id="' + task.id + '"><i class="fa fa-check"></i>&nbsp; Mark Complete</button>';
