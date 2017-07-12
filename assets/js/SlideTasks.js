@@ -11,17 +11,6 @@ var SlideTasks = (function(){
         ;
 
     /**
-     * Runs once upon startup
-     * @private
-     */
-    function _initialize(){
-        var reqId = BindedBox.addRequest('initializeModule', 'Initializing `SlideTasks` module');
-        PubSub.subscribe(BindedBox.pubsubRoot + 'state', _handleStateChange);
-        BindedBox.addResponse(reqId, '`SlideTasks` module initialized' );
-        return false;
-    }
-
-    /**
      * The progress of each task is kept for the life of the page load
      * @private
      */
@@ -36,7 +25,20 @@ var SlideTasks = (function(){
      * @type {{number}}
      * @private
      */
-        _expireProgress = 30;
+        _expireProgress = 30,
+        _readyToMarkComplete = false;
+
+    /**
+     * Runs once upon startup
+     * @private
+     */
+    function _initialize(){
+        var reqId = BindedBox.addRequest('initializeModule', 'Initializing `SlideTasks` module');
+        PubSub.subscribe(BindedBox.pubsubRoot + 'state', _handleStateChange);
+        BindedBox.addResponse(reqId, '`SlideTasks` module initialized' );
+        return false;
+    }
+
 
     function _task(){
         return BindedBox.task();
@@ -54,6 +56,7 @@ var SlideTasks = (function(){
     }
 
     function _resetTriggerProgress(){
+        _initializeTriggerProgressData();
         var task = _task();
         for(var i in _PROGRESS_MGR[task.id]._STEPS) _PROGRESS_MGR[task.id]._STEPS[i].verb = 'do';
     }
@@ -179,14 +182,20 @@ var SlideTasks = (function(){
         taskData.entityId = _CS_Get_Entity_ID();
         taskData.type = _CS_Get_Entity();
 
+        var $el = $(e.target);
+
+        var spinnerHTML = ' <span class="fa fa-spin fa-spinner"></span>';
         CS_API.call('ajax/mark_incomplete',
             function(){
                 // beforeSend
+                $el.html($el.html() + spinnerHTML);
             },
             function(data){
                 // success
                 if(data.errors == false){
                     SlideTasks.validateAndApplyUpdates(data, true);
+                    $el.html($el.html().replace(spinnerHTML,''));
+                    BindedBox.stateChange('task', {completionReport: null});
                 }
             },
             function(){
@@ -288,6 +297,7 @@ var SlideTasks = (function(){
                             PubSub.publish('queueNextRunLambdaStep', data.response);
                             break;
                         case routineSlugs[3]: //'analyze_callback_results':
+                            BindedBox.stateChange('task', {});
                             break;
                     }
                 } else {
@@ -440,7 +450,6 @@ var SlideTasks = (function(){
 
         for(var i in textData){
 
-
             var addStep = false;
             var dependenciesCheckComplete = hasDependencies && !isLocked;
 
@@ -545,7 +554,7 @@ var SlideTasks = (function(){
 
     function _handleTriggerBoxCompletionTestReportBtn(e){
         e.preventDefault();
-
+        _activateListeners();
     }
     
     function _generateAndRenderAdminTools(){
@@ -737,7 +746,7 @@ var SlideTasks = (function(){
 
         if(_taskHasDependencies() && _taskIsLocked()) show = false;
 
-        if(_taskHasCompletionTests() && show){
+        if(_taskHasCompletionTests() && show && _triggerProgressComplete()){
             completionTestHTML += '<i class="fa ' + (task.data.completionReport ? 'success fa-heart':'fa-heartbeat') + '"></i>';
             completionTestHTML += '<span class="info-data"> ';
 
@@ -801,8 +810,7 @@ var SlideTasks = (function(){
                 projectId : _CS_Get_Project_ID(),
                 taskId : task.id,
                 //returnReport : 'condensed'
-            },
-            _readyToMarkComplete = false;
+            };
 
         // Check if completion tests exist
         if(_taskHasCompletionTests()){
@@ -818,7 +826,10 @@ var SlideTasks = (function(){
                     if(data.errors == false){
                         PubSub.publish('_ui_.completionTestStatus', {status: 'success'});
                         SlideTasks.validateAndApplyUpdates(data, true);
-
+                        console.log(data);
+                        _readyToMarkComplete = true;
+                        _markTaskComplete();
+                        return;
                     } else {
                         PubSub.publish('_ui_.completionTestStatus', {status: 'error'});
                         if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
@@ -843,8 +854,63 @@ var SlideTasks = (function(){
         if(_readyToMarkComplete) _markTaskComplete();
     }
 
+    function _taskComplete(){
+        return _task().data.status == 'completed';
+    }
+
     function _markTaskComplete(){
-        // If ready do "mark complete" ajax request and submit stateChange request for __TASK && __TASKS
+        if(!_triggerProgressComplete()){
+            alertify.error('Trigger steps must be run before task can be completed');
+        }
+        if(_taskComplete()){
+            alertify.error('This task is already complete');
+        }
+        if(!_taskComplete() && _readyToMarkComplete && _triggerProgressComplete()){
+            var task = _task();
+            var post = {
+                entityId : _CS_Get_Project_ID(),
+                type : 'project',
+                taskId : task.id
+                //returnReport : 'condensed'
+            };
+
+
+            // If ready do "mark complete" ajax request and submit stateChange request for __TASK && __TASKS
+            CS_API.call('ajax/mark_complete',
+                function(){
+                    // beforeSend
+                    // Notify that completion testing running
+                    PubSub.publish('_ui_.markComplete', {status: 'running'});
+                },
+                function(data){
+                    // success
+                    if(data.errors == false){
+                        PubSub.publish('_ui_.markComplete', {status: 'success'});
+                        SlideTasks.validateAndApplyUpdates(data, true);
+                        return;
+                    } else {
+                        PubSub.publish('_ui_.markComplete', {status: 'error'});
+                        if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
+                    }
+                },
+                function(){
+                    // error
+                    PubSub.publish('_ui_.markComplete', {status: 'error'});
+                    alertify.error('Error', 'An error has occurred while performing completion tests. Please try again later.');
+                },
+                post,
+                {
+                    method: 'POST',
+                    preferCache : false
+                }
+            );
+        }
+    }
+
+    function _handleMarkComplete(e){
+        e.preventDefault();
+        _attemptMarkComplete();
+        return false;
     }
 
     function _renderDynamicContentHTML(topic, payload){
@@ -1106,6 +1172,7 @@ var SlideTasks = (function(){
             $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
             $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
             $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
+            $(document).on('click', '.action-btns .mark-complete', _handleMarkComplete);
             PubSub.subscribe('_ui_render.dynamicContent.steps', _renderTriggerStepsHTML);
             PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
@@ -1122,6 +1189,7 @@ var SlideTasks = (function(){
             $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
             $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
             $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
+            $(document).off('click', '.action-btns .mark-complete', _handleMarkComplete);
             PubSub.unsubscribe('_ui_render.dynamicContent.steps', _renderTriggerStepsHTML);
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);

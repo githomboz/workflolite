@@ -10,14 +10,12 @@ function mark_complete(){
   if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
 
   $task = null;
-  if($data['type'] == 'Project'){
+  if(strtolower($data['type']) == 'project'){
     $entity = Project::Get($data['entityId']);
     $task = $entity->getTaskById($data['taskId']);
-  } else {
-    $task = Task::Get($data['taskId']);
-  }
+  } 
 
-  if($task){
+  if($task->id()){
     if(!$task->isStarted()) {
       $task->start();
       $response['response']['startDate'] = date('m/d/y', $task->getValue('startDate')->sec);
@@ -27,7 +25,8 @@ function mark_complete(){
     $response['response']['taskId'] = (string) $task->id();
     $response['response']['endDate'] = date('m/d/y', $task->getValue('completeDate')->sec); //@todo might still be in use
     $response['response']['taskUpdates'] = [
-      'endDate' => date('m/d/y', $task->getValue('completeDate')->sec)
+      'endDate' => date('m/d/y', $task->getValue('completeDate')->sec),
+      'status' => 'completed'
     ];
   } else {
     $response['errors'][] = 'Invalid task id provided';
