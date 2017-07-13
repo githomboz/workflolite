@@ -27,10 +27,7 @@ var BindedBox = (function(){
          * of information that hasn't yet been persisted.
          */
         activeLock = null,
-        /**
-         * Keep the binding box open even when has been clicked outside or anything else.
-         */
-        keepOpen = false,
+
         userAcc = {
             acc : 5
         },
@@ -51,7 +48,12 @@ var BindedBox = (function(){
             keyboardDirectionalBtnsActive : true,
             issetH2 : false,
             issetH3 : false,
-            logThreshold : 100
+            logThreshold : 100,
+
+            /**
+             * Keep the binding box open even when has been clicked outside or anything else.
+             */
+            keepOpen : false
         },
         /**
          * This is an array of screen logs. This is to capture logging that occurs before the screens module is loaded.
@@ -224,12 +226,6 @@ var BindedBox = (function(){
                 if(BindedBox.actionBtns.next && BindedBox.getOption('keyboardDirectionalBtnsActive')) __setNewActiveTask(BindedBox.actionBtns.next.id);
                 break;
         }
-    }
-
-    function _checkMarkCompleteReady(task){
-        // Check dependencies
-        // Check for or generate completion report
-        // If completion report generated, mark complete
     }
 
     function _handleMarkCompleteClick(e){
@@ -737,7 +733,7 @@ var BindedBox = (function(){
             $( document ).on( 'click' , _handleBindBoxCloseClick );
             $( document ).on( 'click' , '.binded-trigger-box .item a' , _handleTriggerBoxNavClick );
             $( document ).on( 'click' , '.binded-trigger-box button.js-directional' , _handleDirectionalBtnClick );
-            $( document ).on( 'click' , '.binded-trigger-box .action-btns .mark-complete' , _handleMarkCompleteClick );
+            if(typeof SlideTasks != 'undefined') $( document ).on( 'click' , '.binded-trigger-box .action-btns .mark-complete' , SlideTasks.attemptMarkComplete );
             $( document ).on( 'keydown' , _handleBindedBoxKeydown );
             $( window ).on( 'load' , __handleBindedBoxResize );
         }
@@ -756,7 +752,7 @@ var BindedBox = (function(){
             $( document ).off( 'click' , _handleBindBoxCloseClick );
             $( document ).off( 'click' , '.binded-trigger-box .item a' , _handleTriggerBoxNavClick );
             $( document ).off( 'click' , '.binded-trigger-box button.js-directional' , _handleDirectionalBtnClick );
-            $( document ).off( 'click' , '.binded-trigger-box .action-btns .mark-complete' , _handleMarkCompleteClick );
+            if(typeof SlideTasks != 'undefined') $( document ).off( 'click' , '.binded-trigger-box .action-btns .mark-complete' , SlideTasks.attemptMarkComplete );
             $( document ).off( 'keydown' , _handleBindedBoxKeydown );
             $( window ).off( 'load' , __handleBindedBoxResize );
         }
@@ -768,7 +764,6 @@ var BindedBox = (function(){
         TASK                        : __CURRENT.__TASK,
         TASKS                       : __CURRENT.__TASKS,
         activeLock                  : activeLock,
-        keepOpen                    : keepOpen,
         userAcc                     : userAcc,
         actionBtns                  : actionBtns,
         selector                    : elementSelector,

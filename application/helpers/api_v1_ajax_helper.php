@@ -13,7 +13,7 @@ function mark_complete(){
   if(strtolower($data['type']) == 'project'){
     $entity = Project::Get($data['entityId']);
     $task = $entity->getTaskById($data['taskId']);
-  } 
+  }
 
   if($task->id()){
     if(!$task->isStarted()) {
@@ -905,11 +905,11 @@ function run_lambda_routines(){
         //$response['response']['data'] = di_encrypt_s($response['response']['data'], $response['response']['salt']);
 
       } else {
-        $response['errors'][] = 'Trigger is invalid';
+        $response['errors'][] = 'Lambda is invalid';
       }
 
     } else {
-      $response['errors'][] = 'Trigger id must be valid';
+      $response['errors'][] = 'Lambda provided must be valid';
     }
 
   } else {
@@ -1024,11 +1024,11 @@ function run_form_routines(){
         //$response['response']['data'] = di_encrypt_s($response['response']['data'], $response['response']['salt']);
 
       } else {
-        $response['errors'][] = 'Trigger is invalid';
+        $response['errors'][] = 'Form is invalid';
       }
 
     } else {
-      $response['errors'][] = 'Trigger id must be valid';
+      $response['errors'][] = 'Form provided must be valid';
     }
 
   } else {
@@ -1084,6 +1084,8 @@ function generate_completion_report(){
     $response['response']['taskUpdates']['completionReport'] = $report;
 
     if(!$report['errors']){
+      // Save completionReport to task
+      $project->getTaskById($data['taskId'])->setValue('completionReport', (array) json_decode(json_encode($report), true))->update();
     } else {
       if(!$response['errors']) $response['errors'] = [];
       $response['errors'] = array_merge((array) $response['errors'], $report['logs']['errors']);

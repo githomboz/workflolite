@@ -26,7 +26,9 @@ var SlideTasks = (function(){
      * @private
      */
         _expireProgress = 30,
-        _readyToMarkComplete = false;
+        _readyToMarkComplete = false,
+
+        _TEMP = {};
 
     /**
      * Runs once upon startup
@@ -172,6 +174,138 @@ var SlideTasks = (function(){
             return _DYNAMIC_CONTENT_CACHE[taskId];
         }
         return null;
+    }
+
+    function _attemptMarkComplete(){
+        _TEMP['attemptingToMarkComplete'] = true;
+        var task = _task(),
+            post = {
+                projectId : _CS_Get_Project_ID(),
+                taskId : task.id,
+                //returnReport : 'condensed'
+            };
+
+        if(!_triggerProgressComplete()){
+            alertify.error('Trigger steps must be run before task can be completed');
+        }
+        if(_taskComplete()){
+            alertify.error('This task is already complete');
+        }
+
+        // Check if completion tests exist
+        if(_taskHasCompletionTests() && _triggerProgressComplete() && !_taskComplete()){
+            // If completion tests exist, do "completion tests" ajax request
+            CS_API.call('ajax/generate_completion_report',
+                function(){
+                    // beforeSend
+                    // Notify that completion testing running
+                    PubSub.publish('_ui_.completionTest', {status: 'running'});
+                },
+                function(data){
+                    // success
+                    if(data.errors == false){
+                        PubSub.publish('_ui_.completionTestStatus', {status: 'success'});
+                        if(typeof data.response.taskUpdates != 'undefined' && typeof data.response.taskUpdates.completionReport != 'undefined'){
+                            console.log(data);
+                            if(data.response.taskUpdates.completionReport.errors){
+                                if(data.response.taskUpdates.completionReport.logs.errors.length > 0){
+                                    alertify.error(data.response.taskUpdates.completionReport.logs.errors[0]);
+                                }
+                            } else {
+                                SlideTasks.validateAndApplyUpdates(data, true);
+                                _readyToMarkComplete = true;
+                                _markTaskComplete();
+                            }
+                        }
+                        console.log('test1');
+                        return;
+                    } else {
+                        PubSub.publish('_ui_.completionTestStatus', {status: 'error'});
+                        if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
+                        _TEMP['attemptingToMarkComplete'] = false;
+                    }
+                },
+                function(){
+                    // error
+                    PubSub.publish('_ui_.completionTestStatus', {status: 'error'});
+                    alertify.error('Error', 'An error has occurred while checking dependencies. Please try again later.');
+                    _TEMP['attemptingToMarkComplete'] = false;
+                },
+                post,
+                {
+                    method: 'POST',
+                    preferCache : false
+                }
+            );
+        } else {
+            _readyToMarkComplete = true;
+        }
+
+        // If successful, set ready
+        if(_readyToMarkComplete) {
+            console.log('test2');
+            _markTaskComplete();
+        }
+    }
+
+    function _markTaskComplete(){
+        console.log('mark complete');
+        if(!_TEMP['attemptingToMarkComplete']){
+            if(!_triggerProgressComplete()){
+                alertify.error('Trigger steps must be run before task can be completed');
+            }
+            if(_taskComplete()){
+                alertify.error('This task is already complete');
+            }
+        }
+        if(!_taskComplete() && _readyToMarkComplete && _triggerProgressComplete()){
+            console.log('mark complete inner');
+            var task = _task();
+            var post = {
+                entityId : _CS_Get_Project_ID(),
+                type : 'project',
+                taskId : task.id
+                //returnReport : 'condensed'
+            };
+
+            var $submitBtn = $(".action-btns .mark-complete");
+
+
+            // If ready do "mark complete" ajax request and submit stateChange request for __TASK && __TASKS
+            CS_API.call('ajax/mark_complete',
+                function(){
+                    // beforeSend
+                    // Notify that completion testing running
+                    PubSub.publish('_ui_.markComplete', {status: 'running'});
+                    $submitBtn.html('<i class="fa fa-spin fa-spinner"></i>&nbsp; Mark Complete');
+                },
+                function(data){
+                    // success
+                    if(data.errors == false){
+                        PubSub.publish('_ui_.markComplete', {status: 'success'});
+                        SlideTasks.validateAndApplyUpdates(data, true);
+                        return;
+                    } else {
+                        PubSub.publish('_ui_.markComplete', {status: 'error'});
+                        if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
+                        $submitBtn.html('<i class="fa fa-exclamation-triangle"></i>&nbsp; Mark Complete');
+                    }
+                    _TEMP['attemptingToMarkComplete'] = false;
+                },
+                function(){
+                    // error
+                    PubSub.publish('_ui_.markComplete', {status: 'error'});
+                    alertify.error('Error', 'An error has occurred while performing completion tests. Please try again later.');
+                    _TEMP['attemptingToMarkComplete'] = false;
+                    $submitBtn.html('<i class="fa fa-exclamation-triangle"></i>&nbsp; Mark Complete');
+                },
+                post,
+                {
+                    method: 'POST',
+                    preferCache : false
+                }
+            );
+        }
     }
 
     function _handleAdminMarkIncomplete(e){
@@ -804,107 +938,8 @@ var SlideTasks = (function(){
 
     }
 
-    function _attemptMarkComplete(){
-        var task = _task(),
-            post = {
-                projectId : _CS_Get_Project_ID(),
-                taskId : task.id,
-                //returnReport : 'condensed'
-            };
-
-        // Check if completion tests exist
-        if(_taskHasCompletionTests()){
-            // If completion tests exist, do "completion tests" ajax request
-            CS_API.call('ajax/generate_completion_report',
-                function(){
-                    // beforeSend
-                    // Notify that completion testing running
-                    PubSub.publish('_ui_.completionTest', {status: 'running'});
-                },
-                function(data){
-                    // success
-                    if(data.errors == false){
-                        PubSub.publish('_ui_.completionTestStatus', {status: 'success'});
-                        SlideTasks.validateAndApplyUpdates(data, true);
-                        console.log(data);
-                        _readyToMarkComplete = true;
-                        _markTaskComplete();
-                        return;
-                    } else {
-                        PubSub.publish('_ui_.completionTestStatus', {status: 'error'});
-                        if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
-                    }
-                },
-                function(){
-                    // error
-                    PubSub.publish('_ui_.completionTestStatus', {status: 'error'});
-                    alertify.error('Error', 'An error has occurred while checking dependencies. Please try again later.');
-                },
-                post,
-                {
-                    method: 'POST',
-                    preferCache : false
-                }
-            );
-        } else {
-            _readyToMarkComplete = true;
-        }
-
-        // If successful, set ready
-        if(_readyToMarkComplete) _markTaskComplete();
-    }
-
     function _taskComplete(){
         return _task().data.status == 'completed';
-    }
-
-    function _markTaskComplete(){
-        if(!_triggerProgressComplete()){
-            alertify.error('Trigger steps must be run before task can be completed');
-        }
-        if(_taskComplete()){
-            alertify.error('This task is already complete');
-        }
-        if(!_taskComplete() && _readyToMarkComplete && _triggerProgressComplete()){
-            var task = _task();
-            var post = {
-                entityId : _CS_Get_Project_ID(),
-                type : 'project',
-                taskId : task.id
-                //returnReport : 'condensed'
-            };
-
-
-            // If ready do "mark complete" ajax request and submit stateChange request for __TASK && __TASKS
-            CS_API.call('ajax/mark_complete',
-                function(){
-                    // beforeSend
-                    // Notify that completion testing running
-                    PubSub.publish('_ui_.markComplete', {status: 'running'});
-                },
-                function(data){
-                    // success
-                    if(data.errors == false){
-                        PubSub.publish('_ui_.markComplete', {status: 'success'});
-                        SlideTasks.validateAndApplyUpdates(data, true);
-                        return;
-                    } else {
-                        PubSub.publish('_ui_.markComplete', {status: 'error'});
-                        if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
-                    }
-                },
-                function(){
-                    // error
-                    PubSub.publish('_ui_.markComplete', {status: 'error'});
-                    alertify.error('Error', 'An error has occurred while performing completion tests. Please try again later.');
-                },
-                post,
-                {
-                    method: 'POST',
-                    preferCache : false
-                }
-            );
-        }
     }
 
     function _handleMarkComplete(e){
@@ -965,6 +1000,25 @@ var SlideTasks = (function(){
         return overlay;
     }
 
+    function _humanTranslateAssertionOperator(op){
+        var assertionOperator = null;
+        switch (op){
+            case '==': assertionOperator = 'equal to';
+                break;
+            case '!=': assertionOperator = 'not equal to';
+                break;
+            case '>': assertionOperator = 'greater than';
+                break;
+            case '>=': assertionOperator = 'greater than or equal to';
+                break;
+            case '<': assertionOperator = 'less than';
+                break;
+            case '<=': assertionOperator = 'less than or equal to';
+                break;
+        }
+        return assertionOperator;
+    }
+
     function _generateActionText(itemNum, dependency){
         var output = '<li>',
             assertionOperator = null,
@@ -972,21 +1026,7 @@ var SlideTasks = (function(){
 
         if(dependency.assertion){
             assertionValue = dependency.assertion._val;
-            switch (dependency.assertion._op){
-                case '==': assertionOperator = 'equal to';
-                    break;
-                case '!=': assertionOperator = 'not equal to';
-                    break;
-                case '>': assertionOperator = 'greater than';
-                    break;
-                case '>=': assertionOperator = 'greater than or equal to';
-                    break;
-                case '<': assertionOperator = 'less than';
-                    break;
-                case '<=': assertionOperator = 'less than or equal to';
-                    break;
-            }
-
+            assertionOperator = _humanTranslateAssertionOperator(dependency.assertion._op);
         }
 
         switch(dependency.callback){
@@ -1014,9 +1054,7 @@ var SlideTasks = (function(){
         var task = _task();
         var html = '';
         if(task.data.status == 'completed'){
-            html += '<p>This task has already been completed. ';
-            if(task.data.completionReport) html += 'For more information, please review the summary report for details regarding this task.';
-            html += '</p>';
+            html += _generateCompletionReportHTML(true);
         } else {
             // Add dependencies overlay
             html += _generateDependenciesHTML();
@@ -1073,6 +1111,77 @@ var SlideTasks = (function(){
         $(".task-trigger-steps").html(_generateTriggerStepsHTML());
     }
 
+    function _generateCompletionReportHTML(addContextCopy){
+        var html = '',
+            task = _task(),
+            report = task.data.completionReport.response;
+
+        html += '<div class="completion-report-frame">';
+        if(addContextCopy){
+            html += '<p>This task has already been completed. ';
+            if(report) html += 'For more information, please review the summary report for details regarding this task.';
+            html += '</p>';
+        }
+
+        if(report){
+            console.log(report);
+            html += '<div class="completion-report-inner">';
+            html += '<div class="title-bar"><span class="name">Test Name</span><span class="value">Test Value</span></div>';
+            html += '<div class="callback-sets">';
+            for(var i in report.callbacks){
+                html += '<div class="callback-set">';
+
+                html += '<div class="callback-main">';
+                html += '<div class="col-name">';
+                html += '<i class="fa fa-check"></i><a class="callback-name-btn">' + report.callbacks[i].fn + '</a> ';
+
+                html += '</div><!--/.col-name-->';
+                html += '<div class="col-value">';
+                for(var p in report.callbacks[i].fnParams){
+                    html += '- ' + report.callbacks[i].fnParams[p] + ' &nbsp; <i class="fa fa-database"></i>';
+                }
+
+                html += '</div><!--/.col-value-->';
+                html += '</div><!--/.callback-main-->';
+
+                html += '<div class="callback-extra">';
+
+                html += '<div class="col-1">';
+                // list tests
+                for(var test in report.callbacks[i].tests){
+                    var result = report.callbacks[i].tests[test], icon, classes = '';
+                    switch (result){
+                        case true : icon = 'fa fa-check-circle-o'; classes = 'success';
+                            break;
+                        case false : icon = 'fa fa-times-circle-o'; classes = 'failure';
+                            break;
+                        case null : icon = 'fa fa-circle-o';
+                            break;
+                    }
+                    // @todo finish displaying each test
+                }
+                html += '</div><!--/.col-1-->';
+                html += '<div class="col-2">';
+                // assertion
+                html += '</div><!--/.col-2-->';
+                html += '<div class="col-3">';
+                // response
+                html += '</div><!--/.col-3-->';
+
+                html += '</div><!--/.callback-extra-->';
+
+                html += '</div><!--/.callback-set-->';
+            }
+            html += '</div><!--/.callback-sets-->';
+            html += '</div><!--/.completion-report-inner-->';
+        }
+        html += '</div><!--/.completion-report-frame-->';
+
+        return html;
+        // render temporarily
+        //_setDynamicContent(taskId, html);
+    }
+
     function _calculateActionBtns(){
         var
             task = _task(),
@@ -1111,16 +1220,12 @@ var SlideTasks = (function(){
         output += '&nbsp; Next Task</button>';
 
         var classes = 'mark-complete inverse';
-        var dependencyHold = task.data.dependencies && !task.data.dependenciesOKTimeStamp;
         var isForm = task.data.trigger.type == 'form',
             formCached = typeof _FORM_CACHE[task.id] != 'undefined' ? _FORM_CACHE[task.id] : false;
 
-        if(task.data.status == 'completed' || dependencyHold || (isForm && !formCached)) classes += ' inactive';
+        if(_taskComplete() || (_taskHasDependencies() && _taskIsLocked()) || (isForm && !formCached) || !_triggerProgressComplete()) classes += ' inactive';
         output += '<button class="' + classes + '" data-task_id="' + task.id + '"><i class="fa fa-check"></i>&nbsp; Mark Complete</button>';
-        // Add to html
         $actionBtns.html(output);
-        BindedBox.setElementHTML('bb_actionBtns', output, $actionBtns);
-        //return false;
     }
 
     function _setOption(option, value){
@@ -1205,6 +1310,8 @@ var SlideTasks = (function(){
         deactivate : _deactivateListeners,
         calculateActionBtns : _calculateActionBtns,
         hasDependencies : _taskHasDependencies,
+        attemptMarkComplete : _attemptMarkComplete,
+        markComplete : _markTaskComplete,
         _: _setTriggerProgress,
         isLocked : _taskIsLocked,
         getOption : _getOption,
