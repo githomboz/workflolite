@@ -1124,6 +1124,13 @@ var SlideTasks = (function(){
         }
 
         if(report){
+            var formalTestNames = {
+                assertionTested : '',
+                assertionValidated : '',
+                callbackExecuted : '',
+                callbackValidated : '',
+                paramsValidated : ''
+            };
             console.log(report);
             html += '<div class="completion-report-inner">';
             html += '<div class="title-bar"><span class="name">Test Name</span><span class="value">Test Value</span></div>';
@@ -1148,7 +1155,7 @@ var SlideTasks = (function(){
 
                 html += '<div class="col-1">';
                 // list tests
-                for(var test in report.callbacks[i].tests){
+                for( var test in report.callbacks[i].tests ){
                     var result = report.callbacks[i].tests[test], icon, classes = '';
                     switch (result){
                         case true : icon = 'fa fa-check-circle-o'; classes = 'success';
@@ -1158,14 +1165,25 @@ var SlideTasks = (function(){
                         case null : icon = 'fa fa-circle-o';
                             break;
                     }
-                    // @todo finish displaying each test
+
+                    html += '<span class="test test-' + test + ' ' + classes + '">' + formalTestNames[ test ] + '</span>';
                 }
                 html += '</div><!--/.col-1-->';
+                html += '<ul>';
+                for( var test in report.callbacks[i].tests ){
+                    html += '<li class="' + classes + '"><i class="fa ' + icon + '"></i>' + test + '</li>';
+                }
+                html += '</ul>';
                 html += '<div class="col-2">';
                 // assertion
+                html += '<h3>Assertion</h3>';
+                html += '<p class="description">Success if response is ' + _humanTranslateAssertionOperator(report.callbacks[i].assertion._op) + ' :</p>';
+                html += '<div class="assertion-value">' + JSON.stringify(report.callbacks[i].assertion.val, undefined, 2) + '</div><!--/.assertion-value-->';
                 html += '</div><!--/.col-2-->';
-                html += '<div class="col-3">';
+                html += '<div class="col-3 ' + (report.callbacks[i].success ? 'success' : 'failure') + '">';
                 // response
+                html += '<h3>Response</h3>';
+                html += '<div class="response-value">' +  + JSON.stringify(report.callbacks[i].fnResponse, undefined, 2) + '</div><!--/.assertion-value-->';
                 html += '</div><!--/.col-3-->';
 
                 html += '</div><!--/.callback-extra-->';
