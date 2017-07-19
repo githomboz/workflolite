@@ -4078,7 +4078,8 @@ span.checkbox {
     color: #aeaeae;
     margin-bottom: 10px;
     height: 1em;
-    position: relative; }
+    position: relative;
+    font-size: 80%; }
     .completion-report-inner .title-bar .name {
       position: absolute;
       left: 30px; }
@@ -4117,7 +4118,8 @@ span.checkbox {
           font-size: 90%; }
     .completion-report-inner .callback-set .callback-extras {
       background: #757575;
-      display: none; }
+      display: none;
+      color: rgba(255, 255, 255, 0.8); }
       .completion-report-inner .callback-set .callback-extras .tests-list {
         font-size: 90%;
         line-height: 1.3em;
@@ -4129,10 +4131,8 @@ span.checkbox {
           .completion-report-inner .callback-set .callback-extras .tests-list .test .fa {
             color: #636363;
             margin-right: 10px; }
-        .completion-report-inner .callback-set .callback-extras .tests-list .test.success {
-          color: #fff; }
-          .completion-report-inner .callback-set .callback-extras .tests-list .test.success .fa {
-            color: #40ca35; }
+        .completion-report-inner .callback-set .callback-extras .tests-list .test.success .fa {
+          color: #40ca35; }
         .completion-report-inner .callback-set .callback-extras .tests-list .test.failure {
           color: #ffa1a2; }
           .completion-report-inner .callback-set .callback-extras .tests-list .test.failure .fa {
@@ -4166,5 +4166,19 @@ span.checkbox {
         margin: 10px;
         font-size: 80%;
         font-weight: bold; }
+    .completion-report-inner .callback-set.expanded .callback-extras {
+      display: block; }
+  .completion-report-inner .callback-sets.selected .callback-main {
+    opacity: .5; }
+    .completion-report-inner .callback-sets.selected .callback-main .col-name {
+      opacity: .5; }
+    .completion-report-inner .callback-sets.selected .callback-main .col-values {
+      opacity: .5; }
+  .completion-report-inner .callback-sets.selected .callback-set.expanded .callback-main {
+    opacity: 1; }
+    .completion-report-inner .callback-sets.selected .callback-set.expanded .callback-main .col-name {
+      opacity: 1; }
+    .completion-report-inner .callback-sets.selected .callback-set.expanded .callback-main .col-values {
+      opacity: 1; }
 
 /*# sourceMappingURL=styles.css.map */

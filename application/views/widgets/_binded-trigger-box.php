@@ -41,7 +41,7 @@
           </div><!--/task-trigger-->
 
           <div class="task-inset">
-            <a class="inset-tab-link" data-tab_id="0" href="#">Screens (<span class="screen-count"></span>)</a>
+            <a class="inset-tab-link" data-tab_id="0" href="#"><i class="fa fa-caret-down"></i> Screens (<span class="screen-count"></span>)</a>
             <span class="tab-name"></span>
             </a>
             <div class="inset-tabs">

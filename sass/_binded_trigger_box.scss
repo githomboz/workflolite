@@ -1021,6 +1021,7 @@ $alertRed : rgba(208, 106, 106, 1);
     margin-bottom: $padding;
     height: 1em;
     position: relative;
+    font-size: 80%;
 
     .name {
       position: absolute;
@@ -1094,6 +1095,7 @@ $alertRed : rgba(208, 106, 106, 1);
     .callback-extras {
       background: #757575;
       display: none;
+      color: rgba(255, 255, 255, .8);
 
       .tests-list {
         font-size: 90%;
@@ -1114,7 +1116,6 @@ $alertRed : rgba(208, 106, 106, 1);
         }
 
         .test.success {
-          color: #fff;
 
           .fa {
             color: #40ca35;
@@ -1173,6 +1174,44 @@ $alertRed : rgba(208, 106, 106, 1);
         margin: $padding;
         font-size: 80%;
         font-weight: bold;
+      }
+    }
+
+    &.expanded {
+
+      .callback-extras {
+        display: block;
+      }
+
+    }
+
+  }
+
+  .callback-sets {
+    &.selected {
+
+
+      .callback-main {
+        opacity: .5;
+        .col-name {
+          opacity: .5;
+        }
+        .col-values {
+          opacity: .5;
+        }
+      }
+
+      .callback-set.expanded {
+
+        .callback-main {
+          opacity: 1;
+          .col-name {
+            opacity: 1;
+          }
+          .col-values {
+            opacity: 1;
+          }
+        }
       }
     }
 

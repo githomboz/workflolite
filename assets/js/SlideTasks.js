@@ -697,11 +697,6 @@ var SlideTasks = (function(){
         _attemptMarkComplete();
     }
 
-    function _handleTriggerBoxCompletionTestReportBtn(e){
-        e.preventDefault();
-        _activateListeners();
-    }
-    
     function _generateAndRenderAdminTools(){
         if(BindedBox.allowed(5)){
 
@@ -911,6 +906,17 @@ var SlideTasks = (function(){
         $taskTab.find('.bottom-links').html(completionTestHTML);
     }
 
+    function _ui_completionTest(topic, data){
+        if(typeof data.status != 'undefined'){
+            var $completionTestBtn = $('.completion-test-btn');
+            switch (data.status){
+                case 'running':
+                    $completionTestBtn.html('Generating report... <i class="fa fa-spin fa-spinner"></i>');
+                    break;
+            }
+        }
+    }
+
     function _generateAndRenderTriggerTypeAndDescription(){
         var task = _task();
         var $taskTab = $('.binded-trigger-box .tabbed-content.tasks');
@@ -1117,15 +1123,20 @@ var SlideTasks = (function(){
 
     function _handleCallbackNameBtnClick(e){
         e.preventDefault();
-        var $this = $(this),
+        var $this = $(e.target),
             $set = $this.parents('.callback-set'),
+            $sets = $set.parents('.callback-sets'),
             $extras = $set.find('.callback-extras'),
-            isOpen = $extras.is(':visible');
+            isOpen = $set.is('.expanded');
 
         if(!isOpen){
-             $('.callback-extras').hide();
+            $('.callback-set').removeClass('expanded');
+            $set.addClass('expanded');
+            $sets.addClass('selected');
+        } else {
+            $set.removeClass('expanded');
+            $sets.removeClass('selected');
         }
-        $extras.toggle();
         return false;
     }
 
@@ -1144,18 +1155,20 @@ var SlideTasks = (function(){
         if(report){
             html += '<h2>Completion Test Results</h2>';
             var formalTestNames = {
-                assertionTested : 'Test Callback Validated',
+                assertionTested : 'Callback Response Tested',
                 assertionValidated : 'Assertion Validated',
-                callbackExecuted : 'Test Value(s) Validated',
-                callbackValidated : 'Test Callback Executed',
-                paramsValidated : 'Response Assertion Tested'
+                callbackExecuted : 'Callback Executed',
+                callbackValidated : 'Callback Validated',
+                paramsValidated : 'Parameter(s) Validated'
             };
-            var testsOrder = ['assertionTested','assertionValidated','callbackExecuted','callbackValidated','paramsValidated'];
+            //@todo: put the tests in order when displaying them.
+            var testsOrder = ['callbackValidated','assertionValidated','paramsValidated','callbackExecuted','assertionTested'];
             console.log(report);
             html += '<div class="completion-report-inner">';
-            html += '<div class="title-bar"><span class="name">Test Name</span><span class="value">Test Value</span></div>';
+            html += '<div class="title-bar"><span class="name">Test Name</span><span class="value">Parameter(s)</span></div>';
             html += '<div class="callback-sets">';
             for(var i in report.callbacks){
+                formalTestNames.paramsValidated = 'Parameter' + (report.callbacks[i].fnParamsData.length == 1 ? '' : 's') + ' Validated';
                 html += '<div class="callback-set status-' + (report.callbacks[i].success ? 'success' : 'failure') + '">';
 
                 html += '<div class="callback-main clearfix">';
@@ -1190,8 +1203,12 @@ var SlideTasks = (function(){
                 html += '<div class="col-1">';
                 html += '<ul class="tests-list">';
                 // list tests
-                for( var test in report.callbacks[i].tests ){
-                    var result = report.callbacks[i].tests[test], icon, classes = '';
+                //for( var test in report.callbacks[i].tests ){
+                for( var t in testsOrder){
+                    var test = testsOrder[t],
+                        result = report.callbacks[i].tests[test],
+                        icon,
+                        classes = '';
                     switch (result){
                         case true : icon = 'fa fa-check-circle-o'; classes = 'success';
                             break;
@@ -1329,11 +1346,11 @@ var SlideTasks = (function(){
             $(document).on('click', '.admin-tools .tool.clear-dependency-checks', _handleAdminClearDependencyCheck);
             $(document).on('click', '.admin-tools .tool.mark-incomplete', _handleAdminMarkIncomplete);
             $(document).on('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
-            $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
             $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
             $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
             $(document).on('click', '.tabbed-content.tasks .callback-name-btn', _handleCallbackNameBtnClick);
             $(document).on('click', '.action-btns .mark-complete', _handleMarkComplete);
+            PubSub.subscribe('_ui_.completionTest', _ui_completionTest);
             PubSub.subscribe('_ui_render.dynamicContent.steps', _renderTriggerStepsHTML);
             PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.subscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
@@ -1347,11 +1364,11 @@ var SlideTasks = (function(){
             $(document).off('click', '.admin-tools .tool.clear-dependency-checks', _handleAdminClearDependencyCheck);
             $(document).off('click', '.admin-tools .tool.mark-incomplete', _handleAdminMarkIncomplete);
             $(document).off('click', '.tabbed-content.tasks .completion-test-btn', _handleTriggerBoxCompletionTestBtn);
-            $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
             $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
             $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
             $(document).off('click', '.tabbed-content.tasks .callback-name-btn', _handleCallbackNameBtnClick);
             $(document).off('click', '.action-btns .mark-complete', _handleMarkComplete);
+            PubSub.unsubscribe('_ui_.completionTest', _ui_completionTest);
             PubSub.unsubscribe('_ui_render.dynamicContent.steps', _renderTriggerStepsHTML);
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
             PubSub.unsubscribe('queueNextRunFormStep', _executeRunFormAjaxCalls);
