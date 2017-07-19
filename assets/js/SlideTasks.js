@@ -217,12 +217,18 @@ var SlideTasks = (function(){
                                 _markTaskComplete();
                             }
                         }
-                        console.log('test1');
+                        //console.log('test1');
                         return;
                     } else {
                         PubSub.publish('_ui_.completionTestStatus', {status: 'error'});
                         if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
                         _TEMP['attemptingToMarkComplete'] = false;
+                        var tempTask = task;
+                        tempTask.data.completionReport = data.response.taskUpdates.completionReport;
+                        var newHTML = _generateCompletionReportHTML(task, false);
+                        //console.log(newHTML);
+                        _setDynamicContent(task.id, newHTML);
+                        _renderDynamicContentHTML(null, {content: newHTML});
                     }
                 },
                 function(){
@@ -642,32 +648,37 @@ var SlideTasks = (function(){
             },
             function(data){
                 // success
-                if(data.errors == false){
-                    $this.parents('.dynamic-content-overlay').removeClass('checking').addClass('checked');
-                    _setTriggerProgress(0, 'did');
+                if(typeof data.response != 'undefined'){
+                    if(data.errors == false){
+                        $this.parents('.dynamic-content-overlay').removeClass('checking').addClass('checked');
+                        _setTriggerProgress(0, 'did');
 
-                    // if autoRun, _executeRunLambdaAjaxCalls();
-                    if(_PROJECT.template.settings.autoRun) _executeRunLambdaAjaxCalls();
+                        // if autoRun, _executeRunLambdaAjaxCalls();
+                        if(_PROJECT.template.settings.autoRun) _executeRunLambdaAjaxCalls();
 
-                    SlideTasks.validateAndApplyUpdates(data, true);
+                        SlideTasks.validateAndApplyUpdates(data, true);
 
-                } else {
-                    if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
-                    _setTriggerProgress(0, 'doh');
-                    $this.parents('.dynamic-content-overlay').find('.checking-text').html(errorMsg01);
+                    } else {
+                        if(typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
+                        _setTriggerProgress(0, 'doh');
+                        $this.parents('.dynamic-content-overlay').find('.checking-text').html(errorMsg01);
 
-                    for(var i in data.response.report.response.callbacks){
-                        var callback = data.response.report.response.callbacks[i];
-                        var $icon = $tabbedContent.find('.dependency-item[rel=' + i + ']');
-                        var icon = callback.success ? 'fa-thumbs-up' : 'fa-thumbs-down';
-                        $icon.addClass(icon);
+                        for(var i in data.response.report.response.callbacks){
+                            var callback = data.response.report.response.callbacks[i];
+                            var $icon = $tabbedContent.find('.dependency-item[rel=' + i + ']');
+                            var icon = callback.success ? 'fa-thumbs-up' : 'fa-thumbs-down';
+                            $icon.addClass(icon);
+                        }
+
                     }
-
+                } else {
+                    alertify.error('Er01: An error has occurred while receiving request response');
+                    _setTriggerProgress(0, 'doh');
                 }
             },
             function(){
                 // error
-                alertify.error('Error', 'An error has occurred while checking dependencies. Please try again later.');
+                alertify.error('Er02: An error has occurred while checking dependencies. Please try again later.');
                 _setTriggerProgress(0, 'doh');
                 $this.parents('.dynamic-content-overlay').find('.checking-text').html(errorMsg01);
             },
@@ -881,30 +892,23 @@ var SlideTasks = (function(){
         if(_taskHasDependencies() && _taskIsLocked()) show = false;
 
         if(_taskHasCompletionTests() && show && _triggerProgressComplete()){
-            completionTestHTML += '<i class="fa ' + (task.data.completionReport ? 'success fa-heart':'fa-heartbeat') + '"></i>';
+            //completionTestHTML += '<i class="fa ' + (task.data.completionReport ? 'success fa-heart':'fa-heartbeat') + '"></i>';
             completionTestHTML += '<span class="info-data"> ';
 
-            // If completionReport, "Completion scripts successful"
-            if(task.data.completionReport){
-                completionTestHTML += 'Completion scripts successful ';
-            }
-            // If not status completed, += "Run (2) completion scripts. "
-            if(task.data.status != 'completed'){
-                completionTestHTML += 'Run (' + task.data.completionTests.length + ') completion script' + (task.data.completionTests.length == 1 ? '':'s') + '. ';
-            }
             // If not completionReport or not status completed), += "Generate report."
             if(!task.data.completionReport || task.data.status != 'completed'){
                 completionTestHTML += '<a href="#" class="completion-test-btn">';
-                completionTestHTML += 'Generate report ';
+                if(task.data.completionReport && task.data.status != 'completed'){
+                    completionTestHTML += 'Re-generate report ';
+                } else {
+                    completionTestHTML += 'Generate report ';
+                }
                 completionTestHTML += '</a>';
             }
 
             completionTestHTML += '</span>';
-            completionTestHTML += ' <span class="ajax-response ' + (task.data.completionReport ? 'show':'') + ' success">[ <i class="fa fa-check"></i> ';
-            completionTestHTML += '<a href="#" class="completion-test-report-btn">Report</a>';
-            completionTestHTML += ' ]</span>';
         }
-        BindedBox.setElementHTML('bb_task_bottom_links', completionTestHTML, $taskTab, '.bottom-links');
+        $taskTab.find('.bottom-links').html(completionTestHTML);
     }
 
     function _generateAndRenderTriggerTypeAndDescription(){
@@ -1054,7 +1058,7 @@ var SlideTasks = (function(){
         var task = _task();
         var html = '';
         if(task.data.status == 'completed'){
-            html += _generateCompletionReportHTML(true);
+            html += _generateCompletionReportHTML(task, true);
         } else {
             // Add dependencies overlay
             html += _generateDependenciesHTML();
@@ -1111,10 +1115,24 @@ var SlideTasks = (function(){
         $(".task-trigger-steps").html(_generateTriggerStepsHTML());
     }
 
-    function _generateCompletionReportHTML(addContextCopy){
-        var html = '',
-            task = _task(),
-            report = task.data.completionReport.response;
+    function _handleCallbackNameBtnClick(e){
+        e.preventDefault();
+        var $this = $(this),
+            $set = $this.parents('.callback-set'),
+            $extras = $set.find('.callback-extras'),
+            isOpen = $extras.is(':visible');
+
+        if(!isOpen){
+             $('.callback-extras').hide();
+        }
+        $extras.toggle();
+        return false;
+    }
+
+    function _generateCompletionReportHTML(task, addContextCopy){
+        var html = '';
+            if(!task) task = _task();
+            var report = task.data.completionReport.response;
 
         html += '<div class="completion-report-frame">';
         if(addContextCopy){
@@ -1124,36 +1142,53 @@ var SlideTasks = (function(){
         }
 
         if(report){
+            html += '<h2>Completion Test Results</h2>';
             var formalTestNames = {
-                assertionTested : '',
-                assertionValidated : '',
-                callbackExecuted : '',
-                callbackValidated : '',
-                paramsValidated : ''
+                assertionTested : 'Test Callback Validated',
+                assertionValidated : 'Assertion Validated',
+                callbackExecuted : 'Test Value(s) Validated',
+                callbackValidated : 'Test Callback Executed',
+                paramsValidated : 'Response Assertion Tested'
             };
+            var testsOrder = ['assertionTested','assertionValidated','callbackExecuted','callbackValidated','paramsValidated'];
             console.log(report);
             html += '<div class="completion-report-inner">';
             html += '<div class="title-bar"><span class="name">Test Name</span><span class="value">Test Value</span></div>';
             html += '<div class="callback-sets">';
             for(var i in report.callbacks){
-                html += '<div class="callback-set">';
+                html += '<div class="callback-set status-' + (report.callbacks[i].success ? 'success' : 'failure') + '">';
 
-                html += '<div class="callback-main">';
+                html += '<div class="callback-main clearfix">';
                 html += '<div class="col-name">';
-                html += '<i class="fa fa-check"></i><a class="callback-name-btn">' + report.callbacks[i].fn + '</a> ';
+                html += '<i class="fa fa-' + (report.callbacks[i].success ? 'check' : 'times') + '"></i><a class="callback-name-btn">' + report.callbacks[i].fn + '</a> ';
 
                 html += '</div><!--/.col-name-->';
-                html += '<div class="col-value">';
-                for(var p in report.callbacks[i].fnParams){
-                    html += '- ' + report.callbacks[i].fnParams[p] + ' &nbsp; <i class="fa fa-database"></i>';
+                html += '<div class="col-values">';
+                for(var p in report.callbacks[i].fnParamsData){
+                    html += '<div class="col-value">';
+                    var parseMethod = typeof report.callbacks[i].fnParamsData[p].parseMethod != 'undefined' ? report.callbacks[i].fnParamsData[p].parseMethod : null;
+                    var typeHint = '';
+                    switch(parseMethod){
+                        case 'metaObject':
+                        case 'metaObjectValue':
+                            typeHint = '<i class="fa fa-database"></i>';
+                            html += '- ' + report.callbacks[i].fnParamsData[p].parseValue + ' &nbsp; <span class="type-hint"> ' + typeHint + '</span>';
+                            break;
+                        default:
+                            typeHint = 'unspecified';
+                            html += '- ' + report.callbacks[i].fnParamsData[p].value + ' &nbsp; <span class="type-hint"> ' + typeHint + '</span>';
+                            break;
+                    }
+                    html += '</div><!--/.col-value-->';
                 }
 
-                html += '</div><!--/.col-value-->';
+                html += '</div><!--/.col-values-->';
                 html += '</div><!--/.callback-main-->';
 
-                html += '<div class="callback-extra">';
+                html += '<div class="callback-extras clearfix">';
 
                 html += '<div class="col-1">';
+                html += '<ul class="tests-list">';
                 // list tests
                 for( var test in report.callbacks[i].tests ){
                     var result = report.callbacks[i].tests[test], icon, classes = '';
@@ -1166,24 +1201,26 @@ var SlideTasks = (function(){
                             break;
                     }
 
-                    html += '<span class="test test-' + test + ' ' + classes + '">' + formalTestNames[ test ] + '</span>';
-                }
-                html += '</div><!--/.col-1-->';
-                html += '<ul>';
-                for( var test in report.callbacks[i].tests ){
-                    html += '<li class="' + classes + '"><i class="fa ' + icon + '"></i>' + test + '</li>';
+                    //html += '<span class="test test-' + test + ' ' + classes + '">' + formalTestNames[ test ] + '</span>';
+                    html += '<li class="test test-' + test + ' ' + classes + '"><i class="fa ' + icon + '"></i>' + formalTestNames[ test ] + '</li>';
                 }
                 html += '</ul>';
-                html += '<div class="col-2">';
+                html += '</div><!--/.col-1-->';
+                html += '<div class="col col-2">';
                 // assertion
                 html += '<h3>Assertion</h3>';
-                html += '<p class="description">Success if response is ' + _humanTranslateAssertionOperator(report.callbacks[i].assertion._op) + ' :</p>';
-                html += '<div class="assertion-value">' + JSON.stringify(report.callbacks[i].assertion.val, undefined, 2) + '</div><!--/.assertion-value-->';
+                if(report.callbacks[i].assertion){
+                    html += '<p class="description">';
+                    html += 'Success if response is ';
+                    html += _humanTranslateAssertionOperator(report.callbacks[i].assertion._op);
+                    html += ' :</p>';
+                    html += '<div class="assertion-value">' + JSON.stringify(report.callbacks[i].assertion._val, undefined, 2) + '</div><!--/.assertion-value-->';
+                }
                 html += '</div><!--/.col-2-->';
-                html += '<div class="col-3 ' + (report.callbacks[i].success ? 'success' : 'failure') + '">';
+                html += '<div class="col col-3 ' + (report.callbacks[i].success ? 'success' : 'failure') + '">';
                 // response
                 html += '<h3>Response</h3>';
-                html += '<div class="response-value">' +  + JSON.stringify(report.callbacks[i].fnResponse, undefined, 2) + '</div><!--/.assertion-value-->';
+                html += '<div class="response-value">' + JSON.stringify(report.callbacks[i].fnResponse, undefined, 2) + '</div><!--/.assertion-value-->';
                 html += '</div><!--/.col-3-->';
 
                 html += '</div><!--/.callback-extra-->';
@@ -1295,6 +1332,7 @@ var SlideTasks = (function(){
             $(document).on('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
             $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
             $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
+            $(document).on('click', '.tabbed-content.tasks .callback-name-btn', _handleCallbackNameBtnClick);
             $(document).on('click', '.action-btns .mark-complete', _handleMarkComplete);
             PubSub.subscribe('_ui_render.dynamicContent.steps', _renderTriggerStepsHTML);
             PubSub.subscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);
@@ -1312,6 +1350,7 @@ var SlideTasks = (function(){
             $(document).off('click', '.tabbed-content.tasks .completion-test-report-btn', _handleTriggerBoxCompletionTestReportBtn);
             $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
             $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
+            $(document).off('click', '.tabbed-content.tasks .callback-name-btn', _handleCallbackNameBtnClick);
             $(document).off('click', '.action-btns .mark-complete', _handleMarkComplete);
             PubSub.unsubscribe('_ui_render.dynamicContent.steps', _renderTriggerStepsHTML);
             PubSub.unsubscribe('queueNextRunLambdaStep', _executeRunLambdaAjaxCalls);

@@ -4065,4 +4065,106 @@ span.checkbox {
         bottom: -33px;
         left: 1px; }
 
+.completion-report-frame h2 {
+  margin-bottom: 10px;
+  border-top: 1px dotted #aeaeae;
+  border-bottom: 1px dotted #aeaeae;
+  line-height: 2em; }
+
+.completion-report-inner {
+  background: #5d5d5d;
+  padding: 10px; }
+  .completion-report-inner .title-bar {
+    color: #aeaeae;
+    margin-bottom: 10px;
+    height: 1em;
+    position: relative; }
+    .completion-report-inner .title-bar .name {
+      position: absolute;
+      left: 30px; }
+    .completion-report-inner .title-bar .value {
+      position: absolute;
+      left: 50%; }
+  .completion-report-inner .callback-set {
+    font-size: 14px;
+    margin-bottom: 10px; }
+    .completion-report-inner .callback-set:last-child {
+      margin-bottom: 0; }
+    .completion-report-inner .callback-set.status-success .col-name .fa {
+      color: #5ac251; }
+    .completion-report-inner .callback-set.status-failure .col-name .fa {
+      color: #cb5557; }
+    .completion-report-inner .callback-set .callback-main {
+      background: #515151;
+      line-height: 1.5em;
+      padding: .5em;
+      margin-bottom: 3px; }
+      .completion-report-inner .callback-set .callback-main .col-name {
+        float: left;
+        width: 50%; }
+        .completion-report-inner .callback-set .callback-main .col-name a {
+          cursor: pointer; }
+        .completion-report-inner .callback-set .callback-main .col-name .fa {
+          margin-right: 10px; }
+      .completion-report-inner .callback-set .callback-main .col-values {
+        float: right;
+        width: 50%; }
+        .completion-report-inner .callback-set .callback-main .col-values .col.value {
+          display: block; }
+        .completion-report-inner .callback-set .callback-main .col-values .type-hint {
+          color: #919191; }
+        .completion-report-inner .callback-set .callback-main .col-values .fa {
+          font-size: 90%; }
+    .completion-report-inner .callback-set .callback-extras {
+      background: #757575;
+      display: none; }
+      .completion-report-inner .callback-set .callback-extras .tests-list {
+        font-size: 90%;
+        line-height: 1.3em;
+        padding: 10px; }
+        .completion-report-inner .callback-set .callback-extras .tests-list li {
+          margin-bottom: .5em; }
+        .completion-report-inner .callback-set .callback-extras .tests-list .test {
+          color: #b9b9b9; }
+          .completion-report-inner .callback-set .callback-extras .tests-list .test .fa {
+            color: #636363;
+            margin-right: 10px; }
+        .completion-report-inner .callback-set .callback-extras .tests-list .test.success {
+          color: #fff; }
+          .completion-report-inner .callback-set .callback-extras .tests-list .test.success .fa {
+            color: #40ca35; }
+        .completion-report-inner .callback-set .callback-extras .tests-list .test.failure {
+          color: #ffa1a2; }
+          .completion-report-inner .callback-set .callback-extras .tests-list .test.failure .fa {
+            color: #8a0e10; }
+      .completion-report-inner .callback-set .callback-extras .col-1 {
+        width: 50%;
+        float: left;
+        height: 124px; }
+      .completion-report-inner .callback-set .callback-extras .col-2 {
+        width: 25%;
+        float: left;
+        background: #636363;
+        height: 124px;
+        text-align: center; }
+      .completion-report-inner .callback-set .callback-extras .col-3 {
+        width: 25%;
+        float: left;
+        background: #636363;
+        height: 124px;
+        text-align: center; }
+        .completion-report-inner .callback-set .callback-extras .col-3.success {
+          background: #66a16a; }
+        .completion-report-inner .callback-set .callback-extras .col-3.failure {
+          background: #9e5455; }
+      .completion-report-inner .callback-set .callback-extras .col p.description {
+        font-size: 80%;
+        text-align: center;
+        padding: 0 10px 10px; }
+      .completion-report-inner .callback-set .callback-extras .col h3 {
+        text-align: center;
+        margin: 10px;
+        font-size: 80%;
+        font-weight: bold; }
+
 /*# sourceMappingURL=styles.css.map */

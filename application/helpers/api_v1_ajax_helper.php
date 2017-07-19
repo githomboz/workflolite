@@ -760,6 +760,7 @@ function check_task_dependencies(){
           foreach($modified['response']['callbacks'] as $i => $execution){
             unset($modified['response']['callbacks'][$i]['tests']);
             unset($modified['response']['callbacks'][$i]['fnExecMethod']);
+            unset($modified['response']['callbacks'][$i]['fnParamsData']);
             unset($modified['response']['callbacks'][$i]['fnResponseType']);
             unset($modified['response']['callbacks'][$i]['fnResponse']);
           }
@@ -1068,6 +1069,7 @@ function generate_completion_report(){
           foreach($modified['response']['callbacks'] as $i => $execution){
             unset($modified['response']['callbacks'][$i]['tests']);
             unset($modified['response']['callbacks'][$i]['fnExecMethod']);
+            unset($modified['response']['callbacks'][$i]['fnParamsData']);
             unset($modified['response']['callbacks'][$i]['fnResponseType']);
             unset($modified['response']['callbacks'][$i]['fnResponse']);
           }

@@ -1002,3 +1002,180 @@ $alertRed : rgba(208, 106, 106, 1);
     }
   }
 }
+
+.completion-report-frame {
+  h2 {
+    margin-bottom: $padding;
+    border-top: 1px dotted #aeaeae;
+    border-bottom: 1px dotted #aeaeae;
+    line-height: 2em;
+  }
+}
+
+.completion-report-inner {
+  background: #5d5d5d;
+  padding: $padding;
+
+  .title-bar {
+    color: #aeaeae;
+    margin-bottom: $padding;
+    height: 1em;
+    position: relative;
+
+    .name {
+      position: absolute;
+      left: 30px;
+    }
+
+    .value {
+      position: absolute;
+      left: 50%;
+    }
+  }
+
+  .callback-set {
+    font-size: 14px;
+    margin-bottom: $padding;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &.status-success {
+
+      .col-name .fa {
+        color: #5ac251;
+      }
+    }
+
+    &.status-failure {
+      .col-name .fa {
+        color: #cb5557;
+      }
+    }
+
+    .callback-main {
+      background: #515151;
+      line-height: 1.5em;
+      padding: .5em;
+      margin-bottom: 3px;
+
+      .col-name {
+        float: left;
+        width: 50%;
+
+        a {
+          cursor: pointer;
+        }
+
+        .fa {
+          margin-right: $padding;
+        }
+      }
+
+      .col-values {
+        float: right;
+        width: 50%;
+
+        .col.value {
+          display: block;
+        }
+
+        .type-hint {
+          color: #919191;
+        }
+
+        .fa {
+          font-size: 90%;
+        }
+      }
+    }
+
+    .callback-extras {
+      background: #757575;
+      display: none;
+
+      .tests-list {
+        font-size: 90%;
+        line-height: 1.3em;
+        padding: $padding;
+
+        li {
+          margin-bottom: .5em;
+        }
+
+        .test {
+          color: #b9b9b9;
+
+          .fa {
+            color: #636363;
+            margin-right: $padding;
+          }
+        }
+
+        .test.success {
+          color: #fff;
+
+          .fa {
+            color: #40ca35;
+          }
+        }
+
+        .test.failure {
+          color: #ffa1a2;
+
+          .fa {
+            color: #8a0e10;
+          }
+        }
+
+      }
+
+      .col-1 {
+        width: 50%;
+        float: left;
+        height: 124px;
+      }
+
+      .col-2 {
+        width: 25%;
+        float: left;
+        background: #636363;
+        height: 124px;
+        text-align: center;
+      }
+
+      .col-3 {
+        width: 25%;
+        float: left;
+        background: #636363;
+        height: 124px;
+        text-align: center;
+
+        &.success {
+          background: #66a16a;
+        }
+
+        &.failure {
+          background: #9e5455;
+        }
+
+      }
+
+      .col p.description {
+        font-size: 80%;
+        text-align: center;
+        padding: 0 $padding $padding;
+      }
+
+      .col h3 {
+        text-align: center;
+        margin: $padding;
+        font-size: 80%;
+        font-weight: bold;
+      }
+    }
+
+  }
+
+}

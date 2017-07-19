@@ -44,32 +44,49 @@ class WF
    * @return array Array of parsed map values
    */
   public static function _GetParsedParamsMap(array $paramsMap, $project){
-    $params = [];
+    $params = [ ];
+
+    $return = [ 'params' => [] ];
 
     foreach($paramsMap as $i => $param){
-      if(isset($param['type'])){
-        switch($param['type']){
+      if(isset($param['parseMethod'])){
+        $params[$i] = $param;
+
+        switch($param['parseMethod']){
           case 'metaObject':
-            $metaData = self::GetMetaDataBySlug($project, $param['value']);
-            $param['value'] = isset($metaData['value']) ? $metaData['value'] : null;
+            $metaData = [ ];
+            if(isset($param['parseValue'])) $metaData = self::GetMetaDataBySlug($project, $param['parseValue']);
+            $params[$i]['value'] = isset($metaData['value']) ? $metaData['value'] : null;
             break;
           case 'metaObjectValue':
-            $metaData = self::GetMetaDataBySlug($project, $param['value']);
-            $param['value'] = isset($metaData['value']) ? $metaData['value']->get() : null;
+            $metaData = [ ];
+            if(isset($param['parseValue'])) $metaData = self::GetMetaDataBySlug($project, $param['parseValue']);
+            $params[$i]['value'] = isset($metaData['value']) ? $metaData['value']->get() : null;
             break;
           case 'paramMap':
+            $params[$i]['value'] = null;
             break;
           case 'callback':
+            $params[$i]['value'] = null;
             break;
           case 'value':
+            $params[$i]['value'] = null;
+            break;
           default:
+            $params[$i]['value'] = null;
             break;
         }
       }
-      $params[$i] = $param['value'];
+      if(isset($metaData) && isset($metaData['value'])){
+        $params[$i]['metaObject'] = $metaData['value'];
+        $params[$i]['metaObjectValue'] = $metaData['value']->get();
+      }
+      $return['params'][$i] = $params[$i]['value'];
     }
 
-    return $params;
+    $return['paramsData'] = $params;
+
+    return $return;
   }
 
   public static function GetMetaDataBySlug($project, $slug){
@@ -151,6 +168,7 @@ class WF
       'taskId' => $taskId,
       'callbacks' => [],
     ];
+    //var_dump($callbackArray);
     foreach($callbackArray as $i => $callbacks){
       if(!empty($logs['errors'])) continue;
       //var_dump($callbacks, '-- / callback --');
@@ -194,7 +212,7 @@ class WF
         }
       }
 
-      $error = 'One or more dependency tests have failed';
+      $error = 'One or more callback tests have failed';
 
       // Check for errors and terminate loop if found
       if(in_array(false, $report['callbacks'][$i]['tests'], true)) {
@@ -221,7 +239,10 @@ class WF
       // $params array used or $paramsMap parsed to create $params; Result stored
       // Handle case where paramsMap is set
       if(isset($callbacks['paramsMap'])){
-        $report['callbacks'][$i]['fnParams'] = WF::_GetParsedParamsMap($callbacks['paramsMap'], $project);
+        //var_dump($callbacks['paramsMap']);
+        $temp = WF::_GetParsedParamsMap($callbacks['paramsMap'], $project);
+        $report['callbacks'][$i]['fnParamsData'] = $temp['paramsData'];
+        $report['callbacks'][$i]['fnParams'] = $temp['params'];
         $report['callbacks'][$i]['tests']['paramsValidated'] = true;
       }
 
