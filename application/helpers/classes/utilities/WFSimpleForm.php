@@ -72,11 +72,21 @@ class WFSimpleForm
     return $response;
   }
 
+  private static function _generateIDAttribute($formData){
+    $id = md5(json_encode($formData));
+    return $id;
+  }
+
   private static function _drawFromFormData($formData){
     //ar_dump($formData);
     $drawFunction = 'WFSimpleForm_Element::_draw_' . $formData['type'];
     if(is_callable($drawFunction)){
-      $output = '<form method="post">';
+      $output = '<form method="post" ';
+      var_dump($formData);
+      $output .= 'data-formfly="' . base64_encode(json_encode($formData)) . '" ';
+      $output .= 'id="formfly-' . self::_generateIDAttribute($formData) . '" ';
+      $output .= 'class="form-fly" ';
+      $output .= '>';
       $output .= call_user_func_array($drawFunction, [$formData, null]);
       $output .= '<button type="submit">Submit</button>';
       $output .= '</form>';
@@ -420,9 +430,12 @@ class WFSimpleForm_Element {
     if($element['type'] === 'array'){
       $output .= '<div class="csform__' . $element['type'] . '">'."\n";
 
-      $output .= '[Repeater]'."\n";
+      $output .= '<div class="csform__repeater">'."\n";
+      //var_dump($element['items']);
+      //var_dump($fieldName);
+      //var_dump($parent);
       $output .= self::_draw($element['items'], $fieldName, $parent);
-      $output .= '[/Repeater]';
+      $output .= '<!--/.csform_repeater--></div>'."\n";
       $output .= '<button type="submit">+ Add</button>';
       $output .= "\n";
 

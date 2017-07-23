@@ -191,3 +191,15 @@
 
   </div><!--/.main-mid-section-inner-->
 </div><!--/#main-mid-section-->
+<script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_FormFly.js"></script>
+<script type="text/javascript">
+  $(document).ready(function(){
+    $("form.form-fly").each(function(a, b){
+      var $this = $(this),
+        selector = null;
+
+      if($this.length > 0) selector = $this.attr('id');
+      CS_FormFly.registerForm('#' + selector);
+    });
+  });
+</script>

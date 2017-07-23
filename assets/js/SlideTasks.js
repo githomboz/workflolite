@@ -1041,7 +1041,8 @@ var SlideTasks = (function(){
 
         switch(dependency.callback){
             case 'WF::MetaDataIsSet':
-                output += 'Confirming that meta data `' + dependency.paramsMap[0].value + '` has been set';
+                //console.log(dependency);
+                output += 'Confirming that meta data `' + dependency.paramsMap[0].parseValue + '` has been set';
                 break;
             default:
                 output += 'Confirming that callback ' + dependency.callback + ' returns response ';
@@ -1049,7 +1050,7 @@ var SlideTasks = (function(){
                 if(dependency.paramsMap){
                     output += ' when passed [' ;
                     for(var i in dependency.paramsMap){
-                        output += dependency.paramsMap[i].value + ' (' + dependency.paramsMap[i].type + ')';
+                        output += dependency.paramsMap[i].parseValue + ' (' + dependency.paramsMap[i].parseMethod + ')';
                         if(i < (dependency.paramsMap.length - 1)) output += ', '
                     }
                     output += ']';
@@ -1163,7 +1164,7 @@ var SlideTasks = (function(){
             };
             //@todo: put the tests in order when displaying them.
             var testsOrder = ['callbackValidated','assertionValidated','paramsValidated','callbackExecuted','assertionTested'];
-            console.log(report);
+            //console.log(report);
             html += '<div class="completion-report-inner">';
             html += '<div class="title-bar"><span class="name">Test Name</span><span class="value">Parameter(s)</span></div>';
             html += '<div class="callback-sets">';

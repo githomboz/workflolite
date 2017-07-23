@@ -48,11 +48,11 @@ $route['admin/login'] = 'main/admin_login';
 $route['admin/logout'] = 'main/admin_logout';
 
 
-$route['jobs/(:any)/(:any)'] = 'jobs/single/$1/$2';
-$route['jobs/(:any)'] = 'jobs/single/$1/tasks';
-$route['jobs/create'] = 'workflows/create_job';
-$route['workflows/(:any)/(:any)'] = 'workflows/single/$1/$2';
-$route['workflows/(:any)'] = 'workflows/details/$1';
+$route['jobs/(:any)/(:any)'] = 'projects/single/$1/$2';
+$route['jobs/(:any)'] = 'projects/single/$1/tasks';
+$route['jobs/create'] = 'templates/create_project';//'workflows/create_job';
+$route['workflows/(:any)/(:any)'] = 'templates/single/$1/$2';
+$route['workflows/(:any)'] = 'templates/details/$1';
 $route['projects/(:any)/(:any)'] = 'projects/single/$1/$2';
 $route['projects/(:any)'] = 'projects/single/$1/tasks';
 $route['projects/create'] = 'templates/create_project';
