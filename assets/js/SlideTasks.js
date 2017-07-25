@@ -383,6 +383,11 @@ var SlideTasks = (function(){
                             _FORM_CACHE[post.taskTemplateId] = data.response._form;
                             _setDynamicContent(post.taskTemplateId, _FORM_CACHE[post.taskTemplateId]);
                             _renderDynamicContentHTML(null, {content: _FORM_CACHE[post.taskTemplateId]});
+
+                            var id = $(_FORM_CACHE[post.taskTemplateId]).attr('id');
+                            console.log(id);
+                            CS_FormFly.registerForm('#' + id);
+
                             _renderTaskActionBtns();
                             break;
                     }
@@ -907,11 +912,16 @@ var SlideTasks = (function(){
     }
 
     function _ui_completionTest(topic, data){
+        console.log(data);
         if(typeof data.status != 'undefined'){
             var $completionTestBtn = $('.completion-test-btn');
             switch (data.status){
                 case 'running':
                     $completionTestBtn.html('Generating report... <i class="fa fa-spin fa-spinner"></i>');
+                    break;
+                case 'error':
+                    //$completionTestBtn.html('Generating report... <i class="fa fa-spin fa-spinner"></i>');
+                    $completionTestBtn.hide();
                     break;
             }
         }

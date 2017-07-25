@@ -82,13 +82,13 @@ class WFSimpleForm
     $drawFunction = 'WFSimpleForm_Element::_draw_' . $formData['type'];
     if(is_callable($drawFunction)){
       $output = '<form method="post" ';
-      var_dump($formData);
+      //var_dump($formData);
       $output .= 'data-formfly="' . base64_encode(json_encode($formData)) . '" ';
       $output .= 'id="formfly-' . self::_generateIDAttribute($formData) . '" ';
       $output .= 'class="form-fly" ';
       $output .= '>';
       $output .= call_user_func_array($drawFunction, [$formData, null]);
-      $output .= '<button type="submit">Submit</button>';
+      $output .= '<button type="submit" class="submit-formfly-btn">Submit</button>';
       $output .= '</form>';
       return $output;
     }
@@ -430,13 +430,20 @@ class WFSimpleForm_Element {
     if($element['type'] === 'array'){
       $output .= '<div class="csform__' . $element['type'] . '">'."\n";
 
-      $output .= '<div class="csform__repeater">'."\n";
+      $classes = '';
+      if($label) {
+        $output  .= self::_draw_label($label);
+        $classes .= ' has-label';
+      }
+
+      $output .= '<div class="csform__repeater' . $classes . '" data-repeater_field="' . $fieldName . '">'."\n";
+      //var_dump($label);
       //var_dump($element['items']);
       //var_dump($fieldName);
       //var_dump($parent);
       $output .= self::_draw($element['items'], $fieldName, $parent);
       $output .= '<!--/.csform_repeater--></div>'."\n";
-      $output .= '<button type="submit">+ Add</button>';
+      $output .= '<button type="submit" class="repeater-add-btn">+ Add</button>';
       $output .= "\n";
 
       $output .= '</div><!--/.csform__' . $element['type'] . '-->'."\n";
@@ -452,13 +459,14 @@ class WFSimpleForm_Element {
       $name = self::_generate_field_name($element['type']);
     }
     $label = isset($element['label']) ? $element['label'] : ($originalName ? $name : null);
+    $suppressLabel = isset($element['suppressLabel']) && $element['suppressLabel'];
     //var_dump($label);
     if($element['type'] === 'object'){
       $output .= '<div class="csform__' . $element['type'] . '">'."\n";
 
 
 
-      if($label) $output .= self::_draw_label($label);
+      if($label && !$suppressLabel) $output .= self::_draw_label($label);
       foreach($element['properties'] as $elementName => $property){
         $output .= self::_draw($property, $elementName, $element);
       }

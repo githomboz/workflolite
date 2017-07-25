@@ -177,7 +177,7 @@
   "required": ["mother", "father", "children"]
 }';
 
-    foreach($forms as $form){
+    foreach($forms as $i => $form){
       echo '<div class="form-viewer clearfix">';
       echo '<pre class="json">'.$form.'</pre>';
       $processedForm = WFSimpleForm::RenderForm($form);
@@ -185,13 +185,13 @@
       echo htmlspecialchars($processedForm['response']['data']);
       echo '</pre>';
       echo '<div class="form-container">' . $processedForm['response']['data'] . '</div>';
+      echo '<div class="form-container2 form-' . $i . '"></div>';
       echo '</div><!--/form-viewer-->';
     }
     ;?>
 
   </div><!--/.main-mid-section-inner-->
 </div><!--/#main-mid-section-->
-<script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_FormFly.js"></script>
 <script type="text/javascript">
   $(document).ready(function(){
     $("form.form-fly").each(function(a, b){
@@ -200,6 +200,7 @@
 
       if($this.length > 0) selector = $this.attr('id');
       CS_FormFly.registerForm('#' + selector);
+      return CS_FormFly.getFormById('#' + selector).render('.form-container2.form-' + a);
     });
   });
 </script>

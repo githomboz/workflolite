@@ -49,6 +49,7 @@
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_EditableContentDivs.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_RenderBuddy.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_WFLogger.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_FormFly.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/setTimeout.polyfill.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/main.js"></script>
