@@ -365,7 +365,7 @@ var SlideTasks = (function(){
                 slug : routineSlugs[_triggerProgress],
             };
 
-        CS_API.call('ajax/run_form_routines',
+        CS_API.call('ajax/run_form_routines?jsonOnly=1',
             function(){
                 // beforeSend
                 _setTriggerProgress(_triggerProgress, 'doing');
@@ -374,21 +374,26 @@ var SlideTasks = (function(){
                 // success
                 if(data.errors == false && data.response.success){
                     SlideTasks.validateAndApplyUpdates(data, true);
-                    _setTriggerProgress(_triggerProgress, 'did');
+                    // _setTriggerProgress(_triggerProgress, 'did');
+                    // _setTriggerProgress(_triggerProgress + 1, 'doing');
                     switch (data.response.slug){
                         case routineSlugs[1]: //'validate_lambda_callback':
-                            PubSub.publish('queueNextRunFormStep', data.response);
-                            break;
-                        case routineSlugs[2]: //'execute_lambda_callback':
-                            _FORM_CACHE[post.taskTemplateId] = data.response._form;
-                            _setDynamicContent(post.taskTemplateId, _FORM_CACHE[post.taskTemplateId]);
-                            _renderDynamicContentHTML(null, {content: _FORM_CACHE[post.taskTemplateId]});
-
-                            var id = $(_FORM_CACHE[post.taskTemplateId]).attr('id');
-                            console.log(id);
-                            CS_FormFly.registerForm('#' + id);
+                            //PubSub.publish('queueNextRunFormStep', data.response);
+                            if(data && typeof data.response._json != 'undefined'){
+                                var key = md5(data.response._json), formHTML;
+                                CS_FormFly.registerForm(key, { json : JSON.parse(data.response._json)});
+                                formHTML = CS_FormFly.getFormByKey(key).getFormHTML();
+                                _FORM_CACHE[post.taskTemplateId] = formHTML;
+                                _setDynamicContent(post.taskTemplateId, _FORM_CACHE[post.taskTemplateId]);
+                                _renderDynamicContentHTML(null, {content: _FORM_CACHE[post.taskTemplateId]});
+                            }
 
                             _renderTaskActionBtns();
+                            break;
+                        case routineSlugs[2]: //'execute_lambda_callback':
+                            // _FORM_CACHE[post.taskTemplateId] = data.response._form;
+                            // _setDynamicContent(post.taskTemplateId, _FORM_CACHE[post.taskTemplateId]);
+                            // _renderDynamicContentHTML(null, {content: _FORM_CACHE[post.taskTemplateId]});
                             break;
                     }
                 } else {

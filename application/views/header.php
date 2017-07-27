@@ -43,6 +43,7 @@
 <!--  <script type="text/javascript" src="--><?php //echo base_url('assets/js')?><!--/jquery.simple-dtpicker.js"></script>-->
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/alertify.min.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/handlebars-v4.0.5.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_API.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_CSSOverride.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_MessageBox.js"></script>
@@ -50,7 +51,6 @@
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_RenderBuddy.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_WFLogger.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_FormFly.js"></script>
-  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/setTimeout.polyfill.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/main.js"></script>
   <link rel="shortcut icon" href="<?php echo base_url()?>favicon.png" type="image/x-icon">

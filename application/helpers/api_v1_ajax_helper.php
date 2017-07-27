@@ -1008,17 +1008,27 @@ function run_form_routines(){
             $validateData = WFSimpleForm::VerifyFormTypeFormat($formData);
             if($validateData['response']['success']){
               $response['response']['success'] = true;
+              $response['response']['_json'] = json_encode($formData);
             } else {
               $response['errors'][] = 'Error validating form type format';
             }
             break;
+          case 'get_form_json':
+            $response['response']['success'] = true;
+            $response['response']['_json'] = json_encode($formData);
+            break;
           case 'render_form':
-            $validateData = WFSimpleForm::RenderForm($formData);
-            if($validateData['response']['success']){
-              $response['response']['success'] = true;
-              $response['response']['_form'] = $validateData['response']['data'];
-            } else {
-              $response['errors'][] = 'Error rendering this form';
+            $jsonOnly = (bool) CI()->input->get('jsonOnly');
+
+            if(!$jsonOnly) $validateData = WFSimpleForm::RenderForm($formData);
+            $response['response']['success'] = true;
+            $response['response']['_json'] = json_encode($formData);
+            if(!$jsonOnly) {
+              if($validateData['response']['success']){
+                $response['response']['_form'] = $validateData['response']['data'];
+              } else {
+                $response['errors'][] = 'Error rendering this form';
+              }
             }
             break;
         }

@@ -285,7 +285,7 @@ var BindedBox = (function(){
             } else {
                 $innerHead.find('.thumb').hide();
             }
-            if(typeof data.projectName != 'undefined') $innerHead.find('h2').html(data.projectName);
+            if(typeof data.projectName != 'undefined') $innerHead.find('h2 .txt').html(data.projectName);
         }
     }
 
@@ -353,8 +353,8 @@ var BindedBox = (function(){
         //console.log(__CURRENT.__PROJECT);
         var reqId = __addRequest( 'renderProjectData' , 'Preparing to render project data' );
 
-        _setBindedBoxElementHTML('bb_h2', __CURRENT.__PROJECT.projectName, $bindedBox, 'header .titles h2');
-        _setBindedBoxElementHTML('bb_h3', __CURRENT.__PROJECT.templateName, $bindedBox, 'header .titles h3');
+        _setBindedBoxElementHTML('bb_h2', __CURRENT.__PROJECT.projectName, $bindedBox, 'header .titles h2 .txt');
+        _setBindedBoxElementHTML('bb_h3', __CURRENT.__PROJECT.templateName, $bindedBox, 'header .titles h3 .txt');
         var $headerContent = $bindedBox.find('header .upper-settings');
         if(typeof __CURRENT.__PROJECT.projectCompletionDateString == 'string') {
             $headerContent.find('.deadline-txt').show();

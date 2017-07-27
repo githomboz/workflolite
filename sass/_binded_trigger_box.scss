@@ -59,12 +59,28 @@ $alertRed : rgba(208, 106, 106, 1);
         font-size: 20px;
         margin-bottom: .3em;
         line-height: 1.3em;
+
+        .title {
+          font-weight: bold;
+        }
+
+        .txt {
+          //font-style: italic;
+        }
       }
 
       h3 {
         font-size: 14px;
         color: $txtLightGray;
         line-height: 1.3em;
+
+        .title {
+          font-weight: bold;
+        }
+
+        .txt {
+          //font-style: italic;
+        }
       }
 
     }
@@ -1001,6 +1017,14 @@ $alertRed : rgba(208, 106, 106, 1);
       }
     }
   }
+
+  .dynamic-content form.formfly {
+    fieldset {
+      margin-bottom: .625em;
+    }
+  }
+
+
 }
 
 .completion-report-frame {
@@ -1216,5 +1240,4 @@ $alertRed : rgba(208, 106, 106, 1);
     }
 
   }
-
 }

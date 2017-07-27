@@ -953,3 +953,9 @@ if(!String.prototype.camelizeTwo){
         });
     };
 }
+
+if(!String.prototype.hyphenateString){
+    String.prototype.hyphenateString = function(){
+         return this.replace(/([~!@#$%^&*()+=`{}\[\]\|\\:;'<>,.\/? ])+/g, '-').replace(/^(-)+|(-)+$/g,'');
+    };
+}

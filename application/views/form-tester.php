@@ -104,11 +104,19 @@
     "username": {
       "type": "string" 
     },
+    "password": { 
+      "type": "string",
+      "minLength": 6,
+      "maxLength": 10,
+      "attributes" : {
+        "type" : "password"
+      }
+    },
     "rememberMe": { 
       "type": "boolean"
     }
   },
-  "required": ["username"]
+  "required": ["username","password"]
 }';
 
     $forms[] = '{
@@ -184,8 +192,8 @@
       echo '<pre class="html">';
       echo htmlspecialchars($processedForm['response']['data']);
       echo '</pre>';
-      echo '<div class="form-container">' . $processedForm['response']['data'] . '</div>';
-      echo '<div class="form-container2 form-' . $i . '"></div>';
+      echo '<div class="form-container form-' . $i . '">' . $processedForm['response']['data'] . '</div>';
+      //echo '<div class="form-container2 form-' . $i . '"></div>';
       echo '</div><!--/form-viewer-->';
     }
     ;?>
@@ -196,11 +204,11 @@
   $(document).ready(function(){
     $("form.form-fly").each(function(a, b){
       var $this = $(this),
-        selector = null;
+        key = null;
 
-      if($this.length > 0) selector = $this.attr('id');
-      CS_FormFly.registerForm('#' + selector);
-      return CS_FormFly.getFormById('#' + selector).render('.form-container2.form-' + a);
+      if($this.length > 0) key = $this.attr('id').split('-')[1];
+      CS_FormFly.registerForm(key);
+      return CS_FormFly.getFormByKey(key).render('.form-container.form-' + a);
     });
   });
 </script>

@@ -5,15 +5,15 @@
 
       </div>
       <div class="titles">
-        <h2></h2>
-        <h3></h3>
+        <h2><span class="title">Job: </span><span class="txt"></span></h2>
+        <h3><span class="title">Workflow: </span><span class="txt"></span></h3>
       </div>
       <div class="upper-settings">
         <span class="deadline-txt">Complete by <span class="date"></span> </span>
         <i class="fa fa-cog"></i>
       </div>
       <div class="lower-settings">
-        <span class="task-count-txt">Project Task #<span class="task-num"></span> of <span class="task-count"></span></span>
+        <span class="task-count-txt">Job Task #<span class="task-num"></span> of <span class="task-count"></span></span>
         <span class="time-tracker-btn"><i class="fa fa-pause-circle"></i> 00:00:00</span>
       </div>
     </header>

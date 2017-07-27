@@ -182,6 +182,9 @@
           <div class="form-group">
             <input type="checkbox" id="autoRunField" name="autoRun" <?php echo $settings['autoRun'] ? 'checked="checked"' : '' ?> /> <label for="autoRunField">Run lambda functions automatically</label>
           </div>
+          <div class="form-group">
+            <input type="checkbox" id="autoLoadFormsField" name="autoLoadForms" <?php echo $settings['autoLoadForms'] ? 'checked="checked"' : '' ?> /> <label for="autoLoadFormsField">Load forms automatically</label>
+          </div>
           <button class="btn submit v2"><i class="fa fa-save"></i> Save</button>
         </form>
       </div><!--/.widget-->

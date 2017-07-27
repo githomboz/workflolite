@@ -3461,10 +3461,14 @@ span.checkbox {
         font-size: 20px;
         margin-bottom: .3em;
         line-height: 1.3em; }
+        .binded-trigger-box .inner-head .titles h2 .title {
+          font-weight: bold; }
       .binded-trigger-box .inner-head .titles h3 {
         font-size: 14px;
         color: #afaeae;
         line-height: 1.3em; }
+        .binded-trigger-box .inner-head .titles h3 .title {
+          font-weight: bold; }
     .binded-trigger-box .inner-head .upper-settings {
       position: absolute;
       top: 10px;
@@ -4064,6 +4068,9 @@ span.checkbox {
         position: absolute;
         bottom: -33px;
         left: 1px; }
+
+.binded-trigger-box .dynamic-content form.formfly fieldset {
+  margin-bottom: .625em; }
 
 .completion-report-frame h2 {
   margin-bottom: 10px;
