@@ -29,12 +29,18 @@ var CS_FormFly = (function(){
         return obj && typeof obj[property] != 'undefined' ? obj[property] : null ;
     }
 
+    function _cleanSelector(selector){
+        return selector.replace('#','');
+    }
+
     function _selectorExists(formIdSelector){
+        formIdSelector = _cleanSelector(formIdSelector);
         for( var i in __FFFORMS ) if(__FFFORMS[i].id == formIdSelector) return true;
         return false;
     }
 
     function _getDataSource(options, formIdSelector){
+        formIdSelector = _cleanSelector(formIdSelector);
         var found = {
             json : false,
             parsed : false,
@@ -78,7 +84,8 @@ var CS_FormFly = (function(){
     }
 
     function _registerForm(key, options){
-        var formIdSelector = '#formfly-' + key;
+        var formIdSelector = 'formfly-' + key;
+        formIdSelector = _cleanSelector(formIdSelector);
         if(!_selectorExists(formIdSelector)){
             var sourceData = _getDataSource(options, formIdSelector),
                 ffform = {
@@ -105,15 +112,15 @@ var CS_FormFly = (function(){
     function _createDataObject(fields){
         var data = {};
         for ( var i in fields ) {
-            data[fields[i].name] = null;
+            data[fields[i].nameAttr] = null;
         }
         return data;
     }
 
     function _generateFieldName(node){
-        var name = node.name;
-        if(typeof node.groupName != 'undefined') {
-            name = node.groupName + '[' +  node.name + ']';
+        var name = node.nameAttr;
+        if(typeof node.rootName != 'undefined') {
+            name = node.rootName + '[' +  node.nameAttr + ']';
         }
         return name;
     }
@@ -123,8 +130,8 @@ var CS_FormFly = (function(){
         parentNode = parentNode || null;
         if( node.fType == 'element' ){
             var required = parentNode && typeof parentNode.required != 'undefined' ? parentNode.required : false ;
-            node.required = (required && required.indexOf(node.name) >= 0);
-            node.name = _generateFieldName(node);
+            node.required = (required && required.indexOf(node.nameAttr) >= 0);
+            node.nameAttr = _generateFieldName(node);
             fields.push(node);
         } else {
             if( typeof node.elements != 'undefined' ){
@@ -172,18 +179,62 @@ var CS_FormFly = (function(){
         }
     }
 
-    function _regenerateGroupName(node){
-        var newFieldName = node.fieldName, newFieldName = null;
+    function _analyzeAndCreateFFFProperties(node, mergeData){
         console.log(node);
-        if(node.groupRepeaterIndex && node.repeaterIndex){
-            if( node.fieldName.indexOf('[' + node.groupRepeaterIndex + ']') >= 0 ){
-                newFieldName = node.fieldName.split('[' + node.groupRepeaterIndex)[0];
-                newFieldName += '[' + node.repeaterIndex + ']';
+
+        var backup = JSON.stringify(node);
+
+        if(preMergeData) {
+            for( var field in preMergeData ) {
+                node[field] = preMergeData[field];
             }
         }
-        return newFieldName;
-    }
 
+
+        //node.fieldName;
+        //node.nameAttr;
+
+        switch(node.type){
+            case 'array':
+                break;
+            case 'group':
+                if(node.rootRepeaterIndex){
+                    // node.repeaterIndex;
+                    // node.rootName;
+                } else {
+
+                }
+
+                break;
+            case 'element':
+                if(node.rootRepeaterIndex){
+                    // node.repeaterIndex;
+                    // node.rootName;
+                } else {
+
+                }
+
+                break;
+        }
+
+        if(typeof node.nameAttr == 'undefined') {
+            node.nameAttr = _generateAnonymousElement(node.type);
+            node.nativeName = false;
+        }
+
+        // Verify Field Name
+        if(!node.fieldName && node.nameAttr) {
+            node.fieldName = node.nameAttr.split('[')[0];
+        }
+
+
+        if(typeof node.nativeName == 'undefined') node.nativeName = true;
+
+        console.log(node);
+        node = JSON.parse(backup);
+        console.log(node);
+        return node;
+    }
 
     function _parseJSONNode(node, state){
         // group, element, repeater
@@ -193,114 +244,160 @@ var CS_FormFly = (function(){
                 node.fType = 'group';
                 if(typeof node.properties != 'undefined'){
 
-                    for(var groupName in node.properties){
-                        switch (node.properties[groupName].type){
+                    for(var rootName in node.properties){
+                        switch (node.properties[rootName].type){
                             case 'array':
-                                node.properties[groupName].fType = 'repeater';
-                                node.properties[groupName].name = groupName;
-                                node.properties[groupName].groupName = groupName;
-                                node.properties[groupName].repeaterIndex = _repeaterIndex += 20;
-                                node.properties[groupName].nativeName = true;
-                                if(typeof node.properties[groupName].items != 'undefined') {
-                                    node.properties[groupName].items = _parseJSONNode(node.properties[groupName].items, {
-                                        groupPath : groupName,
-                                        groupRepeaterIndex : node.properties[groupName].repeaterIndex
+                                node.properties[rootName].fType = 'repeater';
+                                node.properties[rootName].nameAttr = rootName;
+                                node.properties[rootName].rootName = rootName;
+                                node.properties[rootName].repeaterIndex = _repeaterIndex += 20;
+                                node.properties[rootName].nativeName = true;
+                                if(typeof node.properties[rootName].items != 'undefined') {
+                                    node.properties[rootName].items = _parseJSONNode(node.properties[rootName].items, {
+                                        rootName : rootName,
+                                        rootRepeaterIndex : node.properties[rootName].repeaterIndex
                                     });
                                 }
-                                _repeaterCache.push(node.properties[groupName]);
+                                _repeaterCache.push(node.properties[rootName]);
+                                // node.properties[rootName] = _analyzeAndCreateFFFProperties(node.properties[rootName], {
+                                //      nameAttr : rootName,
+                                //      rootName : rootName,
+                                //      repeaterIndex : _repeaterIndex += 20,
+                                //      nativeName = true
+                                // });
+                                if(node.properties[rootName].rootName) node.properties[rootName].root = node.properties[rootName].rootName.split('[')[0];
                                 break;
                             case 'object':
-                                node.properties[groupName].fType = 'group';
-                                node.properties[groupName].groupName = groupName;
-                                node.properties[groupName].nativeName = true;
-                                for(var fieldName in node.properties[groupName].properties){
-                                    node.properties[groupName].properties[fieldName].name = fieldName;
-                                    var _type = node.properties[groupName].properties[fieldName].type;
-                                    node.properties[groupName].properties[fieldName].fType = (['array','object'].indexOf(_type) >= 0 ? (_type == 'array' ? 'repeater' : 'group') : 'element');
-                                    node.properties[groupName].properties[fieldName].groupName = groupName;
-                                    node.properties[groupName].properties[fieldName] = _parseJSONNode(node.properties[groupName].properties[fieldName], {
-                                        groupPath : groupName,
-                                        groupRepeaterIndex : ( typeof state.groupRepeaterIndex != 'undefined' ? state.groupRepeaterIndex : undefined )
+                                node.properties[rootName].fType = 'group';
+                                node.properties[rootName].rootName = rootName;
+                                node.properties[rootName].nativeName = true;
+                                for(var fieldName in node.properties[rootName].properties){
+                                    node.properties[rootName].properties[fieldName].nameAttr = fieldName;
+                                    var _type = node.properties[rootName].properties[fieldName].type;
+                                    node.properties[rootName].properties[fieldName].fType = (['array','object'].indexOf(_type) >= 0 ? (_type == 'array' ? 'repeater' : 'group') : 'element');
+                                    node.properties[rootName].properties[fieldName].rootName = rootName;
+                                    node.properties[rootName].properties[fieldName] = _parseJSONNode(node.properties[rootName].properties[fieldName], {
+                                        rootName : rootName,
+                                        rootRepeaterIndex : ( typeof state.rootRepeaterIndex != 'undefined' ? state.rootRepeaterIndex : undefined )
                                     });
                                 }
-                                if(typeof state.groupRepeaterIndex != 'undefined') node.properties[groupName].groupRepeaterIndex = state.groupRepeaterIndex;
+                                if(typeof state.rootRepeaterIndex != 'undefined') node.properties[rootName].rootRepeaterIndex = state.rootRepeaterIndex;
+                                if(typeof state.rootName != 'undefined' && node.properties[rootName].nameAttr) node.properties[rootName].nameAttr = state.rootName;
+                                //_analyzeAndCreateFFFProperties(node.properties[rootName]);
+                                if(node.properties[rootName].rootName) node.properties[rootName].root = node.properties[rootName].rootName.split('[')[0];
                                 break;
                             default:
-                                node.properties[groupName].fType = 'element';
-                                node.properties[groupName].name = groupName; // value may be overwritten later
-                                node.properties[groupName].fieldName = groupName;
-                                node.properties[groupName].nativeName = true;
-                                //if(groupPath) node.properties[groupName].groupName = groupPath;
-                                node.properties[groupName].groupRepeaterIndex;
-                                if(typeof state.groupRepeaterIndex != 'undefined') node.properties[groupName].groupRepeaterIndex = state.groupRepeaterIndex;
-                                if(typeof state.groupPath != 'undefined') {
-                                    node.properties[groupName].groupName = state.groupPath;
-                                }
+                                console.log(rootName);
+                                node.properties[rootName].fType = 'element';
+                                node.properties[rootName].nameAttr = rootName; // value may be overwritten later
+                                node.properties[rootName].fieldName = (node.properties[rootName].fieldName) ? rootName.split('[')[0] : undefined;
+                                node.properties[rootName].nativeName = true;
+                                //if(rootName) node.properties[rootName].rootName = rootName;
+                                node.properties[rootName].rootRepeaterIndex;
+                                if(typeof state.rootRepeaterIndex != 'undefined') node.properties[rootName].rootRepeaterIndex = state.rootRepeaterIndex;
+                                if(typeof state.rootName != 'undefined') node.properties[rootName].rootName = state.rootName;
 
-                                if(node.properties[groupName].repeaterIndex) {
-                                    node.properties[groupName].groupName = node.properties[groupName].groupName + '[' + node.properties[groupName].repeaterIndex + ']';
+                                if(node.properties[rootName].repeaterIndex) {
+                                    node.properties[rootName].rootName = node.properties[rootName].rootName + '[' + node.properties[rootName].repeaterIndex + ']';
                                 } else {
-                                    if(node.properties[groupName].groupRepeaterIndex) {
-                                        node.properties[groupName].groupName += '[' + node.properties[groupName].groupRepeaterIndex + ']';
+                                    if(node.properties[rootName].rootRepeaterIndex) {
+                                        node.properties[rootName].rootName += '[' + node.properties[rootName].rootRepeaterIndex + ']';
                                     }
                                 }
 
+                                if(node.properties[rootName].rootName) node.properties[rootName].root = node.properties[rootName].rootName.split('[')[0];
 
+                                //_analyzeAndCreateFFFProperties(node.properties[rootName]);
 
-                                //console.log(node.properties[groupName], node.properties[groupName].groupName);
+                                //console.log(node.properties[rootName], node.properties[rootName].rootName);
 
                                 break;
                         }
 
-                        // Identify fields
+                        if(typeof node.properties[rootName].nameAttr == 'undefined' && node.properties[rootName].root) {
+                            node.properties[rootName].nameAttr = node.properties[rootName].root;
+                        }
+
+                        if(typeof node.properties[rootName].nameAttr == 'undefined') {
+                            node.properties[rootName].nameAttr = _generateAnonymousElement(node.properties[rootName].type);
+                            node.properties[rootName].nativeName = false;
+                        }
+
+                        // Verify Field Name
+                        if(!node.properties[rootName].fieldName && node.properties[rootName].nameAttr) {
+                            node.properties[rootName].fieldName = node.properties[rootName].nameAttr.split('[')[0];
+                        }
+
+                        if(typeof node.properties[rootName].nativeName == 'undefined') node.properties[rootName].nativeName = true;
+                        console.log('------FOCUS HERE-(named)-----', node.properties[rootName], node.properties[rootName].rootName);
 
                     }
                 }
-                if(typeof node.name == 'undefined') {
-                    node.name = _generateAnonymousElement(node.type);
+                if(!node.rootName && state.rootName) node.rootName = state.rootName;
+                if(!node.rootName && node.nameAttr) node.rootName = node.nameAttr;
+                if(node.rootName) node.root = node.rootName.split('[')[0];
+
+                if(!node.nameAttr) {
+                    node.nameAttr = _generateAnonymousElement(node.type);
                     node.nativeName = false;
                 }
-                if(typeof node.groupName == 'undefined') node.groupName = node.name;
-                if(typeof state.groupRepeaterIndex != 'undefined') node.groupRepeaterIndex = state.groupRepeaterIndex;
+                if(state.rootRepeaterIndex) node.rootRepeaterIndex = state.rootRepeaterIndex;
+                //_analyzeAndCreateFFFProperties(node);
                 break;
             case 'array':
                 node.fType = 'repeater';
                 node.repeaterIndex = _repeaterIndex += 20;
-                if(typeof node.name == 'undefined') {
-                    node.name = _generateAnonymousElement(node.type);
+                if(!node.nameAttr) {
+                    node.nameAttr = _generateAnonymousElement(node.type);
                     node.nativeName = false;
                 }
-                node.groupName = node.name;
+                node.rootName = node.nameAttr;
+                node.root = node.nameAttr.split('[')[0];
 
-                if(typeof node.items != 'undefined') {
+                if(node.items) {
                     node.items = _parseJSONNode(node.items, {
-                        groupPath : node.groupName,
-                        groupRepeaterIndex : node.repeaterIndex
+                        rootName : node.rootName,
+                        rootRepeaterIndex : node.repeaterIndex
                     });
                 }
+                //_analyzeAndCreateFFFProperties(node);
                 break;
             case 'boolean':
             case 'string':
             case 'number':
                 node.fType = 'element';
-                if(typeof node.name == 'undefined') {
-                    node.name = _generateAnonymousElement(node.type);
+                if(!node.nameAttr) {
+                    node.nameAttr = _generateAnonymousElement(node.type);
                     node.nativeName = false;
                 }
-                node.fieldName = node.name;
-                //if(groupPath) node.groupName = groupPath;
-                if(typeof state.groupRepeaterIndex != 'undefined') node.groupRepeaterIndex = state.groupRepeaterIndex;
-                if(typeof state.groupPath != 'undefined') node.groupName = state.groupPath;
+                if(node.nameAttr) node.fieldName = node.nameAttr.split('[')[0];
+                //if(rootName) node.rootName = rootName;
+                if(state.rootRepeaterIndex) node.rootRepeaterIndex = state.rootRepeaterIndex;
+                if(state.rootName) node.rootName = state.rootName;
                 if(node.repeaterIndex) {
-                    node.groupName = node.groupName + '[' + node.repeaterIndex + ']';
+                    node.rootName = node.rootName + '[' + node.repeaterIndex + ']';
                 } else {
-                    if(node.groupRepeaterIndex) {
-                        node.groupName += '[' + node.groupRepeaterIndex + ']';
+                    var indexAlreadyAdded = typeof node.rootName != 'undefined' && node.rootName.indexOf('[' + node.rootRepeaterIndex + ']') >= 1;
+                    if( node.rootRepeaterIndex && !indexAlreadyAdded ) {
+                        node.rootName += '[' + node.rootRepeaterIndex + ']';
                     }
                 }
 
-                console.log(node, node.groupName);
+                if(node.rootName) node.root = node.rootName.split('[')[0];
+
+                console.log('------FOCUS HERE-(root)------', node, node.rootName);
+                //_analyzeAndCreateFFFProperties(node);
                 break;
+        }
+
+        if(typeof node.nameAttr == 'undefined') {
+            node.nameAttr = _generateAnonymousElement(node.type);
+            node.nativeName = false;
+        }
+
+        // Verify Field Name
+        if(!node.fieldName && node.nameAttr) {
+            node.fieldName = node.nameAttr.split('[')[0];
         }
 
         if(typeof node.nativeName == 'undefined') node.nativeName = true;
@@ -318,6 +415,7 @@ var CS_FormFly = (function(){
     }
 
     function _getFormByIdAttribute(formIdSelector){
+        formIdSelector = _cleanSelector(formIdSelector);
         var index = null;
         for( var i in __FFFORMS ) if(__FFFORMS[i].id == formIdSelector) index = i;
         if(index) return _getForm(index);
@@ -349,7 +447,7 @@ var CS_FormFly = (function(){
             $containerSource = $fieldset.find('.ftype-repeater-container.source'),
             id = $form.attr('id'),
             FFF = _getFormByIdAttribute(id),
-            repeaterIndex = $containerSource.attr('data-group_repeater_index'),
+            repeaterIndex = $containerSource.attr('data-root_repeater_index'),
             ffform;
 
         // Transform source html based on FFF data
@@ -464,7 +562,7 @@ var CS_FormFly = (function(){
                     var run = false;
                     if(node.nativeName) run = true;
                     if(run || force){
-                        var fieldNames = ['fieldName','name'];
+                        var fieldNames = ['fieldName','nameAttr'];
                         for ( var i in fieldNames ){
                             if(typeof node[fieldNames[i]] != 'undefined') {
                                 return _parseNameToLabel(node[fieldNames[i]]).capitalize();
@@ -474,9 +572,58 @@ var CS_FormFly = (function(){
                     return null;
                 }
 
+                function _generateFFFClassName(node, hyphenate){
+                    var output = '';
+
+                    hyphenate = typeof hyphenate == 'undefined' || Boolean(hyphenate);
+                    console.log(node);
+
+                    switch(node.fType){
+                        case 'group':
+                            if(node.rootName) output += node.rootName;
+                            var riText = '[' + node.repeaterIndex + ']',
+                                riTextPrev = '[' + (node.repeaterIndex-1) + ']',
+                                riTextExistsInRootName = node.rootName && node.rootName.indexOf(riText) >= 0,
+                                riTextPrevExistsInRootName = node.rootName && node.rootName.indexOf(riTextPrev) >= 0;
+
+                            if(node.repeaterIndex && !(riTextExistsInRootName || riTextPrevExistsInRootName)) output += riText;
+                            if(node.fieldName) output += node.fieldName;
+                            break;
+                        case 'repeater':
+                            if(node.nameAttr) output += node.nameAttr;
+                            break;
+                        case 'element':
+                            if(node.nameAttr) output += node.nameAttr;
+                            break;
+                    }
+
+                    if(hyphenate) return output.hyphenateString();
+                    return output;
+                }
+
+                function _regenerateRootName(node, oldRepeaterIndex){
+
+                    node = JSON.parse(JSON.stringify(node));
+                    var rootRepeaterIndexSet = typeof node.rootRepeaterIndex != 'undefined',
+                        repeaterIndexSet = typeof node.repeaterIndex != 'undefined',
+                        rootName = typeof node.rootName != 'undefined' ? node.rootName : false;
+                    if(rootRepeaterIndexSet && repeaterIndexSet && rootName){
+
+                        var riText = '[' + node.repeaterIndex + ']';
+
+                        // console.log(node, rootName, riText, riTextPrev, riTextExistsInRootName);
+                        node.rootName = rootName.split( '[')[0];
+                        node.root = rootName.split( '[')[0];
+                        if(node.rootName && !(node.rootName.indexOf(riText) >= 0)) node.rootName += riText;
+                        if(typeof node.fieldName != 'undefined') node.nameAttr = node.rootName + '[' + node.fieldName + ']';
+                    }
+                    console.log(node, rootRepeaterIndexSet, repeaterIndexSet, node.rootName, node.fieldName, node.nameAttr);
+                    return node;
+                }
+
                 function _generateFormHTML(){
                     var html = '';
-                    html += '<form method="post" data-formfly="' + btoa(JSON.stringify(_current.formData.json)) + '" id="' + _current.formData.id + '" class="formfly">';
+                    html += '<form method="post" data-formfly="' + btoa(JSON.stringify(_current.formData.json)) + '" id="' + _current.formData.id.replace('#','') + '" class="formfly">';
 
                     html += _generateFFFHTML(_current.formData.parsed);
 
@@ -506,16 +653,16 @@ var CS_FormFly = (function(){
                     var label = _generateLabelName(node),
                         isRequired = node.required,
                         html = '',
-                        dataValue = _current.formData.data[node.name];
+                        dataValue = _current.formData.data[node.nameAttr];
 
-                    html += '<span class="ftype-element field-type-' + node.type + (__(node, 'enum') ? 'enum':'') + ' field-name-' + node.name.hyphenateString() + '">';
+                    html += '<span class="ftype-element field-type-' + node.type + (__(node, 'enum') ? 'enum ':' ') + _generateFFFClassName(node) + '">';
                     switch (node.type){
                         case 'string':
                             var isEnum = typeof node.enum != 'undefined' && node.enum.length > 0;
 
                             if(isEnum){
-                                html += '<select class="ftype-element__field type-' + node.type + ' enum name-' + node.name.hyphenateString() + '" ';
-                                html += 'name="' + node.name + '" ';
+                                html += '<select class="ftype-element__field type-' + node.type + ' enum ' + _generateFFFClassName(node) + '" ';
+                                html += 'name="' + node.nameAttr + '" ';
                                 html += '>';
                                 html += '<option>Select ' + label;
                                 if(!isRequired) html += ' (optional)';
@@ -532,8 +679,9 @@ var CS_FormFly = (function(){
                                 html += '<input ';
                                 html += 'type="' + typeAttr  + '" ';
                                 if(typeAttr == 'password') html += 'autocomplete="off" ';
-                                html += 'class="ftype-element__field type-' + node.type + ' text name-' + node.name.hyphenateString() + '" ';
-                                html += 'name="' + node.name + '" ';
+                                console.log(node.nameAttr);
+                                html += 'class="ftype-element__field type-' + node.type + ' text ' + _generateFFFClassName(node) + '" ';
+                                html += 'name="' + node.nameAttr + '" ';
                                 if(label){
                                     html += 'placeholder="' + label;
                                     if(!isRequired) html += ' (optional)';
@@ -546,8 +694,8 @@ var CS_FormFly = (function(){
                             }
                             break;
                         case 'number':
-                            html += '<input type="text" class="ftype-element__field type-' + node.type + ' name-' + node.name.hyphenateString() + '" ';
-                            html += 'name="' + node.name + '" ';
+                            html += '<input type="text" class="ftype-element__field type-' + node.type + ' ' + _generateFFFClassName(node) + '" ';
+                            html += 'name="' + node.nameAttr + '" ';
                             if(label){
                                 html += 'placeholder="' + label;
                                 if(!isRequired) html += ' (optional)';
@@ -559,8 +707,8 @@ var CS_FormFly = (function(){
                             html += ' />';
                             break;
                         case 'boolean':
-                            html += '<input type="checkbox" class="ftype-element__field type-' + node.type + ' name-' + node.name.hyphenateString() + '" ';
-                            html += 'name="' + node.name + '" ';
+                            html += '<input type="checkbox" class="ftype-element__field type-' + node.type + ' ' + _generateFFFClassName(node) + '" ';
+                            html += 'name="' + node.nameAttr + '" ';
                             if(dataValue) {
                                 html += 'value="' + dataValue + '" ';
                             }
@@ -574,14 +722,15 @@ var CS_FormFly = (function(){
                 }
 
                 function _generateFFFGroupHTML(node) {
+                    console.log(node);
                     var suppressLegend = ( __(node, 'suppressLegend') && node.suppressLegend );
-                    var html = '<fieldset class="ftype-group type-' + node.type + ' name-' + node.groupName.hyphenateString() + '" ';
+                    var html = '<fieldset class="ftype-group type-' + node.type + ' ' + _generateFFFClassName(node) + '" ';
                     if( __(node, 'repeaterIndex') ) html += 'data-repeater_index="' + node.repeaterIndex + '" ';
-                    //if( __(node, 'groupRepeaterIndex') ) html += 'data-repeater_index="' + node.groupRepeaterIndex + '" ';
+                    //if( __(node, 'rootRepeaterIndex') ) html += 'data-repeater_index="' + node.rootRepeaterIndex + '" ';
                     html += '>';
                         //console.log(node, suppressLegend);
-                    if(node.nativeName && !suppressLegend) {
-                        html += '<legend>' + node.groupName.capitalize() + '</legend>';
+                    if(node.nativeName && !suppressLegend && node.root) {
+                        html += '<legend>' + node.root.capitalize() + '</legend>';
                     }
 
                     if( __(node, 'elements') ) {
@@ -596,15 +745,15 @@ var CS_FormFly = (function(){
 
                 function _generateFFFRepeaterHTML(node) {
                     var suppressLegend = ( __(node, 'suppressLegend') && node.suppressLegend);
-                    var html = '<fieldset class="ftype-repeater type-' + node.type + ' name-' + node.name.hyphenateString() + '">';
-                    //console.log(node);
-                    if(node.nativeName && !suppressLegend) {
-                        html += '<legend>' + node.groupName.capitalize() + '</legend>';
+                    var html = '<fieldset class="ftype-repeater type-' + node.type + ' ' + _generateFFFClassName(node) + '">';
+                    console.log(node);
+                    if(node.nativeName && !suppressLegend && node.root) {
+                        html += '<legend>' + node.root.capitalize() + '</legend>';
                     }
 
                     html += '<div class="ftype-repeater-container source" ';
-                    if( __(node, 'repeaterIndex') ) html += 'data-group_repeater_index="' + node.repeaterIndex + '"';
-                    html += 'data-cur_index="' + node.repeaterIndex + '"';
+                    if( __(node, 'repeaterIndex') ) html += 'data-root_repeater_index="' + node.repeaterIndex + '"';
+                    html += 'data-repeater_index="' + node.repeaterIndex + '"';
                     html += '>';
                     if( __(node, 'elements') ) {
                         for ( var i in node.elements ) {
@@ -624,10 +773,12 @@ var CS_FormFly = (function(){
                 }
 
                 function _renderFormHTML(targetSelector){
-                    targetSelector = targetSelector || _current.formData.id;
+                    targetSelector = targetSelector || '#' + _current.formData.id;
                     // Render Form
                     _current.formData.$form = $(targetSelector);
-                    _current.formData.$form.html(_generateFormHTML());
+                    var html = _generateFormHTML();
+                    console.log(targetSelector, html);
+                    _current.formData.$form.html(html);
                 }
 
                 function _updateFormHTML(){
@@ -643,35 +794,35 @@ var CS_FormFly = (function(){
 
                     //Generate field repeater html
                     var repeaterHTML = '',
-                        $source = $('.ftype-repeater-container.source[data-group_repeater_index=' + repeaterIndex + ']'),
+                        $source = $('.ftype-repeater-container.source[data-root_repeater_index=' + repeaterIndex + ']'),
                         node;
 
                     if(typeof _repeaterStates[repeaterIndex] == 'undefined') {
-                        _repeaterStates[repeaterIndex] = { currentIndex : ( repeaterIndex - 0 ) } ;
+                        _repeaterStates[repeaterIndex] = { currentIndex : ( parseInt(repeaterIndex) + 1 ) } ;
                     }
-
-                    _repeaterStates[repeaterIndex].currentIndex ++;
-
 
                     for( var i in _repeaterCache){
                         if(repeaterIndex == _repeaterCache[i].repeaterIndex) {
-                            node = _parseJSONNode(_repeaterCache[i].elements[0]);
-                            console.log(repeaterIndex, _repeaterStates[repeaterIndex].currentIndex, node);
-
+                            node = _repeaterCache[i].elements[0];
+                            node = _standardizeNodes(_parseJSONNode(_repeaterCache[i].elements[0], {
+                                rootName : node.rootName,
+                                rootRepeaterIndex : node.repeaterIndex
+                            }));
                             node.repeaterIndex = _repeaterStates[repeaterIndex].currentIndex;
-                            node = _regenerateGroupName(node, (_repeaterStates[repeaterIndex].currentIndex - 1));
+                            node = _regenerateRootName(node, (_repeaterStates[repeaterIndex].currentIndex));
+                            //console.log(repeaterIndex, _repeaterStates[repeaterIndex].currentIndex, node);
                             if(typeof node.elements != 'undefined') {
                                 for( var a in node.elements) {
                                     node.elements[a].repeaterIndex = _repeaterStates[repeaterIndex].currentIndex;
-                                    node.elements[a] = _regenerateGroupName(node.elements[a], (_repeaterStates[repeaterIndex].currentIndex - 1));
+                                    node.elements[a] = _regenerateRootName(node.elements[a], (_repeaterStates[repeaterIndex].currentIndex - 1));
                                     if(typeof node.elements[a].elements != 'undefined'){
                                         for ( var b in node.elements[a].elements) {
                                             node.elements[a].elements[b].repeaterIndex = _repeaterStates[repeaterIndex].currentIndex;
-                                            node.elements[a].elements[b] = _regenerateGroupName(node.elements[a].elements[b], (_repeaterStates[repeaterIndex].currentIndex - 1));
+                                            node.elements[a].elements[b] = _regenerateRootName(node.elements[a].elements[b], (_repeaterStates[repeaterIndex].currentIndex - 1));
                                             if(typeof node.elements[a].elements[b].elements != 'undefined'){
                                                 for ( var c in node.elements[a].elements[b].elements) {
                                                     node.elements[a].elements[b].elements[c].repeaterIndex = _repeaterStates[repeaterIndex].currentIndex;
-                                                    node.elements[a].elements[b].elements[c] = _regenerateGroupName(node.elements[a].elements[b].elements[c], (_repeaterStates[repeaterIndex].currentIndex - 1));
+                                                    node.elements[a].elements[b].elements[c] = _regenerateRootName(node.elements[a].elements[b].elements[c], (_repeaterStates[repeaterIndex].currentIndex - 1));
                                                 }
                                             }
                                         }
@@ -684,23 +835,19 @@ var CS_FormFly = (function(){
                         }
                     }
 
-                    if(repeaterHTML.trim() != ''){
+                    if(!_current.formData.$form || (_current.formData.$form && !_current.formData.$form.length)){
+                        _current.formData.$form = $('#' + _current.formData.id);
+                    }
+
+                    console.log(_current);
+
+                    if(repeaterHTML.trim() != '' && _current.formData.$form){
+                        console.log('test');
                         _current.formData.$form.find('.ftype-repeater-container.target').append(repeaterHTML);
-                        $source.attr( 'data-curr_index', _repeaterStates[repeaterIndex].currentIndex );
+                        _repeaterStates[repeaterIndex].currentIndex ++;
+                        $source.attr( 'data-repeater_index', _repeaterStates[repeaterIndex].currentIndex );
                     }
 
-                }
-
-                function _regenerateGroupName(node, oldRepeaterIndex){
-                    var groupRepeaterIndexSet = typeof node.groupRepeaterIndex != 'undefined',
-                        repeaterIndexSet = typeof node.repeaterIndex != 'undefined';
-                    if(groupRepeaterIndexSet && repeaterIndexSet){
-                            node.groupName = node.groupName.split( '[' + oldRepeaterIndex + ']' )[0];
-                            node.groupName += '[' + node.repeaterIndex + ']';
-                            if(typeof node.fieldName != 'undefined') node.name = node.groupName + '[' + node.fieldName + ']';
-                    }
-                    console.log(node, groupRepeaterIndexSet, repeaterIndexSet, node.groupName);
-                    return node;
                 }
 
                 // Submit the form to process script

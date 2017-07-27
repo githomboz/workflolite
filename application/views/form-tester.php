@@ -204,10 +204,13 @@
   $(document).ready(function(){
     $("form.form-fly").each(function(a, b){
       var $this = $(this),
+        jsonEncoded = atob($this.attr('data-formfly')),
+        json = JSON.parse(jsonEncoded),
         key = null;
 
       if($this.length > 0) key = $this.attr('id').split('-')[1];
-      CS_FormFly.registerForm(key);
+      var fff = CS_FormFly.registerForm(key, {json : json});
+      console.log(jsonEncoded, json);
       return CS_FormFly.getFormByKey(key).render('.form-container.form-' + a);
     });
   });
