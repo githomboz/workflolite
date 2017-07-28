@@ -5,7 +5,7 @@
     <h4><?php echo template()->getValue('description') ?></h4>
 
     <div class="inner-nav-btns">
-      <a href="#" class="btn"><i class="fa fa-plus"></i> Create a Project</a>
+      <a href="#" class="btn"><i class="fa fa-plus"></i> Create a Job</a>
     </div>
 
     <?php $versions = $this->versions;
@@ -28,7 +28,7 @@
 
     ?>
     <div class="template-versions widget">
-      <h2>Template Versions: <span class="versions">
+      <h2>Versions: <span class="versions">
           <?php for($i = 1; $i < $versions['highest']; $i ++) {
             $active = $versions['save'] == $i;
             echo ' <a href="?ver='.$i.'"';
@@ -51,7 +51,7 @@
     </div>
 
     <div class="templates-list widget">
-      <h2>Task Templates: <span class="taskCount">(<?php echo template()->taskCount(); ?>)</span>  <a href="#" class="js-add-task-template-btn">+ Add Task</a> </h2>
+      <h2>Task Templates: <span class="taskCount">(<?php echo template()->taskCount(); ?>)</span> <i class="fa fa-info-circle"></i> <a href="#" class="js-add-task-template-btn">+ Add Task</a> </h2>
       <div class="task-single">
         <?php if(isset($this->newTaskTemplateHTML)) echo $this->newTaskTemplateHTML; ?>
       </div>
@@ -65,7 +65,7 @@
     <div class="template-sidebar">
 
       <div class="roles-list entities-list widget">
-        <h2>Manage Roles: </h2>
+        <h2>Manage Roles: <i class="fa fa-info-circle"></i></h2>
         <form method="post" class="boxed sidepanel-bg">
           <input type="hidden" name="formAction" value="addRole" />
           <div class="form-group">
@@ -85,7 +85,7 @@
 
       <?php //$this->workflow->addMeta('Buyer Price') ?>
       <div class="meta-list entities-list widget">
-        <h2>Job Meta Data: </h2>
+        <h2>Job Meta Master Keys: <i class="fa fa-info-circle"></i> </h2>
         <div class="boxed sidepanel-bg">
           <div class="form-group">
             <label for="labelField">Label Name</label> <input type="text" id="labelField" name="metaFieldName" placeholder="Label the field name" />
@@ -160,7 +160,7 @@
               </div>
             </form>
           </div>
-          <button class="btn submit"><i class="fa fa-plus"></i> Add Meta Field</button>
+          <button class="btn submit"><i class="fa fa-plus"></i> Add New Master Key</button>
           <?php $metaFields = (array) template()->getValue('metaFields'); ?>
           <?php if(!empty($metaFields)){  ?>
             <div class="meta-fields entities dynamic-list">
@@ -176,14 +176,14 @@
       </div><!--/.widget-->
 
       <div class="settings-list entities-list widget">
-        <h2>Workflow Settings: </h2>
+        <h2>Workflow Settings: <i class="fa fa-info-circle"></i></h2>
         <?php $settings = template()->getValue('settings') ?>
         <form method="post" id="workflow-settings-form" class="boxed sidepanel-bg">
           <div class="form-group">
-            <input type="checkbox" id="autoRunField" name="autoRun" <?php echo $settings['autoRun'] ? 'checked="checked"' : '' ?> /> <label for="autoRunField">Run lambda functions automatically <i class="fa fa-info"></i></label>
+            <input type="checkbox" id="autoRunField" name="autoRun" <?php echo $settings['autoRun'] ? 'checked="checked"' : '' ?> /> <label for="autoRunField">Run lambda functions automatically <i class="fa fa-info-circle"></i></label>
           </div>
           <div class="form-group">
-            <input type="checkbox" id="autoLoadFormsField" name="autoLoadForms" <?php echo $settings['autoLoadForms'] ? 'checked="checked"' : '' ?> /> <label for="autoLoadFormsField">Load forms automatically <i class="fa fa-info"></i></label>
+            <input type="checkbox" id="autoLoadFormsField" name="autoLoadForms" <?php echo $settings['autoLoadForms'] ? 'checked="checked"' : '' ?> /> <label for="autoLoadFormsField">Load forms automatically <i class="fa fa-info-circle"></i></label>
           </div>
           <button class="btn submit v2"><i class="fa fa-save"></i> Save</button>
         </form>

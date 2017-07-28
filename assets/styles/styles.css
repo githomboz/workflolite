@@ -2125,6 +2125,9 @@ span.checkbox {
 .templates-list {
   width: 60%;
   float: left; }
+  .templates-list .fa-info-circle {
+    font-size: 80%;
+    opacity: .8; }
   .templates-list.selected .template.entry .entry.preview {
     opacity: .4;
     cursor: auto; }
@@ -2277,6 +2280,9 @@ span.checkbox {
 .template-sidebar {
   float: right;
   width: 38%; }
+  .template-sidebar .fa-info-circle {
+    font-size: 80%;
+    opacity: .8; }
 
 .meta-list.widget {
   width: 100%;

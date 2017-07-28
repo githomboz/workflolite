@@ -26,7 +26,7 @@ var BindedBox = (function(){
          * When this is set, all click events are subject to the lock. This is to avoid the accidental loss
          * of information that hasn't yet been persisted.
          */
-        activeLock = null,
+        __disableTraffic = false,
 
         userAcc = {
             acc : 5
@@ -207,14 +207,88 @@ var BindedBox = (function(){
     }
 
     function _handleBindBoxCloseClick(e){
+        //if(BindedBox.activeLockEnabled()) return BindedBox.handleActiveLockAttempt();
+
         if (!$(e.target).closest(BindedBox.selector).length) {
             __stateChange('settings', {panelOpen: false});
         }
     }
 
+    function _disableContextSwitchTraffic(payload){
+        if(!__disableTraffic){
+            console.log('disabling');
 
+            // Disable Listeners
+            $( document ).off( 'click' , '.binded-trigger-box .tabbed-nav .item a' , _handleTriggerBoxNavClick );
+            $( document ).off( 'click' , '.binded-trigger-box button.js-directional' , _handleDirectionalBtnClick );
+            if(typeof SlideTasks != 'undefined') $( document ).off( 'click' , '.binded-trigger-box .action-btns .mark-complete' , SlideTasks.attemptMarkComplete );
+            $( document ).off( 'keydown' , _handleBindedBoxKeydown );
+
+            // Publish Disabling
+            PubSub.publish(__pubsubRoot + 'activeLock.disabled', payload);
+
+            // Disable Buttons
+            $(".action-btns button").addClass('inactive');
+            // Disable BindedBox Keydown
+            // Disable Direction Buttons
+            // Disable Slide Nav
+            $(".tabbed-nav li").css('opacity', .7);
+            $(".tabbed-nav li.selected").css('opacity', 1);
+            // Disable Task List
+            $(".task-inset").css('opacity',.7);
+
+            // enable
+            __disableTraffic = true;
+        }
+    }
+
+    function _enableContextSwitchTraffic(payload){
+        if(__disableTraffic){
+            console.log('enabling');
+
+            // Enable Listeners
+            $( document ).on( 'click' , '.binded-trigger-box .tabbed-nav .item a' , _handleTriggerBoxNavClick );
+            $( document ).on( 'click' , '.binded-trigger-box button.js-directional' , _handleDirectionalBtnClick );
+            if(typeof SlideTasks != 'undefined') $( document ).on( 'click' , '.binded-trigger-box .action-btns .mark-complete' , SlideTasks.attemptMarkComplete );
+            $( document ).on( 'keydown' , _handleBindedBoxKeydown );
+
+            // Publish Enabling
+            PubSub.publish(__pubsubRoot + 'activeLock.enabled', payload);
+
+            // Enable Buttons
+            $(".action-btns button").removeClass('inactive');
+            // Enable BindedBox Keydown
+            // Enable Direction Buttons
+            // Enable Slide Nav
+            $(".tabbed-nav li").css('opacity', 1);
+            // Enable Task List
+            $(".task-inset").css('opacity',1);
+
+            // enable
+            __disableTraffic = false;
+        }
+    }
+
+    function _activeLockEnabled(){
+        return __disableTraffic;
+    }
+
+    function _handleActiveLockAttempt(){
+        //alert('Oops, currently working. Please try again in a few seconds');
+        console.log('oops, collision!');
+        return false;
+    }
+
+    function _handleActiveLockDisable(){
+
+    }
+
+    function _handleActiveLockEnable(){
+    }
 
     function _handleBindedBoxKeydown(e){
+        if(BindedBox.activeLockEnabled()) return BindedBox.handleActiveLockAttempt();
+
         switch(e.which){
             case 37: // left
                 //case 38: // up
@@ -259,6 +333,8 @@ var BindedBox = (function(){
     }
 
     function _handleTriggerBoxNavClick(e){
+        if(BindedBox.activeLockEnabled()) return BindedBox.handleActiveLockAttempt();
+
         e.preventDefault();
         var $this = $(this);
         var $activeSlide = $(".tabbed-content.show");
@@ -290,6 +366,7 @@ var BindedBox = (function(){
     }
 
     function _activateTriggerBoxSlide(slide){
+        _enableContextSwitchTraffic();
         // activate clicked slide
         $(".tabbed-content.show").removeClass('show');
         $(".tabbed-content." + slide).addClass('show');
@@ -379,6 +456,7 @@ var BindedBox = (function(){
 
 
     function _handleDirectionalBtnClick(e){
+        if(BindedBox.activeLockEnabled()) return BindedBox.handleActiveLockAttempt();
         e.preventDefault();
         var $this = $(this),
             taskId = $this.data('target_id');
@@ -500,6 +578,7 @@ var BindedBox = (function(){
     }
 
     function __handleClickTaskBtn ( e ) {
+        if(BindedBox.activeLockEnabled()) return BindedBox.handleActiveLockAttempt();
         e.preventDefault();
 
         // Publish request
@@ -525,6 +604,7 @@ var BindedBox = (function(){
      * @private
      */
     function __setNewActiveTask( taskId ){
+        _enableContextSwitchTraffic();
         var reqId = __addRequest( 'setNewTask' , 'Attempting to set a new task' );
         if( !__CURRENT.__TASK || taskId != __CURRENT.__TASK.id ){
 //            var newTask = _getTaskDataById( taskId );
@@ -731,7 +811,7 @@ var BindedBox = (function(){
         if(!__listenersActive){
             __listenersActive = true;
             $( document ).on( 'click' , _handleBindBoxCloseClick );
-            $( document ).on( 'click' , '.binded-trigger-box .item a' , _handleTriggerBoxNavClick );
+            $( document ).on( 'click' , '.binded-trigger-box .tabbed-nav .item a' , _handleTriggerBoxNavClick );
             $( document ).on( 'click' , '.binded-trigger-box button.js-directional' , _handleDirectionalBtnClick );
             if(typeof SlideTasks != 'undefined') $( document ).on( 'click' , '.binded-trigger-box .action-btns .mark-complete' , SlideTasks.attemptMarkComplete );
             $( document ).on( 'keydown' , _handleBindedBoxKeydown );
@@ -750,7 +830,7 @@ var BindedBox = (function(){
         if(__listenersActive){
             __listenersActive = false;
             $( document ).off( 'click' , _handleBindBoxCloseClick );
-            $( document ).off( 'click' , '.binded-trigger-box .item a' , _handleTriggerBoxNavClick );
+            $( document ).off( 'click' , '.binded-trigger-box .tabbed-nav .item a' , _handleTriggerBoxNavClick );
             $( document ).off( 'click' , '.binded-trigger-box button.js-directional' , _handleDirectionalBtnClick );
             if(typeof SlideTasks != 'undefined') $( document ).off( 'click' , '.binded-trigger-box .action-btns .mark-complete' , SlideTasks.attemptMarkComplete );
             $( document ).off( 'keydown' , _handleBindedBoxKeydown );
@@ -763,7 +843,7 @@ var BindedBox = (function(){
     return {
         TASK                        : __CURRENT.__TASK,
         TASKS                       : __CURRENT.__TASKS,
-        activeLock                  : activeLock,
+        activeLock                  : __disableTraffic,
         userAcc                     : userAcc,
         actionBtns                  : actionBtns,
         selector                    : elementSelector,
@@ -780,6 +860,10 @@ var BindedBox = (function(){
         addRequest                  : __addRequest,
         addResponse                 : __addResponse,
         setNewActiveTask            : __setNewActiveTask,
+        handleActiveLockAttempt     : _handleActiveLockAttempt,
+        activeLockEnabled           : _activeLockEnabled,
+        enableTraffic               : _enableContextSwitchTraffic,
+        disableTraffic              : _disableContextSwitchTraffic,
         allowed                     : _accessAllowed,
         getOption                   : _getOption,
         setOption                   : _setOption,

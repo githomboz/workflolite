@@ -101,6 +101,20 @@ var SlideTasks = (function(){
         }
     }
 
+    function _autoloadSlide(){
+        _autoloadFormIfEnabled();
+    }
+
+    function _autoloadFormIfEnabled(){
+        _initializeTriggerProgressData();
+        var task = _task(),
+            triggerExists = (typeof task.data.trigger != 'undefined' && typeof task.data.trigger.type != 'undefined'),
+            isForm = triggerExists && task.data.trigger.type == 'form',
+            triggerIdSet = triggerExists && task.data.trigger.triggerId && task.data.trigger.triggerId.trim() != '' && task.data.trigger.triggerId != null;
+        _PROGRESS_MGR[task.id].step = 0;
+        if(!_triggerProgressComplete() && _PROJECT.template.settings.autoLoadForms && isForm && triggerIdSet) _executeRunFormAjaxCalls();
+    }
+
     function _handleRunTriggerBtnClick(e){
         e.preventDefault();
         var reqId = BindedBox.addRequest('triggerBtnClick', 'The trigger button has been clicked');
@@ -127,6 +141,7 @@ var SlideTasks = (function(){
     }
 
     function _handleAdminClearDependencyCheck(e){
+        if(BindedBox.activeLockEnabled()) return BindedBox.handleActiveLockAttempt();
         e.preventDefault();
 
         var taskData = {};
@@ -228,7 +243,7 @@ var SlideTasks = (function(){
                         var newHTML = _generateCompletionReportHTML(task, false);
                         //console.log(newHTML);
                         _setDynamicContent(task.id, newHTML);
-                        _renderDynamicContentHTML(null, {content: newHTML});
+                        _renderDynamicContentHTML(null, {content: newHTML, taskId : task.id});
                     }
                 },
                 function(){
@@ -315,6 +330,7 @@ var SlideTasks = (function(){
     }
 
     function _handleAdminMarkIncomplete(e){
+        if(BindedBox.activeLockEnabled()) return BindedBox.handleActiveLockAttempt();
         e.preventDefault();
         var taskData = {};
 
@@ -368,24 +384,30 @@ var SlideTasks = (function(){
         CS_API.call('ajax/run_form_routines?jsonOnly=1',
             function(){
                 // beforeSend
+                BindedBox.disableTraffic();
                 _setTriggerProgress(_triggerProgress, 'doing');
             },
             function(data){
                 // success
                 if(data.errors == false && data.response.success){
                     SlideTasks.validateAndApplyUpdates(data, true);
-                    // _setTriggerProgress(_triggerProgress, 'did');
-                    // _setTriggerProgress(_triggerProgress + 1, 'doing');
+                     _setTriggerProgress(_triggerProgress, 'did');
                     switch (data.response.slug){
                         case routineSlugs[1]: //'validate_lambda_callback':
                             //PubSub.publish('queueNextRunFormStep', data.response);
                             if(data && typeof data.response._json != 'undefined'){
+                                _setTriggerProgress(_triggerProgress + 1, 'did');
+                                //_setTriggerProgress(_triggerProgress + 2, 'did');
                                 var key = md5(data.response._json), formHTML;
-                                CS_FormFly.registerForm(key, { json : JSON.parse(data.response._json)});
+                                CS_FormFly.registerForm( key, { json : JSON.parse(data.response._json ) } );
                                 formHTML = CS_FormFly.getFormByKey(key).getFormHTML();
                                 _FORM_CACHE[post.taskTemplateId] = formHTML;
                                 _setDynamicContent(post.taskTemplateId, _FORM_CACHE[post.taskTemplateId]);
-                                _renderDynamicContentHTML(null, {content: _FORM_CACHE[post.taskTemplateId]});
+                                _renderDynamicContentHTML(null, {
+                                    content: _FORM_CACHE[post.taskTemplateId],
+                                    taskId: post.taskTemplateId
+                                });
+                                BindedBox.enableTraffic();
                             }
 
                             _renderTaskActionBtns();
@@ -635,6 +657,7 @@ var SlideTasks = (function(){
     }
 
     function _handleCheckDependenciesClick(e){
+        if(BindedBox.activeLockEnabled()) return BindedBox.handleActiveLockAttempt();
         if(e) e.preventDefault();
         var $this = $(".check-dependencies-btn"),
             $tabbedContent = $this.parents('.tabbed-content.tasks'),
@@ -703,6 +726,7 @@ var SlideTasks = (function(){
     }
 
     function _handleTriggerBoxCompletionTestBtn(e){
+        if(BindedBox.activeLockEnabled()) return BindedBox.handleActiveLockAttempt();
         e.preventDefault();
         _attemptMarkComplete();
     }
@@ -878,6 +902,8 @@ var SlideTasks = (function(){
 
         _workTableInitialized = true;
 
+        _autoloadSlide();
+
         BindedBox.addResponse(reqId, 'Rendered task tabbed content');
         return false;
 
@@ -974,8 +1000,9 @@ var SlideTasks = (function(){
     }
 
     function _renderDynamicContentHTML(topic, payload){
-        var task = _task();
-        var $el = $('.binded-trigger-box .tabbed-content.tasks .dynamic-content');
+        var task = _task(),
+            dataTaskID = payload && typeof payload.taskId != 'undefined' ? '[data-task_template_id=' + payload.taskId + ']' : '';
+        var $el = $('.binded-trigger-box .tabbed-content.tasks .dynamic-content' + dataTaskID);
         var content = payload && typeof payload.content != 'undefined' ? payload.content : null;
         if(!content){
             content = '';

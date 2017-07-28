@@ -36,7 +36,7 @@ class Templates extends Users_Controller {
 
   public function details($templateId){
     $this->preCollapseSidePanel = true;
-    $this->pageTitle = 'Template Details';
+    $this->pageTitle = 'Workflow Template Details';
     $this->navSelected = 'templates';
     $this->innerNavSelected = 'details';
     $this->version = is_numeric($this->input->get('ver')) ? (int)$this->input->get('ver') : null;

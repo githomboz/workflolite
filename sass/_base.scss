@@ -1416,6 +1416,12 @@ $tasklist_height : 36px;
   width: 60%;
   float: left;
 
+  .fa-info-circle {
+    font-size: 80%;
+    opacity: .8;
+  }
+
+
   &.selected {
     .template.entry .entry.preview {
       opacity: .4;
@@ -1680,7 +1686,12 @@ $tasklist_height : 36px;
 
 .template-sidebar {
   float: right;
-  width: 38%
+  width: 38%;
+
+  .fa-info-circle {
+    font-size: 80%;
+    opacity: .8;
+  }
 }
 
 .meta-list.widget {

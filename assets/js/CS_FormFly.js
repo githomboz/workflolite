@@ -175,12 +175,12 @@ var CS_FormFly = (function(){
     function _generateAnonymousElement(type){
         if(['string','number','boolean','object','array'].indexOf(type) >= 0){
             _anonymousElementCounts[type]++;
-            return '_af' + type.capitalize() + _anonymousElementCounts[type];
+            return 'ff' + type.capitalize() + _anonymousElementCounts[type];
         }
     }
 
     function _analyzeAndCreateFFFProperties(node, mergeData){
-        console.log(node);
+        //console.log(node);
 
         var backup = JSON.stringify(node);
 
@@ -230,9 +230,9 @@ var CS_FormFly = (function(){
 
         if(typeof node.nativeName == 'undefined') node.nativeName = true;
 
-        console.log(node);
+        //console.log(node);
         node = JSON.parse(backup);
-        console.log(node);
+        //console.log(node);
         return node;
     }
 
@@ -287,7 +287,7 @@ var CS_FormFly = (function(){
                                 if(node.properties[rootName].rootName) node.properties[rootName].root = node.properties[rootName].rootName.split('[')[0];
                                 break;
                             default:
-                                console.log(rootName);
+                                //console.log(rootName);
                                 node.properties[rootName].fType = 'element';
                                 node.properties[rootName].nameAttr = rootName; // value may be overwritten later
                                 node.properties[rootName].fieldName = (node.properties[rootName].fieldName) ? rootName.split('[')[0] : undefined;
@@ -360,6 +360,7 @@ var CS_FormFly = (function(){
                         rootRepeaterIndex : node.repeaterIndex
                     });
                 }
+                console.log('------FOCUS HERE-(root)------', node, node.rootName);
                 //_analyzeAndCreateFFFProperties(node);
                 break;
             case 'boolean':
@@ -370,7 +371,8 @@ var CS_FormFly = (function(){
                     node.nameAttr = _generateAnonymousElement(node.type);
                     node.nativeName = false;
                 }
-                if(node.nameAttr) node.fieldName = node.nameAttr.split('[')[0];
+
+                if(node.nameAttr && !node.root) node.fieldName = node.nameAttr.split('[')[0];
                 //if(rootName) node.rootName = rootName;
                 if(state.rootRepeaterIndex) node.rootRepeaterIndex = state.rootRepeaterIndex;
                 if(state.rootName) node.rootName = state.rootName;
@@ -381,9 +383,11 @@ var CS_FormFly = (function(){
                     if( node.rootRepeaterIndex && !indexAlreadyAdded ) {
                         node.rootName += '[' + node.rootRepeaterIndex + ']';
                     }
+                    if(node.rootRepeaterIndex) node.repeaterIndex = node.rootRepeaterIndex;
                 }
 
                 if(node.rootName) node.root = node.rootName.split('[')[0];
+                if(node.root && node.repeaterIndex) node.rootName = node.root + '[' + node.repeaterIndex + ']';
 
                 console.log('------FOCUS HERE-(root)------', node, node.rootName);
                 //_analyzeAndCreateFFFProperties(node);
@@ -576,7 +580,7 @@ var CS_FormFly = (function(){
                     var output = '';
 
                     hyphenate = typeof hyphenate == 'undefined' || Boolean(hyphenate);
-                    console.log(node);
+                    //console.log(node);
 
                     switch(node.fType){
                         case 'group':
@@ -617,7 +621,7 @@ var CS_FormFly = (function(){
                         if(node.rootName && !(node.rootName.indexOf(riText) >= 0)) node.rootName += riText;
                         if(typeof node.fieldName != 'undefined') node.nameAttr = node.rootName + '[' + node.fieldName + ']';
                     }
-                    console.log(node, rootRepeaterIndexSet, repeaterIndexSet, node.rootName, node.fieldName, node.nameAttr);
+                    //console.log(node, rootRepeaterIndexSet, repeaterIndexSet, node.rootName, node.fieldName, node.nameAttr);
                     return node;
                 }
 
@@ -679,7 +683,7 @@ var CS_FormFly = (function(){
                                 html += '<input ';
                                 html += 'type="' + typeAttr  + '" ';
                                 if(typeAttr == 'password') html += 'autocomplete="off" ';
-                                console.log(node.nameAttr);
+                                //console.log(node.nameAttr);
                                 html += 'class="ftype-element__field type-' + node.type + ' text ' + _generateFFFClassName(node) + '" ';
                                 html += 'name="' + node.nameAttr + '" ';
                                 if(label){
@@ -722,7 +726,7 @@ var CS_FormFly = (function(){
                 }
 
                 function _generateFFFGroupHTML(node) {
-                    console.log(node);
+                    //console.log(node);
                     var suppressLegend = ( __(node, 'suppressLegend') && node.suppressLegend );
                     var html = '<fieldset class="ftype-group type-' + node.type + ' ' + _generateFFFClassName(node) + '" ';
                     if( __(node, 'repeaterIndex') ) html += 'data-repeater_index="' + node.repeaterIndex + '" ';
@@ -746,7 +750,7 @@ var CS_FormFly = (function(){
                 function _generateFFFRepeaterHTML(node) {
                     var suppressLegend = ( __(node, 'suppressLegend') && node.suppressLegend);
                     var html = '<fieldset class="ftype-repeater type-' + node.type + ' ' + _generateFFFClassName(node) + '">';
-                    console.log(node);
+                    //console.log(node);
                     if(node.nativeName && !suppressLegend && node.root) {
                         html += '<legend>' + node.root.capitalize() + '</legend>';
                     }
@@ -777,8 +781,9 @@ var CS_FormFly = (function(){
                     // Render Form
                     _current.formData.$form = $(targetSelector);
                     var html = _generateFormHTML();
-                    console.log(targetSelector, html);
+                    //console.log(targetSelector, html);
                     _current.formData.$form.html(html);
+                    //console.log(_current);
                 }
 
                 function _updateFormHTML(){
@@ -831,7 +836,7 @@ var CS_FormFly = (function(){
                             }
 
                             repeaterHTML += _generateFFFHTML(node);
-                            console.log(repeaterHTML);
+                            //console.log(repeaterHTML);
                         }
                     }
 
@@ -839,10 +844,10 @@ var CS_FormFly = (function(){
                         _current.formData.$form = $( '#' + _current.formData.id );
                     }
 
-                    console.log(_current);
+                    //console.log(_current);
 
                     if( repeaterHTML.trim() != '' && _current.formData.$form ){
-                        console.log('test');
+                        //console.log('test');
                         _current.formData.$form.find('.ftype-repeater-container.target').append(repeaterHTML);
                         _repeaterStates[repeaterIndex].currentIndex ++;
                         _searchNodeAddRepeaterElementsToFieldsArrayAndDataObj(node);
@@ -852,9 +857,11 @@ var CS_FormFly = (function(){
                 }
 
                 function _searchNodeAddRepeaterElementsToFieldsArrayAndDataObj( node ) {
+                    //console.log(node);
                     if(node.elements){
                         for ( var i in node.elements){
                             if(node.elements[i].fType == 'element'){
+                                //console.log(_current.formData.fields);
                                 _current.formData.fields.push(node.elements[i]);
                                 _current.formData.data[node.elements[i].nameAttr] = null;
                             } else {
