@@ -180,10 +180,10 @@
         <?php $settings = template()->getValue('settings') ?>
         <form method="post" id="workflow-settings-form" class="boxed sidepanel-bg">
           <div class="form-group">
-            <input type="checkbox" id="autoRunField" name="autoRun" <?php echo $settings['autoRun'] ? 'checked="checked"' : '' ?> /> <label for="autoRunField">Run lambda functions automatically</label>
+            <input type="checkbox" id="autoRunField" name="autoRun" <?php echo $settings['autoRun'] ? 'checked="checked"' : '' ?> /> <label for="autoRunField">Run lambda functions automatically <i class="fa fa-info"></i></label>
           </div>
           <div class="form-group">
-            <input type="checkbox" id="autoLoadFormsField" name="autoLoadForms" <?php echo $settings['autoLoadForms'] ? 'checked="checked"' : '' ?> /> <label for="autoLoadFormsField">Load forms automatically</label>
+            <input type="checkbox" id="autoLoadFormsField" name="autoLoadForms" <?php echo $settings['autoLoadForms'] ? 'checked="checked"' : '' ?> /> <label for="autoLoadFormsField">Load forms automatically <i class="fa fa-info"></i></label>
           </div>
           <button class="btn submit v2"><i class="fa fa-save"></i> Save</button>
         </form>

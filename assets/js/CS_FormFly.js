@@ -835,19 +835,33 @@ var CS_FormFly = (function(){
                         }
                     }
 
-                    if(!_current.formData.$form || (_current.formData.$form && !_current.formData.$form.length)){
-                        _current.formData.$form = $('#' + _current.formData.id);
+                    if( !_current.formData.$form || ( _current.formData.$form && !_current.formData.$form.length ) ){
+                        _current.formData.$form = $( '#' + _current.formData.id );
                     }
 
                     console.log(_current);
 
-                    if(repeaterHTML.trim() != '' && _current.formData.$form){
+                    if( repeaterHTML.trim() != '' && _current.formData.$form ){
                         console.log('test');
                         _current.formData.$form.find('.ftype-repeater-container.target').append(repeaterHTML);
                         _repeaterStates[repeaterIndex].currentIndex ++;
+                        _searchNodeAddRepeaterElementsToFieldsArrayAndDataObj(node);
                         $source.attr( 'data-repeater_index', _repeaterStates[repeaterIndex].currentIndex );
                     }
 
+                }
+
+                function _searchNodeAddRepeaterElementsToFieldsArrayAndDataObj( node ) {
+                    if(node.elements){
+                        for ( var i in node.elements){
+                            if(node.elements[i].fType == 'element'){
+                                _current.formData.fields.push(node.elements[i]);
+                                _current.formData.data[node.elements[i].nameAttr] = null;
+                            } else {
+                                _searchNodeAddRepeaterElementsToFieldsArrayAndDataObj( node );
+                            }
+                        }
+                    }
                 }
 
                 // Submit the form to process script
