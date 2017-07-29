@@ -437,9 +437,43 @@ var CS_FormFly = (function(){
             $form = $this.parents('form.formfly'),
             id = $form.attr('id'),
             key = id.split('-')[1],
-            FFF = _getFormByIdAttribute(id);
+            FFF = _getFormByIdAttribute(id),
+            fields = FFF.getFields();
 
-        console.log(FFF, id, 'SUBMIT');
+        var results = FFF.analyzeState();
+
+        if(results && results.success){
+            for ( var i in fields ) {
+                var node = fields[i];
+                className = FFF.generateClass(node);
+                $(".ftype-element__field." + className).removeClass('error');
+            }
+        } else {
+            // Handle Message Errors
+            if( results.errors.messages.length > 0 ) {
+                for( var i in results.errors.messages ) {
+                    console.error(results.errors.messages[i]);
+                }
+            }
+
+            // Handle Required Field Errors
+            var className = null, field;
+            if( results.errors.requiredFields.length > 0 ) {
+                for( var i in results.errors.requiredFields ) {
+                    for ( var f in fields ){
+                        if(results.errors.requiredFields[i] == fields[f].nameAttr){
+                            field = fields[f]
+                        }
+                    }
+                    className = FFF.generateClass(field);
+                    $(".ftype-element__field." + className).addClass('error');
+                }
+            }
+
+
+        }
+
+        console.log(FFF.getData(), id, 'SUBMIT');
 
     }
 
@@ -451,16 +485,8 @@ var CS_FormFly = (function(){
             $containerSource = $fieldset.find('.ftype-repeater-container.source'),
             id = $form.attr('id'),
             FFF = _getFormByIdAttribute(id),
-            repeaterIndex = $containerSource.attr('data-root_repeater_index'),
-            ffform;
+            repeaterIndex = $containerSource.attr('data-root_repeater_index');
 
-        // Transform source html based on FFF data
-
-        // PubSub.publish('APP.FormFly.repeater.add', {
-        //     repeaterIndex : repeaterIndex,
-        //     key : id.split('-')[1],
-        //     id : id
-        // });
         if(FFF) FFF.addRepeater(repeaterIndex);
 
         console.log(FFF, id, 'ADD', repeaterIndex);
@@ -554,7 +580,41 @@ var CS_FormFly = (function(){
 
                 // Analyze the state of the form
                 function _analyzeState(){
+                    var errors = {
+                        messages: [],
+                        requiredFields : []
+                    };
+                    // Loop through the fields
+                    for( var i in _current.formData.fields ){
+                        var val = null,
+                            className = _generateFFFClassName(_current.formData.fields[i]),
+                            $element = $('.ftype-element__field.' + className);
 
+                        switch(_current.formData.fields[i].type){
+                            case 'string':
+                            case 'number':
+                                val = $element.val();
+                                _current.formData.data[_current.formData.fields[i].nameAttr] = (val == '' ? null : val);
+
+                                if(_current.formData.fields[i].type == 'number') {
+                                    if(isNaN(parseInt(val))) errors.messages.push(_current.formData.fields[i].fieldName + ' must be numeric');
+                                }
+                                break;
+                            case 'boolean':
+                                val = $element.prop('checked');
+                                _current.formData.data[_current.formData.fields[i].nameAttr] = val;
+                                break;
+                        }
+
+                        if(_current.formData.fields[i].required && _current.formData.data[_current.formData.fields[i].nameAttr] == null){
+                            errors.requiredFields.push(_current.formData.fields[i].nameAttr);
+                        }
+                    }
+
+                    return {
+                        success : (errors.messages.length == 0 && errors.requiredFields.length == 0),
+                        errors : errors
+                    };
                 }
 
                 function _parseNameToLabel(name){
@@ -844,8 +904,6 @@ var CS_FormFly = (function(){
                         _current.formData.$form = $( '#' + _current.formData.id );
                     }
 
-                    //console.log(_current);
-
                     if( repeaterHTML.trim() != '' && _current.formData.$form ){
                         //console.log('test');
                         _current.formData.$form.find('.ftype-repeater-container.target').append(repeaterHTML);
@@ -857,16 +915,19 @@ var CS_FormFly = (function(){
                 }
 
                 function _searchNodeAddRepeaterElementsToFieldsArrayAndDataObj( node ) {
-                    //console.log(node);
                     if(node.elements){
                         for ( var i in node.elements){
                             if(node.elements[i].fType == 'element'){
-                                //console.log(_current.formData.fields);
                                 _current.formData.fields.push(node.elements[i]);
                                 _current.formData.data[node.elements[i].nameAttr] = null;
                             } else {
-                                _searchNodeAddRepeaterElementsToFieldsArrayAndDataObj( node );
+                                _searchNodeAddRepeaterElementsToFieldsArrayAndDataObj( node.elements[i] );
                             }
+                        }
+                    } else {
+                        if(node.fType == 'element'){
+                            _current.formData.fields.push(node);
+                            _current.formData.data[node.nameAttr] = null;
                         }
                     }
                 }
@@ -909,7 +970,8 @@ var CS_FormFly = (function(){
                     applyData       : _applyData,
                     analyzeState    : _analyzeState,
                     enableSubmit    : _enableSubmit,
-                    disableSubmit   : _disableSubmit
+                    disableSubmit   : _disableSubmit,
+                    generateClass   : _generateFFFClassName
                 }
 
             };

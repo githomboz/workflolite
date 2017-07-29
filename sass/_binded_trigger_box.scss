@@ -1245,3 +1245,12 @@ $alertRed : rgba(208, 106, 106, 1);
 
   }
 }
+
+.ftype-element__field.error {
+  border-color: #8a0e10;
+
+  &::placeholder {
+    color: #9e5455;
+  }
+
+}

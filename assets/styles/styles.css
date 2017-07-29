@@ -4196,4 +4196,15 @@ span.checkbox {
     .completion-report-inner .callback-sets.selected .callback-set.expanded .callback-main .col-values {
       opacity: 1; }
 
+.ftype-element__field.error {
+  border-color: #8a0e10; }
+  .ftype-element__field.error::-webkit-input-placeholder {
+    color: #9e5455; }
+  .ftype-element__field.error::-moz-placeholder {
+    color: #9e5455; }
+  .ftype-element__field.error:-ms-input-placeholder {
+    color: #9e5455; }
+  .ftype-element__field.error::placeholder {
+    color: #9e5455; }
+
 /*# sourceMappingURL=styles.css.map */
