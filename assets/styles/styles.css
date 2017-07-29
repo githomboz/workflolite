@@ -4129,6 +4129,8 @@ span.checkbox {
           color: #919191; }
         .completion-report-inner .callback-set .callback-main .col-values .fa {
           font-size: 90%; }
+          .completion-report-inner .callback-set .callback-main .col-values .fa.fa-database {
+            cursor: pointer; }
     .completion-report-inner .callback-set .callback-extras {
       background: #757575;
       display: none;

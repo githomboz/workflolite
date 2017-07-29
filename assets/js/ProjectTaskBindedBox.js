@@ -343,28 +343,8 @@ var BindedBox = (function(){
         if(activeSlideName != clickedSlide){
             __stateChange('settings', {slide: clickedSlide});
         }
-        _setTriggerBoxOverlayData();
     }
-
-    function _setTriggerBoxOverlayData(data, opts){
-        var
-            data = data || {},
-            errors = [],
-            requiredFields = ['projectName','templateName','deadline','logoSrc','taskNumber','taskCount','projectId','elapsedTime'];
-        for(var i in requiredFields) {
-            if(typeof data[requiredFields[i]] == 'undefined') errors.push(requiredFields[i]);
-        }
-        if(errors.length <= 0){
-            var $innerHead = $(".binded-trigger-box .inner-head");
-            if(typeof data.logoSrc != 'undefined') {
-                $innerHead.find('.thumb').html('<img src="' + data.logoSrc + '" />');
-            } else {
-                $innerHead.find('.thumb').hide();
-            }
-            if(typeof data.projectName != 'undefined') $innerHead.find('h2 .txt').html(data.projectName);
-        }
-    }
-
+    
     function _activateTriggerBoxSlide(slide){
         _enableContextSwitchTraffic();
         // activate clicked slide

@@ -1164,6 +1164,15 @@ var SlideTasks = (function(){
         $(".task-trigger-steps").html(_generateTriggerStepsHTML());
     }
 
+    function _handleMetaDataIconClick(e){
+        //e.preventDefault();
+        var fieldName = $(this).attr('data-fieldName');
+        if(fieldName != ''){
+            BindedBox.stateChange('settings', {slide: 'metadata'});
+            PubSub.publish(BindedBox.pubsubRoot + 'slide.metadata.activateMetaKey', fieldName);
+        }
+    }
+    
     function _handleCallbackNameBtnClick(e){
         e.preventDefault();
         var $this = $(e.target),
@@ -1227,7 +1236,7 @@ var SlideTasks = (function(){
                     switch(parseMethod){
                         case 'metaObject':
                         case 'metaObjectValue':
-                            typeHint = '<i class="fa fa-database"></i>';
+                            typeHint = '<i class="fa fa-database metadata-icon" data-fieldName="' + report.callbacks[i].fnParamsData[p].parseValue.split('.')[1] + '"></i>';
                             html += '- ' + report.callbacks[i].fnParamsData[p].parseValue + ' &nbsp; <span class="type-hint"> ' + typeHint + '</span>';
                             break;
                         default:
@@ -1268,18 +1277,18 @@ var SlideTasks = (function(){
                 html += '</div><!--/.col-1-->';
                 html += '<div class="col col-2">';
                 // assertion
-                html += '<h3>Assertion</h3>';
+                html += '<h3>Assertion &nbsp; <i class="fa fa-info-circle"></i></h3>';
                 if(report.callbacks[i].assertion){
                     html += '<p class="description">';
-                    html += 'Success if response is ';
+                    //html += 'Success if response is ';
                     html += _humanTranslateAssertionOperator(report.callbacks[i].assertion._op);
-                    html += ' :</p>';
+                    html += '</p>';
                     html += '<div class="assertion-value">' + JSON.stringify(report.callbacks[i].assertion._val, undefined, 2) + '</div><!--/.assertion-value-->';
                 }
                 html += '</div><!--/.col-2-->';
                 html += '<div class="col col-3 ' + (report.callbacks[i].success ? 'success' : 'failure') + '">';
                 // response
-                html += '<h3>Response</h3>';
+                html += '<h3>Response &nbsp; <i class="fa fa-info-circle"></i></h3>';
                 html += '<div class="response-value">' + JSON.stringify(report.callbacks[i].fnResponse, undefined, 2) + '</div><!--/.assertion-value-->';
                 html += '</div><!--/.col-3-->';
 
@@ -1392,6 +1401,7 @@ var SlideTasks = (function(){
             $(document).on('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
             $(document).on('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
             $(document).on('click', '.tabbed-content.tasks .callback-name-btn', _handleCallbackNameBtnClick);
+            $(document).on('click', '.metadata-icon.fa-database', _handleMetaDataIconClick);
             $(document).on('click', '.action-btns .mark-complete', _handleMarkComplete);
             PubSub.subscribe('_ui_.completionTest', _ui_completionTest);
             PubSub.subscribe('_ui_render.dynamicContent.steps', _renderTriggerStepsHTML);
@@ -1410,6 +1420,7 @@ var SlideTasks = (function(){
             $(document).off('click', '.tabbed-content.tasks .check-dependencies-btn', _handleCheckDependenciesClick);
             $(document).off('click', '.tabbed-content.tasks .trigger-start-btn', _handleRunTriggerBtnClick);
             $(document).off('click', '.tabbed-content.tasks .callback-name-btn', _handleCallbackNameBtnClick);
+            $(document).off('click', '.metadata-icon.fa-database', _handleMetaDataIconClick);
             $(document).off('click', '.action-btns .mark-complete', _handleMarkComplete);
             PubSub.unsubscribe('_ui_.completionTest', _ui_completionTest);
             PubSub.unsubscribe('_ui_render.dynamicContent.steps', _renderTriggerStepsHTML);
@@ -1422,23 +1433,23 @@ var SlideTasks = (function(){
     _initialize();
 
     return {
-        render : _renderDynamicContentHTML,
-        activate : _activateListeners,
-        deactivate : _deactivateListeners,
-        calculateActionBtns : _calculateActionBtns,
-        hasDependencies : _taskHasDependencies,
-        attemptMarkComplete : _attemptMarkComplete,
-        markComplete : _markTaskComplete,
-        _: _setTriggerProgress,
-        isLocked : _taskIsLocked,
-        getOption : _getOption,
-        setOption : _setOption,
-        isActiveSlide : _isActiveSlide,
-        renderActionBtns : _renderTaskActionBtns,
-        validateAndApplyUpdates : _validateAndApplyUpdates,
-        validateAndApplyTaskUpdates : _validateAndApplyTaskUpdates,
-        validateAndApplyMetaUpdates : _validateAndApplyMetaUpdates,
-        validateAndApplyProjectUpdates : _validateAndApplyProjectUpdates,
-        handleCheckDependenciesClick : _handleCheckDependenciesClick
+        render                                      : _renderDynamicContentHTML,
+        activate                                    : _activateListeners,
+        deactivate                                  : _deactivateListeners,
+        calculateActionBtns                         : _calculateActionBtns,
+        hasDependencies                             : _taskHasDependencies,
+        attemptMarkComplete                         : _attemptMarkComplete,
+        markComplete                                : _markTaskComplete,
+        _                                           : _setTriggerProgress,
+        isLocked                                    : _taskIsLocked,
+        getOption                                   : _getOption,
+        setOption                                   : _setOption,
+        isActiveSlide                               : _isActiveSlide,
+        renderActionBtns                            : _renderTaskActionBtns,
+        validateAndApplyUpdates                     : _validateAndApplyUpdates,
+        validateAndApplyTaskUpdates                 : _validateAndApplyTaskUpdates,
+        validateAndApplyMetaUpdates                 : _validateAndApplyMetaUpdates,
+        validateAndApplyProjectUpdates              : _validateAndApplyProjectUpdates,
+        handleCheckDependenciesClick                : _handleCheckDependenciesClick
     };
 })();

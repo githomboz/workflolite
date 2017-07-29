@@ -1112,6 +1112,10 @@ $alertRed : rgba(208, 106, 106, 1);
 
         .fa {
           font-size: 90%;
+
+          &.fa-database {
+            cursor: pointer;
+          }
         }
       }
     }

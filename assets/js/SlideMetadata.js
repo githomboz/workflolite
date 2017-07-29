@@ -54,6 +54,8 @@ var SlideMetadata = (function(){
         var reqId = BindedBox.addRequest('initializeModule', 'Initializing `SlideMetadata` module');
         _updateMetaCount();
         PubSub.subscribe(BindedBox.pubsubRoot + 'state', _handleStateChange);
+        PubSub.subscribe(BindedBox.pubsubRoot + 'slide.metadata.activateMetaKey', _handleActivateMetaKeyRequest);
+        console.log(_METADATA);
         // $(".js-us-phone-mask").mask("(999) 999-9999", {autoclear: false});
         // $(".js-twitter-handle-mask").mask("@***************", {autoclear: false});
         BindedBox.addResponse(reqId, '`SlideMetadata` module initialized' );
@@ -69,6 +71,11 @@ var SlideMetadata = (function(){
         return false;
     }
 
+    function _setSelectedFieldByName(fieldName){
+        BindedBox.stateChange('settings', {slide: 'metadata'});
+        PubSub.publish(BindedBox.pubsubRoot + 'slide.metadata.activateMetaKey', fieldName);
+    }
+
     function _getMetaCount(){
         return Object.keys(_METADATA).length;
     }
@@ -78,7 +85,7 @@ var SlideMetadata = (function(){
         var
             $entry = $(this),
             slug = $entry.data('slug');
-        PubSub.publish('bindedBox.tabs.metadata.slugSelected', slug);
+        _setSelectedFieldByName(slug);
 
         return false;
     }
@@ -1054,6 +1061,10 @@ var SlideMetadata = (function(){
 
     }
 
+    function _handleActivateMetaKeyRequest(topic, payload){
+        PubSub.publish('bindedBox.tabs.metadata.slugSelected', payload);
+    }
+
     function _isActiveSlide(){
         return _getOption('slideName') == BindedBox.getCurrent('settings','slide');
     }
@@ -1089,17 +1100,18 @@ var SlideMetadata = (function(){
     _initialize();
 
     return {
-        activate : _activateListeners,
-        deactivate : _deactivateListeners,
-        updateMeta : _updateMeta,
-        showForm : _showForm,
-        hideForm : _hideForm,
-        getOption : _getOption,
-        setOption : _setOption,
-        isActiveSlide : _isActiveSlide,
-        enableFormSubmit : _enableFormSubmit,
-        disableFormSubmit : _disableFormSubmit,
-        setMessage : _setMessage,
-        closeMessage : _closeMessage
+        activate                    : _activateListeners,
+        deactivate                  : _deactivateListeners,
+        updateMeta                  : _updateMeta,
+        showForm                    : _showForm,
+        hideForm                    : _hideForm,
+        getOption                   : _getOption,
+        setOption                   : _setOption,
+        setSelectedField            : _setSelectedFieldByName,
+        isActiveSlide               : _isActiveSlide,
+        enableFormSubmit            : _enableFormSubmit,
+        disableFormSubmit           : _disableFormSubmit,
+        setMessage                  : _setMessage,
+        closeMessage                : _closeMessage
     };
 })();
