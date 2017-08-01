@@ -110,9 +110,11 @@ var SlideTasks = (function(){
         var task = _task(),
             triggerExists = (typeof task.data.trigger != 'undefined' && typeof task.data.trigger.type != 'undefined'),
             isForm = triggerExists && task.data.trigger.type == 'form',
-            triggerIdSet = triggerExists && task.data.trigger.triggerId && task.data.trigger.triggerId.trim() != '' && task.data.trigger.triggerId != null;
+            triggerIdSet = triggerExists && task.data.trigger.triggerId && task.data.trigger.triggerId.trim() != '' && task.data.trigger.triggerId != null,
+            taskComplete = task.data.status == 'completed';
+
         _PROGRESS_MGR[task.id].step = 0;
-        if(!_triggerProgressComplete() && _PROJECT.template.settings.autoLoadForms && isForm && triggerIdSet) _executeRunFormAjaxCalls();
+        if(!_triggerProgressComplete() && _PROJECT.template.settings.autoLoadForms && isForm && triggerIdSet && !taskComplete) _executeRunFormAjaxCalls();
     }
 
     function _handleRunTriggerBtnClick(e){
@@ -419,12 +421,14 @@ var SlideTasks = (function(){
                             break;
                     }
                 } else {
+                    BindedBox.enableTraffic();
                     _setTriggerProgress(_triggerProgress, 'doh');
                     if(data.errors && typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
                 }
             },
             function(){
                 // error
+                BindedBox.enableTraffic();
                 _setTriggerProgress(_triggerProgress, 'doh');
                 alertify.error('Error', 'An error has occurred.');
             },
@@ -809,16 +813,19 @@ var SlideTasks = (function(){
         // Validate
         var _dataSet = typeof data.response != 'undefined',
             _updatesSet = _dataSet && typeof data.response.metaUpdates != 'undefined' && data.response.metaUpdates;
+        // console.log('----test1-----', data, _updatesSet);
 
         if(_updatesSet){
-            // Update in-mem store
-            // @todo
 
-            // render if necessary
+            var sameLength = Object.keys(_METADATA).length == Object.keys(data.response.metaUpdates).length,
+                sameValues = JSON.stringify(_METADATA) == JSON.stringify(data.response.metaUpdates);
 
-            PubSub.publish('meta.updated', {
-                updates : data.response.metaUpdates
-            });
+            // console.log('----test2-----', data);
+            BindedBox.stateChange('meta', data.response.metaUpdates);
+
+            if(!sameLength || !sameValues){
+                _METADATA = data.response.metaUpdates;
+            }
         }
     }
 
@@ -1195,7 +1202,9 @@ var SlideTasks = (function(){
     function _generateCompletionReportHTML(task, addContextCopy){
         var html = '';
             if(!task) task = _task();
-            var report = task.data.completionReport.response;
+
+        //if(task.data.completionReport && typeof task.data.completionReport.response != 'undefined'){
+        var report = task.data.completionReport && typeof task.data.completionReport.response != 'undefined' ? task.data.completionReport.response : null ;
 
         html += '<div class="completion-report-frame">';
         if(addContextCopy){
@@ -1300,6 +1309,7 @@ var SlideTasks = (function(){
             html += '</div><!--/.completion-report-inner-->';
         }
         html += '</div><!--/.completion-report-frame-->';
+
 
         return html;
         // render temporarily

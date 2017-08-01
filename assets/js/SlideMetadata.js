@@ -19,7 +19,7 @@ var SlideMetadata = (function(){
     var $messageContainer = $(messageContainerSelector);
     var messageBoxOpen = false;
     var _listenersActive = false;
-
+    var $numFlag = $(".tabbed-nav .database-nav .num-flag");
     var options = {
             slideName : 'metadata',
             loadingIcon : '<i class="fa fa-spin fa-spinner"></i>',
@@ -55,15 +55,19 @@ var SlideMetadata = (function(){
         _updateMetaCount();
         PubSub.subscribe(BindedBox.pubsubRoot + 'state', _handleStateChange);
         PubSub.subscribe(BindedBox.pubsubRoot + 'slide.metadata.activateMetaKey', _handleActivateMetaKeyRequest);
-        console.log(_METADATA);
         // $(".js-us-phone-mask").mask("(999) 999-9999", {autoclear: false});
         // $(".js-twitter-handle-mask").mask("@***************", {autoclear: false});
         BindedBox.addResponse(reqId, '`SlideMetadata` module initialized' );
         return false;
     }
 
-    function _updateMetaCount(){
-        $(".tabbed-nav .database-nav .num-flag").text(_getMetaCount());
+    function _updateMetaCount(highlight){
+        if(highlight) $numFlag.addClass('red');
+        $numFlag.find(".txt").text(_getMetaCount());
+    }
+
+    function _markMetaCountSeen(){
+        $numFlag.removeClass('red');
     }
 
     function _setSelectedField(fieldData){
@@ -163,7 +167,7 @@ var SlideMetadata = (function(){
             }
 
             $entries.html(html);
-            $(".tabbed-nav .database-nav .num-flag").text(metaDataCount);
+            $(".tabbed-nav .database-nav .num-flag .txt").text(metaDataCount);
 
             switch(_METADATA_DATA.actionMode){
                 case 'update':
@@ -1042,6 +1046,7 @@ var SlideMetadata = (function(){
     }
 
     function _handleStateChange(topic, payload){
+        // console.log(topic, payload);
         var parsedTopic = BindedBox.parseAppTopic(topic);
         if(parsedTopic.isValid) {
             switch (parsedTopic.map.entity){
@@ -1049,12 +1054,14 @@ var SlideMetadata = (function(){
                     if(_isActiveSlide()) {
                         _render();
                         _activateListeners();
+                        _markMetaCountSeen();
                     } else _deactivateListeners();
                     break;
                 case 'meta':
                     if(_isActiveSlide()){
-
+                        _render();
                     }
+                    _updateMetaCount(true);
                     break;
             }
         }
@@ -1103,6 +1110,7 @@ var SlideMetadata = (function(){
         activate                    : _activateListeners,
         deactivate                  : _deactivateListeners,
         updateMeta                  : _updateMeta,
+        updateMetaCount             : _updateMetaCount,
         showForm                    : _showForm,
         hideForm                    : _hideForm,
         getOption                   : _getOption,

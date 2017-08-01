@@ -32,6 +32,8 @@ class Meta
 
   private $_clientViewEnabled = false;
 
+  private $_storedMerge = null;
+
 
   public function __construct(array $metaData, WorkflowFactory $entity){
     if($entity instanceof Job || $entity instanceof Project){
@@ -46,10 +48,14 @@ class Meta
 
   public function initialize($metaData){
     $this->_current = $metaData;
+    $this->generateMetaDataArray();
+    return $this;
+  }
+
+  public function generateMetaDataArray(){
     foreach((array) $this->getMetaFieldSettings() as $i => $metaFieldSettings) {
       $this->registerMetaField($metaFieldSettings['slug']);
     }
-    return $this;
   }
 
   public function current(){
@@ -112,14 +118,20 @@ class Meta
   public function getMetaFieldSettings($field = null){
     $templateSource = $this->isJob() ? $this->workflow() : $this->template() ;
     if($templateSource){
-      if(!$this->_settings) $this->_settings = $templateSource->getValue('metaFields');
+      $templateMetaFields = $templateSource->getValue('metaFields');
 
       // Adding this to merge in local meta fields
       $localMetaField = $this->project()->getValue('localMetaFields');
+      //var_dump($localMetaField, $this->_settings);
       if(empty($localMetaField)) $localMetaField = [];
       // Add in meta values
 
-      $this->_settings = array_merge($this->_settings, $localMetaField);
+      
+      $temp = array_merge($templateMetaFields, $localMetaField);
+      if(json_encode($temp) != json_encode($this->_settings)){
+        $this->_settings = $temp;
+      }
+
       //var_dump($this->_settings, $this->project()->getValue('meta'));
 
       // Return values
@@ -142,7 +154,6 @@ class Meta
           'rowStrLen' => 0
         ),
       ));
-
 
       switch (strtolower($this->_data[$field]['type'])){
         case 'string':

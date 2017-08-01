@@ -338,6 +338,10 @@ class WF
     return $response;
   }
 
+  public static function ParseJSArrayFormat($array){
+    
+  }
+
 }
 
 class JNBPA {

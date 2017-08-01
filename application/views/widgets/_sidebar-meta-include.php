@@ -15,15 +15,15 @@
   ?>
   <div class="job-meta cs-job-meta <?php if(!$hideMeta) echo 'show-all';?>">
     <script class="metadata-script">
-      var _METADATA = <?php echo json_encode($entity->getMetaArray())?>;
+      var _METADATA = <?php echo json_encode($entity->getMetaArray()); ?>;
     </script>
     <?php
     foreach($metaRecords as $key => $meta){
-      $metaSettings = template()->getMetaSettings($key);
+      //$metaSettings = template()->getMetaSettings($key);
       //var_dump($metaRecords, $meta, $key);
       ?>
       <div class="meta-pair meta-<?php echo $meta['slug'] ?> <?php if($meta['hide']) echo 'not-priority '; else echo 'priority '; ($value = $meta['value'] instanceof MetaObject ? $meta['value']->get() : null); if(is_null($value) || ($meta['value'] instanceof MetaArray && empty($value))) echo 'edit-mode '?>">
-        <span class="meta-title"><?php echo $metaSettings['field'] ?>: </span>
+        <span class="meta-title"><?php echo $meta['field'] ?>: </span>
         <?php
         $valueContent = '';
         $multiLine = false;

@@ -216,8 +216,6 @@ var BindedBox = (function(){
 
     function _disableContextSwitchTraffic(payload){
         if(!__disableTraffic){
-            console.log('disabling');
-
             // Disable Listeners
             $( document ).off( 'click' , '.binded-trigger-box .tabbed-nav .item a' , _handleTriggerBoxNavClick );
             $( document ).off( 'click' , '.binded-trigger-box button.js-directional' , _handleDirectionalBtnClick );
@@ -237,6 +235,11 @@ var BindedBox = (function(){
             // Disable Task List
             $(".task-inset").css('opacity',.7);
 
+
+            // Add Overlay
+            $(".slide-overlays").addClass('show');
+            $(".slide-overlays .overlay.data-in-transit").addClass('show');
+
             // enable
             __disableTraffic = true;
         }
@@ -244,8 +247,6 @@ var BindedBox = (function(){
 
     function _enableContextSwitchTraffic(payload){
         if(__disableTraffic){
-            console.log('enabling');
-
             // Enable Listeners
             $( document ).on( 'click' , '.binded-trigger-box .tabbed-nav .item a' , _handleTriggerBoxNavClick );
             $( document ).on( 'click' , '.binded-trigger-box button.js-directional' , _handleDirectionalBtnClick );
@@ -263,6 +264,10 @@ var BindedBox = (function(){
             $(".tabbed-nav li").css('opacity', 1);
             // Enable Task List
             $(".task-inset").css('opacity',1);
+
+            // Remove Overlay
+            $(".slide-overlays").removeClass('show');
+            $(".slide-overlays .overlay.data-in-transit").removeClass('show');
 
             // enable
             __disableTraffic = false;
@@ -344,7 +349,7 @@ var BindedBox = (function(){
             __stateChange('settings', {slide: clickedSlide});
         }
     }
-    
+
     function _activateTriggerBoxSlide(slide){
         _enableContextSwitchTraffic();
         // activate clicked slide
@@ -708,6 +713,7 @@ var BindedBox = (function(){
 
                     // Merge current data with scData.values
                     for(var key in scData.values){
+                        if(newData === null) newData = {};
                         newData[key] = scData.values[key].newVal;
                     }
                     // update current with new data

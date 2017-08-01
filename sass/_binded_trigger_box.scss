@@ -167,7 +167,7 @@ $alertRed : rgba(208, 106, 106, 1);
         background: $normalBtnGray;
 
         .num-flag {
-          background: darken($txtLightGray, 5%);
+          background: #c19d9d;
           border-radius: 3px;
           position: absolute;
           top: -3px;
@@ -177,10 +177,17 @@ $alertRed : rgba(208, 106, 106, 1);
           color: $innerButtonGray;
           line-height: 1.5em;
 
+          .asterisk {
+            display: none;
+          }
+
           &.red {
             background: rgba(208, 106, 106, 1);
             color: #fff;
 
+            .asterisk {
+              display: inline;
+            }
           }
         }
 
@@ -230,6 +237,7 @@ $alertRed : rgba(208, 106, 106, 1);
     border-radius: 4px;
     width: 92%;
     min-width: 694px;
+    overflow: hidden;
   }
 
   .tabbed-content {
@@ -1253,4 +1261,48 @@ $alertRed : rgba(208, 106, 106, 1);
     color: #9e5455;
   }
 
+}
+
+.tabbed-content .slide-overlays {
+  display: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(#555, .8);
+  top: 0;
+  left: 0;
+  z-index: 100;
+
+  .overlay {
+    display: none;
+    position: relative;
+
+    &.data-in-transit {
+      text-align: center;
+
+      .message {
+        margin-top: 200px;
+      }
+    }
+
+    &.show {
+      display: block;
+    }
+  }
+
+  &.show {
+    display: block;
+  }
+}
+
+.formfly {
+  .field-type-string {
+    display: block;
+    width: 100%;
+    margin-bottom: $padding;
+
+    input[type=text] {
+      width: 100%;
+    }
+  }
 }

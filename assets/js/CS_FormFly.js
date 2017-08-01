@@ -99,7 +99,7 @@ var CS_FormFly = (function(){
                 fields      : sourceData.fields
             };
 
-            console.log(ffform);
+            //console.log(ffform);
 
             __FFFORMS.push(ffform);
             _activateListeners();
@@ -329,7 +329,7 @@ var CS_FormFly = (function(){
                         }
 
                         if(typeof node.properties[rootName].nativeName == 'undefined') node.properties[rootName].nativeName = true;
-                        console.log('------FOCUS HERE-(named)-----', node.properties[rootName], node.properties[rootName].rootName);
+                        //console.log('------FOCUS HERE-(named)-----', node.properties[rootName], node.properties[rootName].rootName);
 
                     }
                 }
@@ -360,7 +360,7 @@ var CS_FormFly = (function(){
                         rootRepeaterIndex : node.repeaterIndex
                     });
                 }
-                console.log('------FOCUS HERE-(root)------', node, node.rootName);
+                //console.log('------FOCUS HERE-(root)------', node, node.rootName);
                 //_analyzeAndCreateFFFProperties(node);
                 break;
             case 'boolean':
@@ -389,7 +389,7 @@ var CS_FormFly = (function(){
                 if(node.rootName) node.root = node.rootName.split('[')[0];
                 if(node.root && node.repeaterIndex) node.rootName = node.root + '[' + node.repeaterIndex + ']';
 
-                console.log('------FOCUS HERE-(root)------', node, node.rootName);
+                //console.log('------FOCUS HERE-(root)------', node, node.rootName);
                 //_analyzeAndCreateFFFProperties(node);
                 break;
         }
@@ -448,6 +448,7 @@ var CS_FormFly = (function(){
                 className = FFF.generateClass(node);
                 $(".ftype-element__field." + className).removeClass('error');
             }
+            FFF.submit();
         } else {
             // Handle Message Errors
             if( results.errors.messages.length > 0 ) {
@@ -457,23 +458,30 @@ var CS_FormFly = (function(){
             }
 
             // Handle Required Field Errors
-            var className = null, field;
+            var className = null, className2, field, $field, $field2;
             if( results.errors.requiredFields.length > 0 ) {
                 for( var i in results.errors.requiredFields ) {
                     for ( var f in fields ){
+                        className = FFF.generateClass(fields[f]);
+                        $field = $(".ftype-element__field." + className);
+                        if(!(results.errors.requiredFields.indexOf(fields[f].nameAttr) >= 0)) $field.removeClass('error');
                         if(results.errors.requiredFields[i] == fields[f].nameAttr){
-                            field = fields[f]
+                            field = fields[f];
                         }
                     }
-                    className = FFF.generateClass(field);
-                    $(".ftype-element__field." + className).addClass('error');
+
+                    if(field){
+                        className2 = FFF.generateClass(field);
+                        $field2 = $(".ftype-element__field." + className2);
+                        $field2.addClass('error');
+                    }
                 }
             }
 
 
         }
 
-        console.log(FFF.getData(), id, 'SUBMIT');
+        //console.log(FFF.getData(), id, 'SUBMIT');
 
     }
 
@@ -489,7 +497,7 @@ var CS_FormFly = (function(){
 
         if(FFF) FFF.addRepeater(repeaterIndex);
 
-        console.log(FFF, id, 'ADD', repeaterIndex);
+        //console.log(FFF, id, 'ADD', repeaterIndex);
     }
 
     function _activateListeners(){
@@ -832,7 +840,7 @@ var CS_FormFly = (function(){
                 }
 
                 function _generateRepeaterTargetsFromData(node){
-                    console.log(_current.formData.data, node);
+                    //console.log(_current.formData.data, node);
                     return '';
                 }
 
@@ -934,6 +942,40 @@ var CS_FormFly = (function(){
 
                 // Submit the form to process script
                 function _submit(){
+                    //@todo
+                    console.log(_current.formData.data);
+                    console.log(_current);
+                    CS_API.call('ajax/save_form',
+                        function(){
+                            // beforeSend
+                            BindedBox.disableTraffic();
+                        },
+                        function(data){
+                            // success
+                            if(data.errors == false && data.response.success){
+                                SlideTasks.validateAndApplyUpdates(data, true);
+                                BindedBox.enableTraffic();
+                            } else {
+                                BindedBox.enableTraffic();
+                                if(data.errors && typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
+                            }
+                        },
+                        function(){
+                            // error
+                            BindedBox.enableTraffic();
+                            alertify.error('Error', 'An error has occurred.');
+                        },
+                        {
+                            projectId: _CS_Get_Entity_ID(),
+                            taskId : BindedBox.task().id,
+                            sortOrder : BindedBox.task().data.sortOrder,
+                            dataJSON : JSON.stringify(_current.formData.data)
+                        },
+                        {
+                            method: 'POST',
+                            preferCache : false
+                        }
+                    );
 
                 }
 

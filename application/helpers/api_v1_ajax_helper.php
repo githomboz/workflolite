@@ -1200,3 +1200,91 @@ function save_meta_field_required_fields(){
   return array('metaObject','projectId','slug','value');
 }
 
+function save_form(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $project = Project::Get($data['projectId']);
+
+  $response['response']['success'] = false;
+
+  if($project){
+    $task = $project->getTaskById($data['taskId']);
+    $triggerData = (array)$task->getValue('trigger');
+
+    // Check if triggerData is valid
+    $issetTriggerType = isset($triggerData['type']) && $triggerData['type'] == 'form';
+    $issetTriggerId = isset($triggerData['triggerId']) && !empty($triggerData['triggerId']);
+    $issetTriggerConfig = isset($triggerData['triggerConfig']) && !empty($triggerData['triggerConfig']);
+    $validTriggerData = $issetTriggerId && $issetTriggerType;
+
+
+
+    $metaArray = $project->getRawMeta();
+    $formData = (array) json_decode($data['dataJSON'], true);
+    $meta = new MetaArray($formData);
+
+    $response['response']['formData'] = $formData;
+
+    if(!$meta->errors()){
+      $fieldName = 'task' . $data['sortOrder'] . 'Form';
+      $metaArray[$fieldName] = $meta->get();
+//      $field = $data;
+//      unset($field['metaObject']);
+//      unset($field['projectId']);
+
+      // Save value to project
+      $localMetaFields = (array) $project->getValue('localMetaFields');
+      $duplicateFound = false;
+      foreach($localMetaFields as $i => $localField){
+        if($localField['slug'] == $fieldName) $duplicateFound = $i;
+      }
+
+      if(!is_numeric($duplicateFound)){
+        // Create
+        $localMetaFields[] = [
+          'field' => 'Task ' . $data['sortOrder'] . ' Form',
+          'type' => 'array',
+          'hide' => false,
+          'slug' => $fieldName,
+          'multiLine' => true,
+          '_' => true,
+          'clientView' => false
+        ];
+      }
+      $task->complete();
+      $project->setValue('localMetaFields', $localMetaFields)->save('localMetaFields');
+      $project->meta()->set('meta', $metaArray)->save('meta');
+      $response['response']['success'] = true;
+      $response['response']['taskId'] = $data['taskId'];
+      $project->meta()->generateMetaDataArray();
+      $response['response']['metaUpdates'] = $project->getMetaArray();
+      $response['response']['taskUpdates'] = [
+        'status' => 'completed'
+      ];
+    } else {
+      if(!is_array($response['errors'])) $response['errors'] = [];
+      $response['errors'] = array_merge($response['errors'], (array) $meta->errors());
+    }
+
+  } else {
+    $response['errors'][] = 'Invalid projectId provided';
+  }
+
+
+  $response['recordCount'] = 1;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function save_form_args_map(){
+  return array('projectId','taskId','sortOrder','dataJSON');
+}
+
+// Field names of fields required
+function save_form_required_fields(){
+  return array('projectId','taskId','sortOrder','dataJSON');
+}
+

@@ -21,7 +21,7 @@
       <nav class="tabbed-nav clearfix">
         <ul>
           <li class="item tasks-nav selected"><a href="#" class="fa fa-check-square" rel="tasks"></a> </li>
-          <li class="item database-nav"><span class="num-flag red"></span> <a href="#" class="fa fa-database" rel="metadata"></a> </li>
+          <li class="item database-nav"><span class="num-flag"><span class="txt"></span><i class="asterisk">*</i></span> <a href="#" class="fa fa-database" rel="metadata"></a> </li>
           <li class="parties-nav"><a href="#" class="fa fa-users" rel="parties"></a> </li>
           <li class="notes-nav"><a href="#" class="fa fa-comment" rel="notes"></a> </li>
           <li class="time-nav"><a href="#" class="fa fa-clock-o" rel="time"></a> </li>
@@ -30,6 +30,11 @@
       </nav>
       <div class="tabbed-content-container clearfix">
         <section class="tabbed-content tasks clearfix show" data-status="completed" data-slide="tasks">
+          <div class="slide-overlays">
+            <div class="overlay data-in-transit">
+              <p class="message"><i class="fa fa-exchange"></i> Please wait.  Data in transit. <i class="fa fa-spin fa-refresh"></i></p>
+            </div>
+          </div>
           <span class="status-info"><span class="status"></span></span>
           <div class="task-trigger">
             <div class="trigger-type"><span class="trigger-type-name"></span> | <span class="trigger-type-desc"></span></div>

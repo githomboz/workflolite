@@ -636,7 +636,6 @@ class Project extends WorkflowFactory
 
   public function getMetaArray(){
     $meta = $this->meta->getAll(); // Get data from template
-    //var_dump($meta);
     $unset = ['html','hide','multiLine','validation'];
 
     foreach($meta as $slug => $metaData){

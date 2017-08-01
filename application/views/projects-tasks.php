@@ -12,7 +12,21 @@
         //var_dump(WF::GetMetaDataBySlug($this->project, 'job.closingDate'));
         //var_dump(WF::Add(2, 4, 'a'));
         //var_dump(WF::GenerateCallbackReport($this->project->getTaskByNumber(6)->getValue('dependencies'), $this->project, (string) $this->project->getTaskByNumber(6)->id()));
-        ;?>
+//        var_dump(WF::ParseJSArrayFormat([
+//            'mother[name]' => 'Roseline',
+//            'mother[surname]' => 'Ambroise',
+//            'father[name]' => 'Ralph',
+//            'father[surname]' => 'Claude',
+//            'children[0][name]' => 'Lunivers',
+//            'children[0][surname]' => 'Rhodes',
+//            'children[1][name]' => 'Benezer',
+//            'children[1][surname]' => 'Lancelot',
+//            'children[2][name]' => 'Eliezer',
+//            'children[2][surname]' => 'Lancelot',
+//            'children[3][name]' => 'Eluber',
+//            'children[3][surname]' => 'Lancelot',
+//        ]), __FILE__, __LINE__);
+        ?>
 
 
         <div class="inner-nav-btns">
