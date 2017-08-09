@@ -461,10 +461,13 @@ var CS_FormFly = (function(){
             var className = null, className2, field, $field, $field2;
             if( results.errors.requiredFields.length > 0 ) {
                 for( var i in results.errors.requiredFields ) {
+                    //console.log(results.errors.requiredFields);
                     for ( var f in fields ){
                         className = FFF.generateClass(fields[f]);
                         $field = $(".ftype-element__field." + className);
-                        if(!(results.errors.requiredFields.indexOf(fields[f].nameAttr) >= 0)) $field.removeClass('error');
+                        //console.log(className, $field, fields[f].nameAttr);
+
+                        if(!(results.errors.requiredFields.indexOf(fields[f].nameAttr) >= 0) && $field.length) $field.removeClass('error');
                         if(results.errors.requiredFields[i] == fields[f].nameAttr){
                             field = fields[f];
                         }
@@ -472,6 +475,7 @@ var CS_FormFly = (function(){
 
                     if(field){
                         className2 = FFF.generateClass(field);
+                        //console.log(field, className2);
                         $field2 = $(".ftype-element__field." + className2);
                         $field2.addClass('error');
                     }
@@ -727,7 +731,7 @@ var CS_FormFly = (function(){
                         html = '',
                         dataValue = _current.formData.data[node.nameAttr];
 
-                    html += '<span class="ftype-element field-type-' + node.type + (__(node, 'enum') ? 'enum ':' ') + _generateFFFClassName(node) + '">';
+                    html += '<span class="ftype-element field-type-' + node.type + (__(node, 'enum') ? ' enum ':' ') + _generateFFFClassName(node) + '">';
                     switch (node.type){
                         case 'string':
                             var isEnum = typeof node.enum != 'undefined' && node.enum.length > 0;

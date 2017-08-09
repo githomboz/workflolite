@@ -130,3 +130,253 @@ function get50States(){
         "WY": "Wyoming"
     };
 }
+
+// Setup Shortcodes
+if(typeof WFShortcodeLib != 'undefined') {
+    WFShortcodeLib.registerTag('youtube', function(options, contents){
+        var output = '';
+        if(typeof options.action != 'undefined') {
+            switch (options.action){
+                case 'show-video':
+                    if( typeof options.videoId ) {
+                        output += '<iframe class="youtube-iframe" width="100%" height=350" src="https://www.youtube.com/embed/' + options.videoId + '" frameborder="0" allowfullscreen></iframe>';
+                    } else console.error('Must provide a valid video id');
+                    break;
+            }
+        }
+        return output;
+    });
+
+    WFShortcodeLib.registerTag('metadata', function(options, contents){
+        var output = '';
+        if(typeof options.action != 'undefined') {
+            switch (options.action){
+                case 'get-value':
+                    break;
+            }
+        }
+        return output;
+    });
+
+    WFShortcodeLib.registerTag('image', function(options, contents){
+        var output = '', srcSet = false;
+        if( typeof options.source != 'undefined') {
+            options.action = 'show-image';
+            srcSet = true;
+        }
+
+        if(typeof options.action != 'undefined') {
+            switch (options.action){
+                case 'show-image':
+                    if( srcSet || typeof options.source != 'undefined' ) {
+                        output += '<img src="' + options.source + '" ';
+                        if( options.class ) output += 'class="' + + '" ';
+                        if( options.width ) output += 'width="' + + '" ';
+                        if( options.height ) output += 'height="' + + '" ';
+                        output += '/>';
+                    } else console.error('Must provide a valid video id');
+                    break;
+            }
+        }
+        return output;
+    });
+
+    WFShortcodeLib.registerTag('link', function(options, contents){
+        var output = '';
+        if( typeof options.href == 'undefined') console.error('Must provide a valid href');
+        else {
+            output += '<a ';
+            for ( var att in options ) {
+                output += att + '="' + options[att] + '" ';
+            }
+            output += '>' + contents + '</a>';
+        }
+        return output;
+    });
+
+    var WFChecklistInstance = 0;
+    var WFChecklistActive = false;
+
+    var WFChecklist = function(options, instance){
+
+        var defaults = {
+            showBar                 : true,
+            showBarPercentage       : true,
+            showCount               : true,
+            showTitle               : true
+        };
+
+        if(options){
+            for ( var key in options ) {
+                defaults[key] = options[key];
+            }
+        }
+
+        if(!instance) {
+            WFChecklistInstance ++;
+            instance = WFChecklistInstance;
+        }
+
+        this.instance               = instance;
+        this.$checklist             = $(".checklist-container[data-instance=" + this.instance + "]");
+        this.options                = defaults;
+        this.output                 = '';
+        this.steps                  = [];
+        this.completePercent        = 0; // Percentage of steps complete
+        this.completePercentRD      = 0; // Percentage of steps complete (rounded up)
+        this.completeCount          = 0;
+    };
+
+    WFChecklist.prototype.update = function(){
+        this.output = '';
+        this.completeCount = 0;
+        // Loop through steps and generate percentage
+        for ( var i in this.steps ){
+            if( this.steps[i].completed ) this.completeCount ++;
+        }
+
+        // Update percentage
+        if(this.steps.length > 0) this.completePercent = this.completeCount / this.steps.length;
+        this.completePercentRD = Math.round(this.completePercent);
+        this.activate();
+        this.render();
+    };
+
+    WFChecklist.prototype.activate = function(){
+        if(!WFChecklistActive) {
+            WFChecklistActive = true;
+            //$(document).on('click', '.checklist-container .checklist-entry a', this.handleListClick.bind(this));
+            $(document).on('click', '.checklist-container .checklist-entry a, .checklist-container .checklist-entry .fa', this.handleListClick);
+        }
+    };
+
+    WFChecklist.prototype.render = function(){
+        if(!this.$checklist.length) this.$checklist = $(".checklist-container[data-instance=" + this.instance + "]");
+        if(this.$checklist.length >= 1) {
+            this.$checklist.attr('data-steps', JSON.stringify(this.steps));
+            this.$checklist.attr('data-options', JSON.stringify(this.options));
+            this.$checklist.html(this.html(false));
+        }
+    };
+
+    WFChecklist.prototype.handleListClick = function(e){
+        e.preventDefault();
+        var $el = $(this),
+            $li = $el.parents('li'),
+            step = parseInt($li.attr('data-step')),
+            completed = $li.is('.completed'),
+            $checklist = $li.parents('.checklist-container'),
+            checklist = GetWFChecklistByElement($checklist);
+
+        if(completed) checklist.markStepIncomplete(step); else checklist.markStepComplete(step);
+        console.log(e.target, $(this), this, 'step ' + step , completed, $checklist, checklist);
+        return false;
+    };
+
+    WFChecklist.prototype.html = function(includeWrapper){
+        var idText = this.options.id ? ' id="' + this.options.id + '" ' :'';
+        if(includeWrapper) this.output += '<div class="checklist-container"' + idText + ' data-options=\'' + JSON.stringify(this.options) + '\' data-instance="' + this.instance + '" data-steps=\'' + JSON.stringify(this.steps) + '\'>';
+        if(this.options.showTitle && this.options.title) this.output += this.drawTitle();
+        if(this.options.showCount) this.output += this.drawCount();
+        if(this.options.showBar) this.output += this.drawProgressBar();
+        this.output += this.drawChecklist();
+        if(includeWrapper) this.output += '</div><!--/.checklist-container-->';
+        return this.output;
+    };
+
+    WFChecklist.prototype.drawProgressBar = function(){
+        var percentage = (this.completePercent * 100),
+            output = '<div class="progress-bar-container">';
+        output += '<div class="bar" style="width: ' + percentage + '%"><span class="percentage">' + percentage + '%</span></div>';
+        output += '</div><!--/.progress-bar-->';
+        return output;
+    };
+
+    WFChecklist.prototype.drawTitle = function(){
+        return '<h2><i class="fa fa-list-ul"></i> Checklist: <span class="title">' + this.options.title + '</span></h2>'
+    };
+
+    WFChecklist.prototype.drawCount = function(){
+        var output = '<span class="checklist-counts"><span class="steps-complete-count">' +  this.completeCount  + '</span>/<span class="steps-count">' + this.steps.length + '</span> Complete</span>';
+        return output;
+    };
+
+    WFChecklist.prototype.drawChecklist = function(){
+        var output = '<ul>';
+        for ( var i in this.steps ) {
+            output += '<li class="checklist-entry' + ( this.steps[i].completed ? ' completed':'') + '" data-step="' + (parseInt(i) + 1) + '">';
+            output += '<span class="checkbox-icon">' + ( this.steps[i].completed ? '<i class="fa fa-check-square-o"></i>':'<i class="fa fa-square-o"></i>') + '</span> ';
+            output += '<a href="#">' + this.steps[i].title + '</a>';
+            output += '</li>';
+        }
+
+        output += '</ul>';
+        return output;
+    };
+
+    WFChecklist.prototype.addStep = function(step){
+        if(typeof step.title != 'undefined'){
+            if(typeof step.completed == 'undefined') step.completed = false;
+            this.steps.push(step);
+            this.update();
+        } else {
+            console.error('Error;  Adding step with no title');
+        }
+    };
+
+    WFChecklist.prototype.removeStep = function(stepNum){
+
+        this.update();
+    };
+
+    WFChecklist.prototype.markStepComplete = function(stepNum){
+        var index = stepNum - 1;
+        if(typeof this.steps[index] != 'undefined') {
+            this.steps[index].completed = true;
+            this.update();
+        }
+        return this;
+    };
+
+    WFChecklist.prototype.markStepIncomplete = function(stepNum){
+        var index = stepNum - 1;
+        if(typeof this.steps[index] != 'undefined') {
+            this.steps[index].completed = false;
+            this.update();
+        }
+        return this;
+    };
+
+    function GetWFChecklistById(id){
+        id = id.replace('#','');
+        var $checklist = $("#"+id+".checklist-container");
+        return GetWFChecklistByElement($checklist);
+    }
+
+    function GetWFChecklistByElement($checklist){
+        var instance = parseInt($checklist.attr('data-instance')),
+            steps = JSON.parse($checklist.attr('data-steps')),
+            options = JSON.parse($checklist.attr('data-options')),
+            checklist = new WFChecklist(options, instance)
+            ;
+
+        checklist.steps = steps;
+        console.log(instance, steps, options, checklist);
+        return checklist;
+    }
+
+    WFShortcodeLib.registerTag('checklist', function(options, contents){
+        var delimiter = '||',
+            rawSteps,
+            checklist = new WFChecklist(options);
+        contents = contents ? contents.trim() : '';
+
+        rawSteps = contents.split(delimiter);
+        for ( var i in rawSteps ) checklist.addStep({ title : rawSteps[i] } );
+
+        console.log(checklist);
+        checklist.activate();
+        return checklist.html(true);
+    });
+
+}

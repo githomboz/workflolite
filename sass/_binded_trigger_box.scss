@@ -391,11 +391,11 @@ $alertRed : rgba(208, 106, 106, 1);
         width: 60%;
         height: 350px;
         padding-bottom: $paddingLarge;
+        line-height: 1.3em;
 
         .trigger-type {
           margin-bottom: 2px;
           color: #7b7b7b;
-          line-height: 1.3em;
           font-size: 14px;
 
           .trigger-type-name {
@@ -480,6 +480,11 @@ $alertRed : rgba(208, 106, 106, 1);
               }
             }
           }
+        }
+
+        .main-content-column {
+          overflow: scroll;
+          height: 350px;
         }
 
         .dynamic-content {
@@ -1303,6 +1308,71 @@ $alertRed : rgba(208, 106, 106, 1);
 
     input[type=text] {
       width: 100%;
+    }
+  }
+}
+
+.youtube-iframe {
+  margin-top: .6em;
+}
+
+$barGreen : #92f38b;
+
+.dynamic-content .checklist-container {
+  position: relative;
+  margin: .6em 0 2em;
+
+  h2 {
+
+    .title {
+      color: #fff7b8;
+    }
+
+  }
+
+  .checklist-counts {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+
+  $checklistEntryColor : #fff;
+
+  .checklist-entry {
+    line-height: 1.3em;
+    margin-bottom: .3em;
+
+    a, .fa {
+      color: rgba($checklistEntryColor, .8);
+      cursor: pointer;
+    }
+
+    &.completed a, &.completed .fa  {
+      color: rgba($checklistEntryColor, .5);
+    }
+
+    .fa {
+      padding-right: 6px;
+    }
+
+  }
+
+  .progress-bar-container {
+    position: relative;
+    width: 100%;
+    height: 1.5em;
+    background: rgba(255, 255, 255, .1);
+    margin: .6em 0;
+    text-align: right;
+
+    .bar {
+      background: rgba($barGreen, .4);
+      height: 100%;
+    }
+
+    .percentage {
+      line-height: 1.5em;
+      padding: 0 .35em;
     }
   }
 }

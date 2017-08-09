@@ -43,7 +43,10 @@ abstract class MetaObject
   }
 
   public function ok(){
-    return $this->get() !== null && !$this->errors();
+    $isArray = static::$_type == 'array';
+    $arrayValue = $isArray ? $this->get() : null;
+    $validatedArray = ($isArray && !empty($arrayValue)) || !$isArray;
+    return $this->get() !== null && !$this->errors() && $validatedArray ;
   }
 
   public function errors(){

@@ -1254,6 +1254,25 @@ function save_form(){
           'clientView' => false
         ];
       }
+
+      // Add mapped data to meta array
+      if($issetTriggerConfig){
+        if(isset($triggerData['triggerConfig']['fieldMap'])){
+          $fieldMap = $triggerData['triggerConfig']['fieldMap'];
+          foreach($fieldMap as $fieldMappingAddress => $metaField){
+            foreach($formData as $field => $value){
+              $newFieldName = str_replace(']', '', str_replace('[','___', str_replace('][', '____', $field)));
+              if($newFieldName == $fieldMappingAddress){
+
+                // Map to the meta field
+
+              }
+            }
+          }
+        }
+      }
+
+
       $task->complete();
       $project->setValue('localMetaFields', $localMetaFields)->save('localMetaFields');
       $project->meta()->set('meta', $metaArray)->save('meta');

@@ -44,6 +44,7 @@
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/alertify.min.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/handlebars-v4.0.5.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/standardizr.js"></script>
+  <script type="text/javascript" src="<?php echo base_url('assets/js')?>/wf.shortcodes.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_API.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_CSSOverride.js"></script>
   <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_MessageBox.js"></script>

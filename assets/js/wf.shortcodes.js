@@ -5,31 +5,58 @@
  * License: MIT
  */
 
-var Shortcode = function(tags) {
+var WFShortcodeLib = (function(){
+
+    var _registeredTags = {};
+    var _regex = '\\[{name}(.*?)?\\](?:([\\s\\S]*?)(\\[\/{name}\\]))?';
+
+    function _registerTag(tag, callback){
+        _registeredTags[tag] = callback;
+    }
+
+    function _registerTags(callbacks){
+        for ( var tag in callbacks ) _registerTag(tag, callbacks[tag]);
+    }
+
+    function _getRegisteredTags(){
+        return _registeredTags;
+    }
+
+    function _getRegex(){
+        return _regex;
+    }
+
+    return {
+        registerTag         : _registerTag,
+        registerTags        : _registerTags,
+        getTags             : _getRegisteredTags,
+        getRegex            : _getRegex
+    };
+})();
+
+
+var WFShortcode = function(input) {
     //if (!el) { return; }
 
-    //this.el      = el;
-    this.tags    = tags;
-    this.matches = [];
-    this.regex   = '\\[{name}(.*?)?\\](?:([\\s\\S]*?)(\\[\/{name}\\]))?';
-
-    // if (this.el.jquery) {
-    //     this.el = this.el[0];
-    // }
+    this.matchesProcessed   = false;
+    this.input              = input;
+    this.output             = input;
+    this.matches            = [];
 
     this.matchTags();
-    //this.convertMatchesToNodes();
-    //this.replaceNodes();
+    if( this.matches.length > 0 && !this.matchesProcessed ) this.processTags();
+    return this;
 };
 
-Shortcode.prototype.matchTags = function() {
-    var html = this.el.outerHTML, instances,
+WFShortcode.prototype.matchTags = function() {
+    var input = this.input, _input, instances, tags = WFShortcodeLib.getTags(),
         match, re, contents, regex, tag, options;
 
-    for (var key in this.tags) {
-        if (!this.tags.hasOwnProperty(key)) { return; }
-        re        = this.template(this.regex, { name: key });
-        instances = html.match(new RegExp(re, 'g')) || [];
+    for (var key in tags) {
+        //console.log(key);
+        if (!tags.hasOwnProperty(key)) { return; }
+        re        = this.template(WFShortcodeLib.getRegex(), { name: key });
+        instances = input.match(new RegExp(re, 'g')) || [];
 
         for (var i = 0, len = instances.length; i < len; i++) {
             match = instances[i].match(new RegExp(re));
@@ -37,6 +64,7 @@ Shortcode.prototype.matchTags = function() {
             tag      = match[0];
             regex    = this.escapeTagRegExp(tag);
             options  = this.parseOptions(match[1]);
+            _input    = match[0];
 
             if (match[2]) {
                 contents = match[2].trim();
@@ -46,6 +74,7 @@ Shortcode.prototype.matchTags = function() {
 
             this.matches.push({
                 name: key,
+                input: _input,
                 tag: tag,
                 regex: regex,
                 options: options,
@@ -55,116 +84,40 @@ Shortcode.prototype.matchTags = function() {
     }
 };
 
-// Shortcode.prototype.convertMatchesToNodes = function() {
-//     var html = this.el.innerHTML, excludes, re, replacer;
-//
-//     replacer = function(match, p1, p2, p3, p4, offset, string) {
-//         if (p1) {
-//             return match;
-//         } else {
-//             var node = document.createElement('span');
-//             node.setAttribute('data-sc-tag', this.tag);
-//             node.className = 'sc-node sc-node-' + this.name;
-//             return node.outerHTML;
-//         }
-//     };
-//
-//     for (var i = 0, len = this.matches.length; i < len; i++) {
-//         excludes = '((data-sc-tag=")|(<pre.*)|(<code.*))?';
-//         re       = new RegExp(excludes + this.matches[i].regex, 'g');
-//         html     = html.replace(re, replacer.bind(this.matches[i]));
-//     }
-//
-//     this.el.innerHTML = html;
-// };
-//
-// Shortcode.prototype.replaceNodes = function() {
-//     var self = this, html, match, result, done, node, fn, replacer,
-//         nodes = document.querySelectorAll('.sc-node');
-//
-//     replacer = function(result) {
-//         if (result.jquery) { result = result[0]; }
-//
-//         result = self.parseCallbackResult(result);
-//         node.parentNode.replaceChild(result, node);
-//     };
-//
-//     for (var i = 0, len = this.matches.length; i < len; i++) {
-//         match = this.matches[i];
-//         node  = document.querySelector('.sc-node-' + match.name);
-//
-//         if (node && node.dataset.scTag === match.tag) {
-//             fn     = this.tags[match.name].bind(match);
-//             done   = replacer.bind(match);
-//             result = fn(done);
-//
-//             if (result !== undefined) {
-//                 done(result);
-//             }
-//         }
-//     }
-// };
+WFShortcode.prototype.processTags = function() {
+    var tags = WFShortcodeLib.getTags(), val;
+    for ( var i in this.matches ){
+        // Make sure is callable
+        if(typeof tags[this.matches[i].name] == 'function') {
+            val = tags[this.matches[i].name](this.matches[i].options, this.matches[i].contents);
+            this.output = this.output.replace(this.matches[i].input, val);
+        }
+    }
+    this.matchesProcessed = true;
+};
 
-// Shortcode.prototype.parseCallbackResult = function(result) {
-//     var container, fragment, children;
-//
-//     switch(typeof result) {
-//         case 'function':
-//             result = document.createTextNode(result());
-//             break;
-//
-//         case 'string':
-//             container = document.createElement('div');
-//             fragment  = document.createDocumentFragment();
-//             container.innerHTML = result;
-//             children = container.children;
-//
-//             if (children.length) {
-//                 for (var i = 0, len = children.length; i < len; i++) {
-//                     fragment.appendChild(children[i].cloneNode(true));
-//                 }
-//                 result = fragment;
-//             } else {
-//                 result = document.createTextNode(result);
-//             }
-//             break;
-//
-//         case 'object':
-//             if (!result.nodeType) {
-//                 result = JSON.stringify(result);
-//                 result = document.createTextNode(result);
-//             }
-//             break;
-//
-//         case 'default':
-//             break;
-//     }
-//
-//     return result;
-// };
-
-Shortcode.prototype.parseOptions = function(stringOptions) {
-    var options = {}, set;
+WFShortcode.prototype.parseOptions = function(stringOptions) {
+    var options = {}, _set;
     if (!stringOptions) { return; }
 
-    set = stringOptions
+    _set = stringOptions
         .replace(/(\w+=)/g, '\n$1')
         .split('\n');
-    set.shift();
+    _set.shift();
 
-    for (var i = 0; i < set.length; i++) {
-        var kv = set[i].split('=');
+    for (var i = 0; i < _set.length; i++) {
+        var kv = _set[i].split('=');
         options[kv[0]] = kv[1].replace(/\'|\"/g, '').trim();
     }
 
     return options;
 };
 
-Shortcode.prototype.escapeTagRegExp = function(regex) {
+WFShortcode.prototype.escapeTagRegExp = function(regex) {
     return regex.replace(/[\[\]\/]/g, '\\$&');
 };
 
-Shortcode.prototype.template = function(s, d) {
+WFShortcode.prototype.template = function(s, d) {
     for (var p in d) {
         s = s.replace(new RegExp('{' + p + '}','g'), d[p]);
     }
@@ -173,18 +126,11 @@ Shortcode.prototype.template = function(s, d) {
 
 // Polyfill .trim()
 String.prototype.trim = String.prototype.trim || function () {
-        return this.replace(/^\s+|\s+$/g, '');
-    };
+    return this.replace(/^\s+|\s+$/g, '');
+};
 
-// jQuery plugin wrapper
-if (window.jQuery) {
-    var pluginName = 'shortcode';
-    $.fn[pluginName] = function (tags) {
-        this.each(function() {
-            if (!$.data(this, pluginName)) {
-                $.data(this, pluginName, new Shortcode(this, tags));
-            }
-        });
-        return this;
-    };
+function WFPRocessShortcodes(input){
+    var wfsc = new WFShortcode(input);
+    //console.log(input, wfsc);
+    return wfsc.output;
 }

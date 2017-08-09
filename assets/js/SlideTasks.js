@@ -368,76 +368,88 @@ var SlideTasks = (function(){
     }
 
     function _executeRunFormAjaxCalls(){
+        var embeddedForm = false, task = _task();
+        // Check if embedded
+        console.log(task.data.trigger);
+
+        if(typeof task.data.trigger.embedded != 'undefined'){
+            if(typeof task.data.trigger.embedded.json != 'undefined') embeddedForm = 'json';
+            if(typeof task.data.trigger.embedded.data != 'undefined') embeddedForm = 'data';
+        }
+
+        // If not embedded
+        if(!embeddedForm){
             _incrementTriggerProgress();
-        var
-            routineSlugs = [
-                'validate_dependencies',
-                'validate_form',
-                'render_form'
-            ],
-            _triggerProgress = _getTriggerProgress(),
-            post = {
-                projectId : _CS_Get_Project_ID(),
-                taskTemplateId : $('.dynamic-content').attr('data-task_template_id'),
-                routine : 'step-' + _triggerProgress,
-                slug : routineSlugs[_triggerProgress],
-            };
+            var
+                routineSlugs = [
+                    'validate_dependencies',
+                    'validate_form',
+                    'render_form'
+                ],
+                _triggerProgress = _getTriggerProgress(),
+                post = {
+                    projectId : _CS_Get_Project_ID(),
+                    taskTemplateId : $('.dynamic-content').attr('data-task_template_id'),
+                    routine : 'step-' + _triggerProgress,
+                    slug : routineSlugs[_triggerProgress]
+                };
 
-        CS_API.call('ajax/run_form_routines?jsonOnly=1',
-            function(){
-                // beforeSend
-                BindedBox.disableTraffic();
-                _setTriggerProgress(_triggerProgress, 'doing');
-            },
-            function(data){
-                // success
-                if(data.errors == false && data.response.success){
-                    SlideTasks.validateAndApplyUpdates(data, true);
-                     _setTriggerProgress(_triggerProgress, 'did');
-                    switch (data.response.slug){
-                        case routineSlugs[1]: //'validate_lambda_callback':
-                            //PubSub.publish('queueNextRunFormStep', data.response);
-                            if(data && typeof data.response._json != 'undefined'){
-                                _setTriggerProgress(_triggerProgress + 1, 'did');
-                                //_setTriggerProgress(_triggerProgress + 2, 'did');
-                                var key = md5(data.response._json), formHTML;
-                                CS_FormFly.registerForm( key, { json : JSON.parse(data.response._json ) } );
-                                formHTML = CS_FormFly.getFormByKey(key).getFormHTML();
-                                _FORM_CACHE[post.taskTemplateId] = formHTML;
-                                _setDynamicContent(post.taskTemplateId, _FORM_CACHE[post.taskTemplateId]);
-                                _renderDynamicContentHTML(null, {
-                                    content: _FORM_CACHE[post.taskTemplateId],
-                                    taskId: post.taskTemplateId
-                                });
-                                BindedBox.enableTraffic();
-                            }
+            CS_API.call('ajax/run_form_routines?jsonOnly=1',
+                function(){
+                    // beforeSend
+                    BindedBox.disableTraffic();
+                    _setTriggerProgress(_triggerProgress, 'doing');
+                },
+                function(data){
+                    // success
+                    if(data.errors == false && data.response.success){
+                        SlideTasks.validateAndApplyUpdates(data, true);
+                        _setTriggerProgress(_triggerProgress, 'did');
+                        switch (data.response.slug){
+                            case routineSlugs[1]: //'validate_lambda_callback':
+                                //PubSub.publish('queueNextRunFormStep', data.response);
+                                if(data && typeof data.response._json != 'undefined'){
+                                    _setTriggerProgress(_triggerProgress + 1, 'did');
+                                    //_setTriggerProgress(_triggerProgress + 2, 'did');
+                                    var key = md5(data.response._json), formHTML;
+                                    CS_FormFly.registerForm( key, { json : JSON.parse(data.response._json ) } );
+                                    formHTML = CS_FormFly.getFormByKey(key).getFormHTML();
+                                    _FORM_CACHE[post.taskTemplateId] = formHTML;
+                                    _setDynamicContent(post.taskTemplateId, _FORM_CACHE[post.taskTemplateId]);
+                                    _renderDynamicContentHTML(null, {
+                                        content: _FORM_CACHE[post.taskTemplateId],
+                                        taskId: post.taskTemplateId
+                                    });
+                                    BindedBox.enableTraffic();
+                                }
 
-                            _renderTaskActionBtns();
-                            break;
-                        case routineSlugs[2]: //'execute_lambda_callback':
-                            // _FORM_CACHE[post.taskTemplateId] = data.response._form;
-                            // _setDynamicContent(post.taskTemplateId, _FORM_CACHE[post.taskTemplateId]);
-                            // _renderDynamicContentHTML(null, {content: _FORM_CACHE[post.taskTemplateId]});
-                            break;
+                                _renderTaskActionBtns();
+                                break;
+                            case routineSlugs[2]: //'execute_lambda_callback':
+                                // _FORM_CACHE[post.taskTemplateId] = data.response._form;
+                                // _setDynamicContent(post.taskTemplateId, _FORM_CACHE[post.taskTemplateId]);
+                                // _renderDynamicContentHTML(null, {content: _FORM_CACHE[post.taskTemplateId]});
+                                break;
+                        }
+                    } else {
+                        BindedBox.enableTraffic();
+                        _setTriggerProgress(_triggerProgress, 'doh');
+                        if(data.errors && typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
                     }
-                } else {
+                },
+                function(){
+                    // error
                     BindedBox.enableTraffic();
                     _setTriggerProgress(_triggerProgress, 'doh');
-                    if(data.errors && typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
+                    alertify.error('Error', 'An error has occurred.');
+                },
+                post,
+                {
+                    method: 'POST',
+                    preferCache : false
                 }
-            },
-            function(){
-                // error
-                BindedBox.enableTraffic();
-                _setTriggerProgress(_triggerProgress, 'doh');
-                alertify.error('Error', 'An error has occurred.');
-            },
-            post,
-            {
-                method: 'POST',
-                preferCache : false
-            }
-        );
+            );
+        }
     }
 
     function _executeRunLambdaAjaxCalls(){
@@ -871,8 +883,14 @@ var SlideTasks = (function(){
         BindedBox.setElementHTML('bb_task_h1_group', task.data.taskGroup, $taskTab, 'h1 .group');
         BindedBox.setElementHTML('bb_task_h1_name', task.data.taskName, $taskTab, 'h1 .name');
         BindedBox.setElementHTML('bb_task_status', task.data.status.capitalize(), $taskTab, '.status-info .status');
-        BindedBox.setElementHTML('bb_task_description', task.data.description, $taskTab, '.description');
-        BindedBox.setElementHTML('bb_task_instructions', task.data.instructions, $taskTab, '.instructions');
+        //BindedBox.setElementHTML('bb_task_description', task.data.description, $taskTab, '.description');
+
+        if(_isEmbeddedApplet()){
+            $taskTab.find('.instructions').hide();
+        } else {
+            BindedBox.setElementHTML('bb_task_instructions', WFPRocessShortcodes(task.data.instructions), $taskTab, '.instructions');
+            $taskTab.find('.instructions').show();
+        }
 
         if(hasDependencies){
             var icon = '<i class="fa lock-status ' + (locked ? 'fa-lock':'fa-unlock') + '"></i>';
@@ -1110,6 +1128,30 @@ var SlideTasks = (function(){
         return output;
     }
 
+    function _isEmbeddedForm(){
+        var task = _task(),
+            embeddedForm = false,
+            trigType = typeof task.data.trigger.type != 'undefined' ? task.data.trigger.type : null ;
+
+        if(typeof task.data.trigger.embedded != 'undefined' && trigType == 'form'){
+            if(typeof task.data.trigger.embedded.json != 'undefined') embeddedForm = 'json';
+            if(typeof task.data.trigger.embedded.data != 'undefined') embeddedForm = 'data';
+        }
+        return embeddedForm;
+    }
+
+    function _isEmbeddedApplet(){
+        var task = _task(),
+            embeddedApplet = false,
+            trigType = typeof task.data.trigger.type != 'undefined' ? task.data.trigger.type : null ;
+
+        if(typeof task.data.trigger.embedded != 'undefined' && trigType == 'applet'){
+            if(task.data.trigger.embedded) embeddedApplet = true;
+        }
+        return embeddedApplet;
+    }
+
+
     function _generateWorkTableHTML(){
         var task = _task();
         var html = '';
@@ -1120,11 +1162,39 @@ var SlideTasks = (function(){
             html += _generateDependenciesHTML();
 
 
-            _initializeTriggerProgressData();
+            var embeddedApplet = _isEmbeddedApplet();
+            var embeddedForm = _isEmbeddedForm();
 
-            html += '<div class="task-trigger-steps">';
-            html += _generateTriggerStepsHTML();
-            html += '</div>';
+            if(embeddedForm || embeddedApplet){
+
+                if(embeddedForm){
+                    var key;
+                    switch (embeddedForm){
+                        case 'json':
+                            key = md5(task.data.trigger.embedded.json);
+                            CS_FormFly.registerForm( key, { json : JSON.parse(task.data.trigger.embedded.json ) } );
+                            break;
+                        case 'data':
+                            key = md5(JSON.stringify(task.data.trigger.embedded.data));
+                            CS_FormFly.registerForm( key, { json : task.data.trigger.embedded.data } );
+                            break;
+                    }
+                    html += CS_FormFly.getFormByKey(key).getFormHTML();
+                }
+
+                if(embeddedApplet) {
+                    // Don't really need to do anything except may re-run WFPRocessShortcodes on the content in .instructions.
+                    html += WFPRocessShortcodes(task.data.instructions);
+                }
+
+            } else {
+                _initializeTriggerProgressData();
+
+                html += '<div class="task-trigger-steps">';
+                html += _generateTriggerStepsHTML();
+                html += '</div>';
+
+            }
 
         }
         return html;

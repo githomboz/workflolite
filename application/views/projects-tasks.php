@@ -10,6 +10,7 @@
 
         include_once 'widgets/_task-change-dialog.php';
         //var_dump(WF::GetMetaDataBySlug($this->project, 'job.closingDate'));
+        //var_dump(WF::SetMetaDataBySlug($this->project, 'job.closingDate', '11-12-2017'));
         //var_dump(WF::Add(2, 4, 'a'));
         //var_dump(WF::GenerateCallbackReport($this->project->getTaskByNumber(6)->getValue('dependencies'), $this->project, (string) $this->project->getTaskByNumber(6)->id()));
 //        var_dump(WF::ParseJSArrayFormat([

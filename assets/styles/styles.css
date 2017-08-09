@@ -3683,11 +3683,11 @@ span.checkbox {
     float: left;
     width: 60%;
     height: 350px;
-    padding-bottom: 18px; }
+    padding-bottom: 18px;
+    line-height: 1.3em; }
     .binded-trigger-box .tabbed-content.tasks .task-trigger .trigger-type {
       margin-bottom: 2px;
       color: #7b7b7b;
-      line-height: 1.3em;
       font-size: 14px; }
       .binded-trigger-box .tabbed-content.tasks .task-trigger .trigger-type .trigger-type-name {
         color: #bdbdbd; }
@@ -3738,6 +3738,9 @@ span.checkbox {
           color: #b8928e; }
           .binded-trigger-box .tabbed-content.tasks .task-trigger .bottom-links .ajax-response.error .fa {
             color: #b8464d; }
+    .binded-trigger-box .tabbed-content.tasks .task-trigger .main-content-column {
+      overflow: scroll;
+      height: 350px; }
     .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content {
       position: relative; }
       .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content p {
@@ -4239,5 +4242,41 @@ span.checkbox {
   margin-bottom: 10px; }
   .formfly .field-type-string input[type=text] {
     width: 100%; }
+
+.youtube-iframe {
+  margin-top: .6em; }
+
+.dynamic-content .checklist-container {
+  position: relative;
+  margin: .6em 0 2em; }
+  .dynamic-content .checklist-container h2 .title {
+    color: #fff7b8; }
+  .dynamic-content .checklist-container .checklist-counts {
+    position: absolute;
+    top: 0;
+    right: 0; }
+  .dynamic-content .checklist-container .checklist-entry {
+    line-height: 1.3em;
+    margin-bottom: .3em; }
+    .dynamic-content .checklist-container .checklist-entry a, .dynamic-content .checklist-container .checklist-entry .fa {
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer; }
+    .dynamic-content .checklist-container .checklist-entry.completed a, .dynamic-content .checklist-container .checklist-entry.completed .fa {
+      color: rgba(255, 255, 255, 0.5); }
+    .dynamic-content .checklist-container .checklist-entry .fa {
+      padding-right: 6px; }
+  .dynamic-content .checklist-container .progress-bar-container {
+    position: relative;
+    width: 100%;
+    height: 1.5em;
+    background: rgba(255, 255, 255, 0.1);
+    margin: .6em 0;
+    text-align: right; }
+    .dynamic-content .checklist-container .progress-bar-container .bar {
+      background: rgba(146, 243, 139, 0.4);
+      height: 100%; }
+    .dynamic-content .checklist-container .progress-bar-container .percentage {
+      line-height: 1.5em;
+      padding: 0 .35em; }
 
 /*# sourceMappingURL=styles.css.map */

@@ -70,7 +70,7 @@
       </div>
       <div class="form-group">
         <label for="field-description-<?php echo $template->id() ?>">Description: </label>
-        <textarea id="field-description-<?php echo $template->id() ?>" placeholder="Explain what this task is in layman's terms"><?php echo $template->getValue('description') ?></textarea>
+        <textarea id="field-description-<?php echo $template->id() ?>" placeholder="Explain what this task is in layman's terms (displayed in client portal)"><?php echo $template->getValue('description') ?></textarea>
       </div>
       <div class="form-group">
         <label for="field-instructions-<?php echo $template->id() ?>">Instructions: </label>
@@ -143,7 +143,7 @@
         </div>
         <div class="form-group">
           <label for="field-description-<?php echo $taskTemplateId ?>">Description: </label>
-          <textarea id="field-description-<?php echo $taskTemplateId ?>" placeholder="Explain what this task is in layman's terms"><?php echo $formData['description']; ?></textarea>
+          <textarea id="field-description-<?php echo $taskTemplateId ?>" placeholder="Explain what this task is in layman's terms (displayed in client portal)"><?php echo $formData['description']; ?></textarea>
         </div>
         <div class="form-group">
           <label for="field-instructions-<?php echo $taskTemplateId ?>">Instructions: </label>
