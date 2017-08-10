@@ -530,6 +530,7 @@ $alertRed : rgba(208, 106, 106, 1);
               background: $tabGray;
               float: right;
               width: 50%;
+              padding: $padding;
 
               ol {
                 font-size: 12px;
@@ -1318,7 +1319,7 @@ $alertRed : rgba(208, 106, 106, 1);
 
 $barGreen : #92f38b;
 
-.dynamic-content .checklist-container {
+.checklist-container {
   position: relative;
   margin: .6em 0 2em;
 
@@ -1339,8 +1340,11 @@ $barGreen : #92f38b;
   $checklistEntryColor : #fff;
 
   .checklist-entry {
+    position: relative;
     line-height: 1.3em;
-    margin-bottom: .3em;
+    margin-bottom: .5em;
+    padding-left: 1.5em;
+    font-size: 90%;
 
     a, .fa {
       color: rgba($checklistEntryColor, .8);
@@ -1348,11 +1352,17 @@ $barGreen : #92f38b;
     }
 
     &.completed a, &.completed .fa  {
-      color: rgba($checklistEntryColor, .5);
+      color: rgba($checklistEntryColor, .4);
     }
 
     .fa {
       padding-right: 6px;
+      position: absolute;
+      top: 3px;
+      left: 0;
+
+      &.fa-square-o {
+      }
     }
 
   }

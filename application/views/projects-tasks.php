@@ -420,3 +420,4 @@
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/SlideTasks.js"></script>
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/BindedBoxScreens.js"></script>
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/SlideMetadata.js"></script>
+<script type="text/javascript" src="<?php echo base_url('assets/js')?>/main.trailing.checklist.js"></script>

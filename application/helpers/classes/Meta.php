@@ -47,6 +47,7 @@ class Meta
   }
 
   public function initialize($metaData){
+    //var_dump($metaData);
     $this->_current = $metaData;
     $this->generateMetaDataArray();
     return $this;

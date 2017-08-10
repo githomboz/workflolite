@@ -638,6 +638,8 @@ class Project extends WorkflowFactory
     $meta = $this->meta->getAll(); // Get data from template
     $unset = ['html','hide','multiLine','validation'];
 
+    //var_dump($meta);
+
     foreach($meta as $slug => $metaData){
       foreach($unset as $field){
         if(key_exists($field, $meta[$slug])) {

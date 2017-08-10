@@ -1379,7 +1379,8 @@ textarea {
       .sidepanel .job-meta .meta-pair .array-group input[type=text] {
         width: 45%; }
       .sidepanel .job-meta .meta-pair .meta-title {
-        font-weight: 600; }
+        font-weight: 600;
+        display: block; }
       .sidepanel .job-meta .meta-pair .meta-value {
         color: #7f7f7f; }
         .sidepanel .job-meta .meta-pair .meta-value .fa-pencil {
@@ -3773,7 +3774,8 @@ span.checkbox {
         .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .dependency-list {
           background: #484848;
           float: right;
-          width: 50%; }
+          width: 50%;
+          padding: 10px; }
           .binded-trigger-box .tabbed-content.tasks .task-trigger .dynamic-content .dynamic-content-overlay .dependency-list ol {
             font-size: 12px;
             line-height: 1.4em;
@@ -4246,36 +4248,42 @@ span.checkbox {
 .youtube-iframe {
   margin-top: .6em; }
 
-.dynamic-content .checklist-container {
+.checklist-container {
   position: relative;
   margin: .6em 0 2em; }
-  .dynamic-content .checklist-container h2 .title {
+  .checklist-container h2 .title {
     color: #fff7b8; }
-  .dynamic-content .checklist-container .checklist-counts {
+  .checklist-container .checklist-counts {
     position: absolute;
     top: 0;
     right: 0; }
-  .dynamic-content .checklist-container .checklist-entry {
+  .checklist-container .checklist-entry {
+    position: relative;
     line-height: 1.3em;
-    margin-bottom: .3em; }
-    .dynamic-content .checklist-container .checklist-entry a, .dynamic-content .checklist-container .checklist-entry .fa {
+    margin-bottom: .5em;
+    padding-left: 1.5em;
+    font-size: 90%; }
+    .checklist-container .checklist-entry a, .checklist-container .checklist-entry .fa {
       color: rgba(255, 255, 255, 0.8);
       cursor: pointer; }
-    .dynamic-content .checklist-container .checklist-entry.completed a, .dynamic-content .checklist-container .checklist-entry.completed .fa {
-      color: rgba(255, 255, 255, 0.5); }
-    .dynamic-content .checklist-container .checklist-entry .fa {
-      padding-right: 6px; }
-  .dynamic-content .checklist-container .progress-bar-container {
+    .checklist-container .checklist-entry.completed a, .checklist-container .checklist-entry.completed .fa {
+      color: rgba(255, 255, 255, 0.4); }
+    .checklist-container .checklist-entry .fa {
+      padding-right: 6px;
+      position: absolute;
+      top: 3px;
+      left: 0; }
+  .checklist-container .progress-bar-container {
     position: relative;
     width: 100%;
     height: 1.5em;
     background: rgba(255, 255, 255, 0.1);
     margin: .6em 0;
     text-align: right; }
-    .dynamic-content .checklist-container .progress-bar-container .bar {
+    .checklist-container .progress-bar-container .bar {
       background: rgba(146, 243, 139, 0.4);
       height: 100%; }
-    .dynamic-content .checklist-container .progress-bar-container .percentage {
+    .checklist-container .progress-bar-container .percentage {
       line-height: 1.5em;
       padding: 0 .35em; }
 

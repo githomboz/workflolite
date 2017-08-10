@@ -888,8 +888,9 @@ var SlideTasks = (function(){
         if(_isEmbeddedApplet()){
             $taskTab.find('.instructions').hide();
         } else {
-            BindedBox.setElementHTML('bb_task_instructions', WFPRocessShortcodes(task.data.instructions), $taskTab, '.instructions');
-            $taskTab.find('.instructions').show();
+            //BindedBox.setElementHTML('bb_task_instructions', WFPRocessShortcodes(task.data.instructions), $taskTab, '.instructions');
+            $taskTab.find('.instructions').html(WFPRocessShortcodes(task.data.instructions)).show();
+            PubSub.publish('shortCodes.appliedToHTML');
         }
 
         if(hasDependencies){
@@ -1044,6 +1045,7 @@ var SlideTasks = (function(){
 
         }
         $el.html(content);
+        PubSub.publish('shortCodes.appliedToHTML');
         //BindedBox.setElementHTML('bb_task_dynamic_content', content, $el); // Creates a lag on the next render no matter the task
         return false;
     }
