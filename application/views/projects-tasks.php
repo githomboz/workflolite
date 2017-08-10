@@ -421,3 +421,11 @@
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/BindedBoxScreens.js"></script>
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/SlideMetadata.js"></script>
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/main.trailing.checklist.js"></script>
+
+<script type="text/javascript">
+    function _sidebar_refresh_meta(topic, payload){
+        // Attempt to load sidebar html
+        console.log('Refresh sidebar');
+    }
+    PubSub.subscribe(BindedBox.pubsubRoot + 'state.meta', _sidebar_refresh_meta);
+</script>

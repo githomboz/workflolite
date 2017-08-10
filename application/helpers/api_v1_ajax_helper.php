@@ -1247,7 +1247,7 @@ function save_form(){
         $localMetaFields[] = [
           'field' => 'Task ' . $data['sortOrder'] . ' Form',
           'type' => 'array',
-          'hide' => false,
+          'hide' => true,
           'slug' => $fieldName,
           'multiLine' => true,
           '_' => true,
@@ -1353,7 +1353,7 @@ function update_checklist(){
         $localMetaFields[] = [
           'field' => 'Task ' . $data['sortOrder'] . ' Checklist_' . $data['checklist']['id'],
           'type' => 'array',
-          'hide' => false,
+          'hide' => true,
           'slug' => $fieldName,
           'multiLine' => true,
           '_' => true,

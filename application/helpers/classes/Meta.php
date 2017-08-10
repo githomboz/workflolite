@@ -50,6 +50,7 @@ class Meta
     //var_dump($metaData);
     $this->_current = $metaData;
     $this->generateMetaDataArray();
+    //var_dump($this->_current, $this->_data, $this->_settings);
     return $this;
   }
 

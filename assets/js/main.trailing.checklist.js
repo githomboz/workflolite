@@ -42,7 +42,7 @@ var WFChecklist = function(options, id){
     this.completeCount          = 0;
 
     //console.log('Checklist ' + this.id + ' initialized');
-    if(typeof _METADATA[this.slug] != 'undefined' || !this.loadedFromStore){
+    if(typeof _METADATA[this.slug] != 'undefined'){
         //console.log(this.slug, _METADATA[this.slug]);
         var _metadata = JSON.stringify(_METADATA[this.slug]);
         _metadata = JSON.parse(_metadata);
@@ -53,12 +53,11 @@ var WFChecklist = function(options, id){
         this.loadedFromStore = true;
         //console.log('Loaded from Metadata', this.steps);
         //console.log(_METADATA);
+        this.update();
     } else {
         this.steps                  = [];
         //console.log('No steps loaded yet. Waiting for new steps', this.steps);
     }
-
-    this.update();
 };
 
 WFChecklist.prototype.update = function(){
@@ -128,7 +127,7 @@ WFChecklist.prototype.render = function(){
     this.$checklist = $(this.className + "[data-id=" + this.id + "]");
     if(this.$checklist.length >= 1) {
         this.$checklist.attr('data-task_num', this.taskNum);
-        //this.$checklist.attr('data-steps', JSON.stringify(this.steps));
+        this.$checklist.attr('data-steps', JSON.stringify(this.steps));
         this.$checklist.attr('data-options', JSON.stringify(this.options));
         this.$checklist.html(this.html(false));
         //console.log('showing checklist', this.steps);
@@ -163,7 +162,7 @@ WFChecklist.prototype.html = function(includeWrapper){
         this.output += '" data-options=\'' + JSON.stringify(this.options) + '\' ';
         this.output += 'data-id="' + this.id + '" ';
         this.output += 'data-task_num="' + this.taskNum + '" ';
-        //this.output += 'data-steps=\'' + JSON.stringify(this.steps) + '\'';
+        this.output += 'data-steps=\'' + JSON.stringify(this.steps) + '\'';
         this.output += '>';
     }
     if(this.options.showTitle && this.options.title) this.output += this.drawTitle();
@@ -250,14 +249,15 @@ function GetWFChecklistById(id){
 function GetWFChecklistByElement($checklist){
     //console.log($checklist, typeof $checklist);
     var optionsJSON = $checklist.attr('data-options');
+    var stepsJSON = $checklist.attr('data-steps');
     if(optionsJSON){
         var id = $checklist.attr('data-id'),
-            //steps = JSON.parse(stepsJSON),
+            steps = JSON.parse(stepsJSON),
             options = JSON.parse(optionsJSON),
             checklist = new WFChecklist(options, id)
             ;
 
-        //checklist.steps = steps;
+        checklist.steps = steps;
         //console.log(id, options, checklist);
         return checklist;
     }
@@ -267,12 +267,15 @@ WFShortcodeLib.registerTag('checklist', function(options, contents){
     var id = WFChecklistGenerateId(options.title),
         checklist = new WFChecklist(options, id);
 
+    console.log(checklist, options, contents);
+
     if(!checklist.loadedFromStore) {
         var delimiter = '||',
             rawSteps;
         contents = contents ? contents.trim() : '';
         rawSteps = contents.split(delimiter);
         for ( var i in rawSteps ) checklist.addStep({ title : rawSteps[i] } );
+        checklist.update();
     }
 
     return checklist.html(true);

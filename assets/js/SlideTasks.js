@@ -832,7 +832,7 @@ var SlideTasks = (function(){
             var sameLength = Object.keys(_METADATA).length == Object.keys(data.response.metaUpdates).length,
                 sameValues = JSON.stringify(_METADATA) == JSON.stringify(data.response.metaUpdates);
 
-            // console.log('----test2-----', data);
+            console.log( data.response.metaUpdates );
             BindedBox.stateChange('meta', data.response.metaUpdates);
 
             if(!sameLength || !sameValues){
