@@ -533,6 +533,7 @@ var SlideMetadata = (function(){
                 $btn.html(_METADATA_DATA.selectedDataNew ? options.btnAddTxt : options.btnUpdateTxt);
                 _setMessage('success', payload.fieldData.field + ' updated successfully', 'meta_save');
                 MetaData.setValue(payload.fieldData.slug, payload.fieldData);
+                PubSub.publish(BindedBox.pubsubRoot + 'state.meta');
                 _disableFormSubmit();
             } else {
                 $btn.html((_METADATA_DATA.selectedDataNew ? options.btnAddTxt : options.btnUpdateTxt) + ' &nbsp; <i class="fa fa-exclamation-triangle"></i>');

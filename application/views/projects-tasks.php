@@ -426,6 +426,37 @@
     function _sidebar_refresh_meta(topic, payload){
         // Attempt to load sidebar html
         console.log('Refresh sidebar');
+        CS_API.call('ajax/get_sidebar_metadata',
+          function(){
+              // beforeSend
+          },
+          function(data){
+              // success
+              if(data.errors == false && data.response.success){
+                  SlideTasks.validateAndApplyUpdates(data, true);
+                  if(typeof data.response.html != 'undefined') {
+                      $(".sidepanel .panel.metadata-panel").html(data.response.html);
+                  }
+                  //BindedBox.enableTraffic();
+              } else {
+                  //BindedBox.enableTraffic();
+                  if(data.errors && typeof data.errors[0] != 'undefined') alertify.error(data.errors[0]);
+              }
+          },
+          function(){
+              // error
+              //BindedBox.enableTraffic();
+              alertify.error('Error', 'An error has occurred.');
+          },
+          {
+              projectId: _CS_Get_Entity_ID()
+          },
+          {
+              method: 'POST',
+              preferCache : false
+          }
+        );
+
     }
     PubSub.subscribe(BindedBox.pubsubRoot + 'state.meta', _sidebar_refresh_meta);
 </script>

@@ -1175,6 +1175,7 @@ function save_meta_field(){
 
       // Save value to project
       $project->meta()->set('meta', $metaArray)->save('meta');
+      $response['response']['metaUpdates'] = $project->getMetaArray();
       $response['response']['success'] = true;
     } else {
       if(!is_array($response['errors'])) $response['errors'] = [];
@@ -1393,5 +1394,30 @@ function update_checklist_args_map(){
 // Field names of fields required
 function update_checklist_required_fields(){
   return array('projectId','taskId','sortOrder','checklist');
+}
+
+function get_sidebar_metadata(){
+  $response = _api_template();
+  $args = func_get_args();
+  $data = _api_process_args($args, __FUNCTION__);
+  if(isset($data['_errors']) && is_array($data['_errors'])) $response['errors'] = $data['_errors'];
+
+  $project = Project::Get($data['projectId']);
+
+  $html = get_include(APPPATH . 'views/widgets/_sidebar-meta-inner-include.php', ['entity' => $project], true);
+  $response['response']['html'] = $html;
+  $response['response']['success'] = true;
+  $response['recordCount'] = 0;
+  return $response;
+}
+
+// Required to show name and order of arguments when using /arg1/arg2/arg3 $_GET format
+function get_sidebar_metadata_args_map(){
+  return array('projectId');
+}
+
+// Field names of fields required
+function get_sidebar_metadata_required_fields(){
+  return array('projectId');
 }
 
