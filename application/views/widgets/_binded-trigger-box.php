@@ -38,7 +38,7 @@
           <span class="status-info"><span class="status"></span></span>
           <div class="task-trigger">
             <div class="trigger-type"><span class="trigger-type-name"></span> | <span class="trigger-type-desc"></span></div>
-            <h1>#<span class="num"></span>) <span class="group"></span>: <span class="icon"></span> <span class="name"></span></h1>
+            <h1 class="task-name">#<span class="num"></span>) <span class="group"></span>: <span class="icon"></span> <span class="name"></span></h1>
             <div class="main-content-column">
               <div class="instructions"></div>
               <div class="dynamic-content" data-task_template_id=""></div>

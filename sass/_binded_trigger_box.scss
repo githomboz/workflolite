@@ -389,9 +389,10 @@ $alertRed : rgba(208, 106, 106, 1);
       .task-trigger {
         float: left;
         width: 60%;
-        height: 350px;
-        padding-bottom: $paddingLarge;
+        min-height: 350px;
+        //padding-bottom: $paddingLarge;
         line-height: 1.3em;
+        overflow: hidden;
 
         .trigger-type {
           margin-bottom: 2px;

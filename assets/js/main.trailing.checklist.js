@@ -77,7 +77,7 @@ WFChecklist.prototype.update = function(){
 
 WFChecklist.prototype.activate = function(){
     if(!WFChecklistActive) {
-        console.log('activating this here');
+        //console.log('activating this here');
         WFChecklistActive = true;
         $(document).on('click', this.className + ' .checklist-entry a, ' + this.className + ' .checklist-entry .fa', this.handleListClick);
     }
@@ -144,8 +144,8 @@ WFChecklist.prototype.handleListClick = function(e){
         completed = $li.is('.completed'),
         $checklist = $li.parents( WFChecklistClass );
 
-    console.log('==== CLICK CAPTURED ====');
-    console.log(e.target, $(this), this, 'step ' + step , completed, $checklist);
+    //console.log('==== CLICK CAPTURED ====');
+    //console.log(e.target, $(this), this, 'step ' + step , completed, $checklist);
     var checklist = GetWFChecklistByElement($checklist);
     //console.log(checklist);
 
@@ -267,7 +267,7 @@ WFShortcodeLib.registerTag('checklist', function(options, contents){
     var id = WFChecklistGenerateId(options.title),
         checklist = new WFChecklist(options, id);
 
-    console.log(checklist, options, contents);
+    //console.log(checklist, options, contents);
 
     if(!checklist.loadedFromStore) {
         var delimiter = '||',
@@ -284,7 +284,7 @@ WFShortcodeLib.registerTag('checklist', function(options, contents){
 function WFChecklistRedraw(){
     // Find all checklists in dom
     var $checklists = $(WFChecklistClass);
-    if($checklists.length == 0) console.log('==== CHECKLISTS REDRAW IGNORED ===='); else console.log('==== ' + $checklists.length + ' CHECKLISTS FOUND. INITIALIZING ====');
+    //if($checklists.length == 0) console.log('==== CHECKLISTS REDRAW IGNORED ===='); else console.log('==== ' + $checklists.length + ' CHECKLISTS FOUND. INITIALIZING ====');
     $checklists.each(function(index, item){
         var $checklist = $(item),
             id = $checklist.attr('id'),

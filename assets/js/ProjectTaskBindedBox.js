@@ -94,9 +94,11 @@ var BindedBox = (function(){
             slideNavWidth : dimensions.slideNavWidth
         };
 
+        console.log('trigger resize', payload);
+
         payload.newTaskTabHeight = payload.boxOuterHeight - payload.headerOuterHeight - payload.actionBtnHeight - (payload.padding * 3) - 2;
-        payload.tabContainerWidth = payload.boxOuterWidth - payload.slideNavWidth - (payload.padding * 2) - 2;
-        payload.preElementHeight = payload.newTaskTabHeight - (payload.padding * 4) - 6;
+        payload.tabContainerWidth = ( payload.boxOuterWidth - ( payload.slideNavWidth + (payload.padding * 2) + 2)) + 9;
+        payload.preElementHeight = payload.newTaskTabHeight - (payload.padding * 4) - 5;
 
         // Only resize if data has changed
         __CURRENT.__PROJECT.dimensions = typeof __CURRENT.__PROJECT.dimensions == 'undefined' ? null : __CURRENT.__PROJECT.dimensions;
@@ -116,6 +118,20 @@ var BindedBox = (function(){
             var $tabContainer = $bindedBox.find('.tabbed-content-container'),
                 $taskTab = $bindedBox.find('.tabbed-content');
 
+            var mainColDimensions = {
+                triggerTypeDescriptionHeight : $taskTab.find('.trigger-type').outerHeight(),
+                taskNameHeight : $taskTab.find('h1.task-name').outerHeight(),
+                taskTriggerHeight : payload.newTaskTabHeight - 20,
+                mainContentColumnHeight : 0,
+                taskInsetWidth : $taskTab.find('.task-inset').outerWidth(),
+                taskTriggerWidth : 0
+            };
+
+            mainColDimensions.mainContentColumnHeight = mainColDimensions.taskTriggerHeight - (mainColDimensions.triggerTypeDescriptionHeight + mainColDimensions.taskNameHeight)
+            mainColDimensions.taskTriggerWidth = payload.tabContainerWidth - (mainColDimensions.taskInsetWidth + 42);
+
+            console.log(mainColDimensions);
+
             $tabContainer.css({width : payload.tabContainerWidth});
 
             $taskTab.css({height : payload.newTaskTabHeight});
@@ -123,8 +139,11 @@ var BindedBox = (function(){
             $taskTab.find('.column-details.meta').css({height : (payload.newTaskTabHeight - 53)});
             $taskTab.find('.meta-fields .entries').css({maxHeight : (payload.newTaskTabHeight - 78)});
             $taskTab.find('.task-inset .inset-tab').css({height: payload.preElementHeight});
+            $taskTab.find('.task-trigger').css({height: (payload.newTaskTabHeight - 20), width: mainColDimensions.taskTriggerWidth});
+            $taskTab.find('.main-content-column').css({height: (mainColDimensions.mainContentColumnHeight)});
 
             __addResponse(reqId, 'Binded box resized');
+            console.log('trigger resize', payload);
         } else {
             __addResponse(reqId, 'Dimensions have not changed');
         }

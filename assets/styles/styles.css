@@ -3683,9 +3683,9 @@ span.checkbox {
   .binded-trigger-box .tabbed-content.tasks .task-trigger {
     float: left;
     width: 60%;
-    height: 350px;
-    padding-bottom: 18px;
-    line-height: 1.3em; }
+    min-height: 350px;
+    line-height: 1.3em;
+    overflow: hidden; }
     .binded-trigger-box .tabbed-content.tasks .task-trigger .trigger-type {
       margin-bottom: 2px;
       color: #7b7b7b;
