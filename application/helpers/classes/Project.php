@@ -41,6 +41,7 @@ class Project extends WorkflowFactory
   public function __construct($data)
   {
     if(is_array($data)){
+      //var_dump($data);
       parent::__construct();
       $this->_initialize($data);
       $this->meta = new Meta($data['meta'], $this);
@@ -635,7 +636,7 @@ class Project extends WorkflowFactory
   }
 
   public function getMetaArray(){
-    $meta = $this->meta->getAll(); // Get data from template
+    $meta = $this->getMeta(); // Get data from template
     $unset = ['html','hide','multiLine','validation'];
 
     //var_dump($meta);

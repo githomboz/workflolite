@@ -72,7 +72,7 @@
       CS_EditableContentDivs.init();
 
   </script>
-<?php echo get_registered_scripts_tags(false); ?>
+<?php //echo get_registered_scripts_tags(false); ?>
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/CS_JobsViewer.js"></script>
 <script type="text/javascript" src="<?php echo base_url('assets/js')?>/main.trailing.js"></script>
 </html>
